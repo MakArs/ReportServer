@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ReportService.Interfaces;
 
 namespace ReportService.Models
@@ -13,7 +9,7 @@ namespace ReportService.Models
         private IDataExecutor DataEx;
         private IViewExecutor ViewEx;
         private IPostMaster PostMaster;
-        // TODO: addschedule
+        // TODO: addschedule templates
 
         public Logic(IConfig config, IDataExecutor dataEx, IViewExecutor viewEx, IPostMaster postMaster)
         {
@@ -33,14 +29,14 @@ namespace ReportService.Models
                 {
                     var repInstance = DataEx.Execute(task.Query);
                     var viewInstance = ViewEx.Execute(task.ViewID, repInstance);
-                    if (task.ScheduleID > 0) PostMaster.Send(viewInstance);//+do
+                    if (task.ScheduleID > 0) PostMaster.Send(viewInstance);//+TODO: realize schedule templates
                 }
             }
         }
 
         public void Stop()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); //TODO: some stop logic(?)
         }
     }
 }

@@ -8,11 +8,11 @@ namespace ReportService.Models
     public class Config : IConfig
     {
         public List<ReportTask> Tasks { get; private set; }
-        private string connStr =@""; //+connstr
-        
+        private string connStr = @""; //TODO: add connstr
+
         public Config()
         {
-            Tasks = SimpleCommand.ExecuteQuery<ReportTask>(connStr, @"select * from tasks").ToList();//+test
+            Tasks = SimpleCommand.ExecuteQuery<ReportTask>(connStr, @"select * from tasks").ToList();//TODO: test on database
         }
 
         public void Reload()
@@ -21,9 +21,9 @@ namespace ReportService.Models
             Tasks = SimpleCommand.ExecuteQuery<ReportTask>(connStr, @"select * from tasks").ToList();
         }
 
-        public int CreateInstance(int taskID, string json, string html)
+        public int SaveInstance(int taskID, string json, string html)
         {
-            string t = SimpleCommand.ExecuteQueryFirstColumn<string>(connStr,
+            var t = SimpleCommand.ExecuteQueryFirstColumn(connStr,
                  $@"INSERT INTO Instance
                   (TaskId,
                     Data,
@@ -33,9 +33,9 @@ namespace ReportService.Models
                     values ({taskID},
                     '{json}',
                     '{html}',
-                    getdate());  select scope_identity() ")
-                    .First();
-            return SimpleCommand.ExecuteQuery<int>(connStr, @"select max(id) from instance").ToArray().First();//+test
+                    getdate());")
+                    ;
+            return SimpleCommand.ExecuteQuery<int>(connStr, @"select max(id) from instance").ToArray().First();//TODO: test on database
         }
 
         public List<ReportTask> GetTasks()

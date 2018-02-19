@@ -4,12 +4,12 @@ namespace ReportService.Models
 {
     public class ViewExecutor : IViewExecutor
     {
-        //+addtemplates
+        //TODO: add view templates 
         public ViewExecutor() { }
 
         public string Execute(int viewTemplate, string json)
         {
-            return json.ToString();//+do
+            return json.ToString();//+convert json to html table
         }
     }
 }

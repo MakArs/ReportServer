@@ -12,7 +12,7 @@ namespace ReportService.Interfaces
 
     public interface IConfig
     {
-        int CreateInstance(int taskID, string json, string html);
+        int SaveInstance(int taskID, string json, string html);
         void Reload();
         List<ReportTask> GetTasks();
     }
