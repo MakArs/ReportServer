@@ -27,8 +27,8 @@ namespace ReportService.Models
 
                 foreach (ReportTask task in config_.GetTasks())
                 {
-                    var repInstance = DataEx.Execute(task.Query);
-                    var viewInstance = ViewEx.Execute(task.ViewID, repInstance);
+                    var repInstance = DataEx.Execute(task.SendAddress);
+                    var viewInstance = ViewEx.Execute(task.ViewTemplateID, repInstance);
                     if (task.ScheduleID > 0) PostMaster.Send(viewInstance);//+TODO: realize schedule templates
                 }
             }

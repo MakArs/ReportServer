@@ -4,9 +4,9 @@ namespace ReportService.Interfaces
 {
     public class ReportTask
     {
-        public int TaskID { get; set; }
-        public string Query { get; set; }
-        public int ViewID { get; set; }
+        public int ID { get; set; }
+        public string SendAddress { get; set; }
+        public int ViewTemplateID { get; set; }
         public int ScheduleID { get; set; }
     }
 

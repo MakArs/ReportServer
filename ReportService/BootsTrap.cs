@@ -11,7 +11,7 @@ namespace ReportService
         public static void Init()
         {
             var builder = new ContainerBuilder();
-            builder.RegisterType<Config>()
+            builder.RegisterType<ConfigTest>()
                 .As<IConfig>()
                 .SingleInstance();
 
