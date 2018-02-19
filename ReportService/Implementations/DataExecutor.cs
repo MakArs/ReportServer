@@ -13,7 +13,7 @@ namespace ReportService.Models
 
         public string Execute(string query)
         {
-            var data = SimpleCommand.ExecuteQuery(connStr, query).ToArray(); // TODO: test on DataBase
+            var data = SimpleCommand.ExecuteQuery(connStr, query).ToArray(); // TODO: test on DataBase. (?needs stored procs that will automatically give tables)
             return data.ToString(); // TODO: json serialize(?)
         }
     }
