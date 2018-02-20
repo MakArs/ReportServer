@@ -1,6 +1,6 @@
 ﻿using Autofac;
+using ReportService.Implementations;
 using ReportService.Interfaces;
-using ReportService.Models;
 
 namespace ReportService
 {
@@ -15,13 +15,18 @@ namespace ReportService
                 .As<IConfig>()
                 .SingleInstance();
 
-            builder.RegisterType<DataExecutor>()
+            builder.RegisterType<DataExecutorTest>()
                 .As<IDataExecutor>()
                 .SingleInstance();
 
             builder.RegisterType<ViewExecutor>()
                 .As<IViewExecutor>()
                 .SingleInstance();
+
+            builder.RegisterType<PostMasterTest>()
+                .As<IPostMaster>()
+                .SingleInstance();
+
 
             builder.RegisterType<Logic>()
                 .As<ILogic>()

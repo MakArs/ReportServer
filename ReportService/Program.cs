@@ -9,19 +9,21 @@ namespace ReportService
         static void Main(string[] args)
         {
             BootsTrap.Init();
-            //ILogic logic = BootsTrap.Container.Resolve<ILogic>();
+            var cont = BootsTrap.Container;
 
-            IConfig conf = BootsTrap.Container.Resolve<IConfig>();
-            foreach (var l in conf.GetTasks()) Console.WriteLine($"Task number {l.ID}, schedule {l.ScheduleID},view template {l.ViewTemplateID},email {l.SendAddress}");
-            Console.WriteLine("reloading tasks...");
-            conf.Reload();
-            foreach (var l in conf.GetTasks())
-            {
-                Console.WriteLine($"Task number {l.ID}, schedule {l.ScheduleID},view template {l.ViewTemplateID},email {l.SendAddress}");
-                Console.WriteLine(conf.SaveInstance(l.ID, $"json{l.ID}", $"html{l.ID}"));
-            }
+            IPostMaster post = cont.Resolve<IPostMaster>();
+            post.Send("<><>><>>fgsdfgsdgsd");
+
+            //IDataExecutor dataex = cont.Resolve<IDataExecutor>();
+
+            //var js = dataex.Execute("select * from instance");
+
+            //IViewExecutor view = cont.Resolve<IViewExecutor>();
+
+            //view.Execute(1,js);
 
             Console.ReadLine();
         }
     }
 }
+

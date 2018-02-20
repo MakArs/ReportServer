@@ -1,20 +1,39 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
 using Gerakul.FastSql;
+using Newtonsoft.Json;
 using ReportService.Interfaces;
 
-namespace ReportService.Models
+namespace ReportService.Implementations
 {
-    public class DataExecutor : IDataExecutor
+    public class DataExecutorTest : IDataExecutor
     {
-        private string connStr = @"";
+        private string connStr = @"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True";
 
-        public DataExecutor()
+        public DataExecutorTest()
         { }
 
         public string Execute(string query)
         {
-            var data = SimpleCommand.ExecuteQuery(connStr, query).ToArray(); // TODO: test on DataBase. (?needs stored procs that will automatically give tables)
-            return data.ToString(); // TODO: json serialize(?)
+            var queryResult = new List<Dictionary<string, object>>();
+
+            SqlScope.UsingConnection(connStr, scope =>
+            {
+                using (var reader = scope.CreateSimple($"{query}").ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var fields = new Dictionary<string, object>();
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                            fields.Add(reader.GetName(i), reader[i]);
+
+                        queryResult.Add(fields);
+                    }
+                }
+            });
+
+            string jsString = JsonConvert.SerializeObject(queryResult);
+            return jsString;
         }
     }
 }

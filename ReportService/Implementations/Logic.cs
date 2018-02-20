@@ -1,22 +1,22 @@
 ﻿using System;
 using ReportService.Interfaces;
 
-namespace ReportService.Models
+namespace ReportService.Implementations
 {
     public class Logic : ILogic
     {
         private IConfig config_;
-        private IDataExecutor DataEx;
-        private IViewExecutor ViewEx;
-        private IPostMaster PostMaster;
+        private IDataExecutor dataExecutor_;
+        private IViewExecutor viewExecutor_;
+        private IPostMaster postMaster_;
         // TODO: addschedule templates
 
         public Logic(IConfig config, IDataExecutor dataEx, IViewExecutor viewEx, IPostMaster postMaster)
         {
             config_ = config;
-            DataEx = dataEx;
-            ViewEx = viewEx;
-            PostMaster = postMaster;
+            dataExecutor_ = dataEx;
+            viewExecutor_ = viewEx;
+            postMaster_ = postMaster;
         }
 
         public void Execute()
@@ -27,16 +27,20 @@ namespace ReportService.Models
 
                 foreach (ReportTask task in config_.GetTasks())
                 {
-                    var repInstance = DataEx.Execute(task.SendAddress);
-                    var viewInstance = ViewEx.Execute(task.ViewTemplateID, repInstance);
-                    if (task.ScheduleID > 0) PostMaster.Send(viewInstance);//+TODO: realize schedule templates
+                    var jsonString = dataExecutor_.Execute(task.SendAddress);
+                    var htmlString = viewExecutor_.Execute(task.ViewTemplateID, jsonString);
+
+                    // TODO: realize schedule templates
+                    if (task.ScheduleID > 0)
+                        postMaster_.Send(htmlString);
                 }
             }
         }
 
         public void Stop()
         {
-            throw new NotImplementedException(); //TODO: some stop logic(?)
+            // TODO: some stop logic(?)
+            throw new NotImplementedException();
         }
     }
 }

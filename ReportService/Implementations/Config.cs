@@ -3,7 +3,7 @@ using System.Linq;
 using Gerakul.FastSql;
 using ReportService.Interfaces;
 
-namespace ReportService.Models
+namespace ReportService.Implementations
 {
     public class ConfigTest : IConfig
     {
@@ -36,7 +36,6 @@ namespace ReportService.Models
                     {taskID},
                     getdate()); select cast(scope_identity() as int)")
                     .First();//TODO: test on database with json+html formats; 
-
         }
 
         public List<ReportTask> GetTasks()
