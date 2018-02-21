@@ -32,7 +32,7 @@ namespace ReportService.Implementations
 
                     // TODO: realize schedule templates
                     if (task.ScheduleID > 0)
-                        postMaster_.Send(htmlString);
+                        postMaster_.Send(htmlString,"");
                 }
             }
         }

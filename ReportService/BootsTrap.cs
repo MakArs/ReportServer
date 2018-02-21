@@ -23,7 +23,7 @@ namespace ReportService
                 .As<IViewExecutor>()
                 .SingleInstance();
 
-            builder.RegisterType<PostMasterTest>()
+            builder.RegisterType<PostMasterWork>()
                 .As<IPostMaster>()
                 .SingleInstance();
 

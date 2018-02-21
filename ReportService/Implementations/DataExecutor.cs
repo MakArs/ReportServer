@@ -14,9 +14,27 @@ namespace ReportService.Implementations
 
         public string Execute(string query)
         {
+            //string jsString = "";
+
+            //    SqlScope.UsingConnection(connStr, scope =>
+            //    {
+            //        using (var reader = scope.CreateSimple($"{query}").ExecuteReader())
+            //        {
+            //            while (reader.Read())
+            //            {
+            //                var fields = new Dictionary<string, object>();
+
+            //                for (int i = 0; i < reader.FieldCount; i++)
+            //                    fields.Add(reader.GetName(i), reader[i]);
+
+            //                jsString += JsonConvert.SerializeObject(fields);
+            //            }
+            //        }
+            //    });
+
             var queryResult = new List<Dictionary<string, object>>();
 
-            SqlScope.UsingConnection(connStr, scope =>
+        SqlScope.UsingConnection(connStr, scope =>
             {
                 using (var reader = scope.CreateSimple($"{query}").ExecuteReader())
                 {
@@ -24,15 +42,16 @@ namespace ReportService.Implementations
                     {
                         var fields = new Dictionary<string, object>();
 
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        for (int i = 0; i<reader.FieldCount; i++)
                             fields.Add(reader.GetName(i), reader[i]);
 
                         queryResult.Add(fields);
                     }
-                }
+}
             });
 
             string jsString = JsonConvert.SerializeObject(queryResult);
+
             return jsString;
         }
     }
