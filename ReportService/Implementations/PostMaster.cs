@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Mail;
 using ReportService.Interfaces;
 using System.Configuration;
-using System.Collections.Specialized;
 
 namespace ReportService.Implementations
 {
@@ -24,13 +23,14 @@ namespace ReportService.Implementations
 
             Console.WriteLine($"file {filename} saved to disk...");
         }
-    }
+    } //saving at disk
 
     class PostMasterWork : IPostMaster
     {
         MailMessage msg = new MailMessage();
         SmtpClient client = new SmtpClient("smtp.mail.ru", 587);
 
+        // TODO: add subject generation,change adress
         public void Send(string report, string address)
         {
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
@@ -38,13 +38,15 @@ namespace ReportService.Implementations
             msg.Subject = "Testing";
             msg.IsBodyHtml = true;
             msg.Body= report;
+
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
             client.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["from"], ConfigurationManager.AppSettings["pass"]);
+
             try
             {
                 client.Send(msg);
-                Console.WriteLine( "Mail has been successfully sent!");
+                Console.WriteLine( $"Mail to {address} has been successfully sent!");
             }
             catch (Exception ex)
             {

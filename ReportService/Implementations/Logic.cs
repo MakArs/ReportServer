@@ -9,7 +9,6 @@ namespace ReportService.Implementations
         private IDataExecutor dataExecutor_;
         private IViewExecutor viewExecutor_;
         private IPostMaster postMaster_;
-        // TODO: addschedule templates
 
         public Logic(IConfig config, IDataExecutor dataEx, IViewExecutor viewEx, IPostMaster postMaster)
         {

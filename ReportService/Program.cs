@@ -18,8 +18,12 @@ namespace ReportService
 
             IViewExecutor view = cont.Resolve<IViewExecutor>();
 
-            IPostMaster post = cont.Resolve<IPostMaster>();
-            post.Send(view.Execute(1, js), "anikeev@smartdriving.io");
+            //IPostMaster post = cont.Resolve<IPostMaster>();
+            //post.Send(view.Execute(1, js), "anikeev@smartdriving.io");
+
+            IHostHolder host = cont.Resolve<IHostHolder>();
+
+            host.Start();
 
             Console.ReadLine();
         }

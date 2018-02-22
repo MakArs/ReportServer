@@ -8,23 +8,28 @@ namespace ReportService.Implementations
     public class HostHolder : IHostHolder
     {
         private NancyHost nanHost = new NancyHost(new Uri($"http://localhost:12345/"));
+
+        public HostHolder() { }
+
         public void Start()
         {
             nanHost.Start();
         }
+
 
         public void Stop()
         {
             nanHost.Stop();
         }
     }
-    public class ReportStatusModule : NancyModule //TODO: add query or html page to constructor
+
+    public class ReportStatusModule : NancyModule 
     {
-        public ReportStatusModule()
+        public ReportStatusModule(IViewExecutor someView,IDataExecutor someData,IConfig conf)
         {
             Get["/reports"] = parameters =>
             {
-                return $"some view  logic";
+                return $"{someView.Execute(1,someData.Execute("select * from instance"))}";
             };
         }
     }

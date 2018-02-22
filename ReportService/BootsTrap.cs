@@ -27,6 +27,10 @@ namespace ReportService
                 .As<IPostMaster>()
                 .SingleInstance();
 
+            builder.RegisterType<HostHolder>()
+                .As<IHostHolder>()
+                .SingleInstance();
+
 
             builder.RegisterType<Logic>()
                 .As<ILogic>()

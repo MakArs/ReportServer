@@ -7,48 +7,30 @@ namespace ReportService.Implementations
 {
     public class DataExecutorTest : IDataExecutor
     {
-        private string connStr = @"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True";
+        private string connStr = @"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True"; // TODO: change connstring
 
         public DataExecutorTest()
         { }
 
         public string Execute(string query)
         {
-            //string jsString = "";
-
-            //    SqlScope.UsingConnection(connStr, scope =>
-            //    {
-            //        using (var reader = scope.CreateSimple($"{query}").ExecuteReader())
-            //        {
-            //            while (reader.Read())
-            //            {
-            //                var fields = new Dictionary<string, object>();
-
-            //                for (int i = 0; i < reader.FieldCount; i++)
-            //                    fields.Add(reader.GetName(i), reader[i]);
-
-            //                jsString += JsonConvert.SerializeObject(fields);
-            //            }
-            //        }
-            //    });
-
             var queryResult = new List<Dictionary<string, object>>();
 
-        SqlScope.UsingConnection(connStr, scope =>
-            {
-                using (var reader = scope.CreateSimple($"{query}").ExecuteReader())
+            SqlScope.UsingConnection(connStr, scope =>
                 {
-                    while (reader.Read())
+                    using (var reader = scope.CreateSimple($"{query}").ExecuteReader())
                     {
-                        var fields = new Dictionary<string, object>();
+                        while (reader.Read())
+                        {
+                            var fields = new Dictionary<string, object>();
 
-                        for (int i = 0; i<reader.FieldCount; i++)
-                            fields.Add(reader.GetName(i), reader[i]);
+                            for (int i = 0; i < reader.FieldCount; i++)
+                                fields.Add(reader.GetName(i), reader[i]);
 
-                        queryResult.Add(fields);
+                            queryResult.Add(fields);
+                        }
                     }
-}
-            });
+                });
 
             string jsString = JsonConvert.SerializeObject(queryResult);
 
