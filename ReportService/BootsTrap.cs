@@ -1,46 +1,66 @@
 ﻿using Autofac;
+using Autofac.Core;
+using Nancy;
+using Nancy.Bootstrapper;
+using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
 
 namespace ReportService
 {
-    class BootsTrap
+    public class Bootstrapper : AutofacNancyBootstrapper
     {
-        public static IContainer Container { get; set; }
-
-        public static void Init()
+        protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterType<ConfigTest>()
-                .As<IConfig>()
-                .SingleInstance();
+            // No registrations should be performed in here, however you may
+            // resolve things that are needed during application startup.
+        }
 
-            builder.RegisterType<DataExecutorTest>()
-                .As<IDataExecutor>()
-                .SingleInstance();
+        protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
+        {
+            // Perform registration that should have an application lifetime
+            existingContainer.Update(builder => builder
+                        .RegisterType<ConfigTest>()
+                        .As<IConfig>()
+                        .SingleInstance());
 
-            builder.RegisterType<ViewExecutor>()
-                .As<IViewExecutor>()
-                .SingleInstance();
+            existingContainer.Update(builder => builder
+                        .RegisterType<DataExecutorTest>()
+                        .As<IDataExecutor>()
+                        .SingleInstance());
 
-            builder.RegisterType<PostMasterWork>()
-                .As<IPostMaster>()
-                .SingleInstance();
+            existingContainer.Update(builder => builder
+                        .RegisterType<ViewExecutor>()
+                        .As<IViewExecutor>()
+                        .SingleInstance());
 
-            builder.RegisterType<HostHolder>()
-                .As<IHostHolder>()
-                .SingleInstance();
+            existingContainer.Update(builder => builder
+                        .RegisterType<PostMasterWork>()
+                        .As<IPostMaster>()
+                        .SingleInstance());
 
-            builder.RegisterType<Logic>()
-                .As<ILogic>()
-                .SingleInstance();
+            existingContainer.Update(builder => builder
+                        .RegisterType<Logic>()
+                        .As<ILogic>()
+                        .SingleInstance());
 
-            builder.RegisterType<RTask>()
-                .As<IRTask>();
+            existingContainer.Update(builder => builder
+                                    .RegisterType<RTask>()
+                                    .As<IRTask>());
 
-            builder.Register(c => Container);
+            existingContainer.Update(builder => builder
+                                   .Register(c => existingContainer));
+        }
 
-            Container = builder.Build();
+        protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
+        {
+            // Perform registrations that should have a request lifetime
+        }
+
+        protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines, NancyContext context)
+        {
+            // No registrations should be performed in here, however you may
+            // resolve things that are needed during request startup.
         }
     }
 }

@@ -18,31 +18,22 @@ namespace ReportService.Implementations
             nanHost.Start();
         }
 
-
         public void Stop()
         {
             nanHost.Stop();
         }
     }
 
-    public class Bootstrapper : AutofacNancyBootstrapper
-    {
-        protected override void ConfigureApplicationContainer(ILifetimeScope container)
-        {
-            container.Update(builder => builder.RegisterType<Logic>().As<ILogic>().SingleInstance());
-        }
-    }
-
-
     public class ReportStatusModule : NancyModule
     {
-        public ReportStatusModule(IViewExecutor someView, IDataExecutor someData, IConfig conf,ILogic logic)
+        public ReportStatusModule(IViewExecutor someView, IDataExecutor someData, IConfig conf, ILogic logic)
         {
+
             Get["/reports"] = parameters =>
             {
                 return $"{someView.Execute(1, someData.Execute("select * from instance"))}";
             };
-            Put["/send/{id:int}"] = parameters =>
+            Get["/send/{id:int}"] = parameters =>
             {
                 return $"Reports {logic.ForceExecute(parameters.id)} was sended!";
             };

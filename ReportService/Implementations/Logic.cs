@@ -18,10 +18,10 @@ namespace ReportService.Implementations
     {
         private IConfig config_;
         private List<RTask> tasks_;
-        private IHostHolder holder_;
-        private IContainer autofac_;
+        //private IHostHolder holder_;
+        private ILifetimeScope autofac_;
 
-        public Logic(IContainer aAutofac, IConfig config)
+        public Logic(ILifetimeScope aAutofac, IConfig config)
         {
             autofac_ = aAutofac;
             config_ = config;
@@ -47,8 +47,9 @@ namespace ReportService.Implementations
         public void Execute()
         {
             UpdateTaskList();
-            holder_ = autofac_.Resolve<IHostHolder>();
-            holder_.Start();
+            //holder_ = autofac_.Resolve<IHostHolder>(
+            //    new NamedParameter("logic", this));
+            //holder_.Start();
 
             Stopwatch stepTimer = new Stopwatch();
             Stopwatch sumTimer = new Stopwatch();
@@ -78,13 +79,13 @@ namespace ReportService.Implementations
                 }
             }
 
-            holder_.Stop();
+            //holder_.Stop();
         }
 
-        public string ForceExecute(int[] aTaskIDs)
+        public string ForceExecute(int aTaskIDs)
         {
             string executed = "";
-            foreach (RTask task in tasks_.Where(t => aTaskIDs.Contains(t.ID)))
+            foreach (RTask task in tasks_.Where(t => aTaskIDs==t.ID))
             {
                 task.Execute();
                 executed += $",{task.ID}";
