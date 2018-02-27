@@ -21,11 +21,10 @@ namespace ReportService.Implementations
         private IHostHolder holder_;
         private IContainer autofac_;
 
-        public Logic(IContainer aAutofac, IConfig config, IHostHolder holder)
+        public Logic(IContainer aAutofac, IConfig config)
         {
             autofac_ = aAutofac;
             config_ = config;
-            holder_ = holder;
             tasks_ = new List<RTask>();
         }
 
@@ -48,39 +47,49 @@ namespace ReportService.Implementations
         public void Execute()
         {
             UpdateTaskList();
+            holder_ = autofac_.Resolve<IHostHolder>();
+            holder_.Start();
 
-            holder_.Start();  // TODO: create instance by init Logic?
+            Stopwatch stepTimer = new Stopwatch();
+            Stopwatch sumTimer = new Stopwatch();
+            double reloadTrigger = 0;
+            stepTimer.Start();
+            sumTimer.Start();
 
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            for (int i = 1; i < 59; i++)
+            for (int i = 1; i < 1000; i++)
             {
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                Console.WriteLine($"Step {i}. Passed from previous step: {sw.Elapsed} seconds");
-                sw.Restart();
+                Console.WriteLine($"Step {i}. Passed from previous step: {stepTimer.Elapsed} seconds. Total time passed: {sumTimer.Elapsed}");
+                stepTimer.Restart();
 
-                if (i % 60 == 0)
+                if (sumTimer.ElapsedMilliseconds / 1000 - reloadTrigger > 60)
                 {
                     config_.Reload();
                     UpdateTaskList();
+                    reloadTrigger = sumTimer.ElapsedMilliseconds / 1000;
                 }
 
                 // TODO: schedule support
                 foreach (RTask task in tasks_)
-                    task.Execute();
+
+                {
+                    if (DateTime.Now.ToString("hh:mm:ss")=="13:38:00")
+                        task.Execute();
+                }
             }
 
             holder_.Stop();
         }
 
-        public void ForceExecute(int[] aTaskIDs)
+        public string ForceExecute(int[] aTaskIDs)
         {
+            string executed = "";
             foreach (RTask task in tasks_.Where(t => aTaskIDs.Contains(t.ID)))
             {
-                if (task.ScheduleID > 0)
-                    task.Execute();
+                task.Execute();
+                executed += $",{task.ID}";
             }
+            return executed;
         }
 
         public void Stop()

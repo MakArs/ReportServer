@@ -14,7 +14,7 @@ namespace ReportService.Implementations
         private IPostMaster postMaster_;
 
         public RTask(IDataExecutor aDataEx, IViewExecutor aViewEx, IPostMaster aPostMaster,
-            int ID, int aTemplateID, int aScheduleID, string aQuery, string aSendAddress) // TODO: schedule
+            int ID, int aTemplateID, int aScheduleID, string aQuery, string aSendAddress)
         {
             dataEx_ = aDataEx;
             viewEx_ = aViewEx;

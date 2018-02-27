@@ -21,7 +21,7 @@ namespace ReportService.Implementations
 
         public ConfigTest()
         {
-            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task where id=3").ToList();
+            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task where id=2").ToList();
         }
 
         public void Reload()

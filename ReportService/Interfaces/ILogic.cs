@@ -4,7 +4,7 @@ namespace ReportService.Interfaces
     public interface ILogic
     {
         void Execute();
-        void ForceExecute(int[] aTaskIDs);
+        string ForceExecute(int[] aTaskIDs);
         void Stop();
     }
 }

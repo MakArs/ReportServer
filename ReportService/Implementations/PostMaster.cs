@@ -29,7 +29,6 @@ namespace ReportService.Implementations
     {
         SmtpClient client = new SmtpClient("smtp.mail.ru", 587);
 
-        // TODO: add subject generation,change adress
         public void Send(string report, string address)
         {
             MailMessage msg = new MailMessage();
@@ -50,7 +49,7 @@ namespace ReportService.Implementations
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Fail Has error" + ex.Message);
+                Console.WriteLine("Error:" + ex.Message);
             }
             finally
             {
