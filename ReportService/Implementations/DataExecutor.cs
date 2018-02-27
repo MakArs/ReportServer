@@ -33,7 +33,6 @@ namespace ReportService.Implementations
                 });
 
             string jsString = JsonConvert.SerializeObject(queryResult);
-
             return jsString;
         }
     }

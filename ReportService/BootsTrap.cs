@@ -31,10 +31,14 @@ namespace ReportService
                 .As<IHostHolder>()
                 .SingleInstance();
 
-
             builder.RegisterType<Logic>()
                 .As<ILogic>()
                 .SingleInstance();
+
+            builder.RegisterType<RTask>()
+                .As<IRTask>();
+
+            builder.Register(c => Container);
 
             Container = builder.Build();
         }

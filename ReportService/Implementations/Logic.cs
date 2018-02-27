@@ -1,38 +1,85 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Autofac;
 using ReportService.Interfaces;
 
 namespace ReportService.Implementations
 {
+    /* 
+     * Functions:
+     * 1. Task list prepare and update
+     * 2. Control schedules
+     * 3. 
+     */
     public class Logic : ILogic
     {
         private IConfig config_;
-        private IDataExecutor dataExecutor_;
-        private IViewExecutor viewExecutor_;
-        private IPostMaster postMaster_;
+        private List<RTask> tasks_;
+        private IHostHolder holder_;
+        private IContainer autofac_;
 
-        public Logic(IConfig config, IDataExecutor dataEx, IViewExecutor viewEx, IPostMaster postMaster)
+        public Logic(IContainer aAutofac, IConfig config, IHostHolder holder)
         {
+            autofac_ = aAutofac;
             config_ = config;
-            dataExecutor_ = dataEx;
-            viewExecutor_ = viewEx;
-            postMaster_ = postMaster;
+            holder_ = holder;
+            tasks_ = new List<RTask>();
+        }
+
+        private void UpdateTaskList()
+        {
+            tasks_.Clear();
+
+            foreach (var dto_task in config_.GetTasks())
+            {
+                var task = autofac_.Resolve<IRTask>(
+                    new NamedParameter("ID", dto_task.ID),
+                    new NamedParameter("aTemplateID", dto_task.ViewTemplateID),
+                    new NamedParameter("aScheduleID", dto_task.ScheduleID),
+                    new NamedParameter("aQuery", dto_task.Query),
+                    new NamedParameter("aSendAddress", dto_task.SendAddress));
+                tasks_.Add((RTask)task);
+            }
         }
 
         public void Execute()
         {
-            for (int i = 0; ; i++)
+            UpdateTaskList();
+
+            holder_.Start();  // TODO: create instance by init Logic?
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            for (int i = 1; i < 59; i++)
             {
-                if (i % 60 == 0) config_.Reload();
+                Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                Console.WriteLine($"Step {i}. Passed from previous step: {sw.Elapsed} seconds");
+                sw.Restart();
 
-                foreach (ReportTask task in config_.GetTasks())
+                if (i % 60 == 0)
                 {
-                    var jsonString = dataExecutor_.Execute(task.SendAddress);
-                    var htmlString = viewExecutor_.Execute(task.ViewTemplateID, jsonString);
-
-                    // TODO: realize schedule templates
-                    if (task.ScheduleID > 0)
-                        postMaster_.Send(htmlString,"");
+                    config_.Reload();
+                    UpdateTaskList();
                 }
+
+                // TODO: schedule support
+                foreach (RTask task in tasks_)
+                    task.Execute();
+            }
+
+            holder_.Stop();
+        }
+
+        public void ForceExecute(int[] aTaskIDs)
+        {
+            foreach (RTask task in tasks_.Where(t => aTaskIDs.Contains(t.ID)))
+            {
+                if (task.ScheduleID > 0)
+                    task.Execute();
             }
         }
 
@@ -41,5 +88,6 @@ namespace ReportService.Implementations
             // TODO: some stop logic(?)
             throw new NotImplementedException();
         }
+
     }
 }

@@ -11,7 +11,7 @@ namespace ReportService.Implementations
     {
         private string filename;
 
-        public void Send(string report,string address)
+        public void Send(string report, string address)
         {
             filename = $"Report{DateTime.Now.ToString("HHmmss")}.html";
 
@@ -27,17 +27,17 @@ namespace ReportService.Implementations
 
     class PostMasterWork : IPostMaster
     {
-        MailMessage msg = new MailMessage();
         SmtpClient client = new SmtpClient("smtp.mail.ru", 587);
 
         // TODO: add subject generation,change adress
         public void Send(string report, string address)
         {
+            MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             msg.To.Add(new MailAddress(address));
             msg.Subject = "Testing";
             msg.IsBodyHtml = true;
-            msg.Body= report;
+            msg.Body = report;
 
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
@@ -46,7 +46,7 @@ namespace ReportService.Implementations
             try
             {
                 client.Send(msg);
-                Console.WriteLine( $"Mail to {address} has been successfully sent!");
+                Console.WriteLine($"Mail to {address} has been successfully sent!");
             }
             catch (Exception ex)
             {

@@ -23,13 +23,13 @@ namespace ReportService.Implementations
         }
     }
 
-    public class ReportStatusModule : NancyModule 
+    public class ReportStatusModule : NancyModule
     {
-        public ReportStatusModule(IViewExecutor someView,IDataExecutor someData,IConfig conf)
+        public ReportStatusModule(IViewExecutor someView, IDataExecutor someData, IConfig conf)
         {
             Get["/reports"] = parameters =>
             {
-                return $"{someView.Execute(1,someData.Execute("select * from instance"))}";
+                return $"{someView.Execute(1, someData.Execute("select * from instance"))}";
             };
         }
     }

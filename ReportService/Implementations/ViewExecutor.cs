@@ -20,7 +20,7 @@ table {
 }
 th, td
 {
-    border: 1px solid LightGray;
+    border: 1px solid Black;
 	padding: 10px;
 }
 </style>
@@ -52,7 +52,7 @@ th, td
             htmlCode.AppendLine(@"</table> 
 </body>
 </html>");
-            
+
             return htmlCode.ToString();
         }
     }
