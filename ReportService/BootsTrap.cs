@@ -15,8 +15,8 @@ namespace ReportService
             // No registrations should be performed in here, however you may
             // resolve things that are needed during application startup.
             ILogic log = container.Resolve<ILogic>();
-            Task t = new Task(()=>log.Execute());
-            t.Start();
+            //Task t = new Task(()=>log.Execute());
+            log.Start();
             //log.Start();
         }
 

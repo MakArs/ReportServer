@@ -1,13 +1,14 @@
 ﻿using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ReportService.Implementations
 {
     public class RTask : IRTask
     {
         public int ID { get; }
-        public string[] SendAddresses { get; } 
+        public string[] SendAddresses { get; }
         public string ViewTemplate { get; }
         public string Schedule { get; }
         public string Query { get; }
@@ -38,31 +39,33 @@ namespace ReportService.Implementations
         public void Execute()
         {
             Stopwatch duration = new Stopwatch();
-            int i = 1;
+            int i = 0;
             bool dataObtained = false;
             string jsonReport = "";
             string htmlReport = "";
-            while (!dataObtained && i< TryCount)
+
+            while (!dataObtained && i < TryCount)
             {
                 try
                 {
                     jsonReport = dataEx_.Execute(Query, TimeOut);
                     htmlReport = viewEx_.Execute(ViewTemplate, jsonReport);
                     dataObtained = true;
+                    i = TryCount; // or break
                 }
-                catch(Exception s)
+                catch (Exception ex)
                 {
-                    jsonReport = s.Message;
-                    htmlReport = s.Message;
+                    jsonReport = ex.Message;
+                    htmlReport = ex.Message;
                 }
                 i++;
             }
 
-            if(dataObtained)
-            foreach (string addr in SendAddresses)
-                        postMaster_.Send(htmlReport, addr);
+            if (dataObtained)
+                foreach (string addr in SendAddresses)
+                    postMaster_.Send(htmlReport, addr);
 
-           // config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained, i);
+            config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained, i);
         }
     }
 }

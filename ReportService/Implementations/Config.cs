@@ -23,13 +23,13 @@ namespace ReportService.Implementations
 
         public ConfigTest()
         {
-            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task_").ToList();
+            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task").ToList();
         }
 
         public void Reload()
         {
             Tasks = null;
-            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task_").ToList();
+            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task").ToList();
         }
         
         public int CreateInstance(int ataskID, string ajson, string ahtml,double aduration,bool asuccess,int atryNumber)

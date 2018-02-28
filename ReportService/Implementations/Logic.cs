@@ -35,6 +35,7 @@ namespace ReportService.Implementations
         {
             tasks_.Clear();
             config_.Reload();
+
             foreach (var dto_task in config_.GetTasks())
             {
                 var task = autofac_.Resolve<IRTask>(
@@ -45,11 +46,25 @@ namespace ReportService.Implementations
                     new NamedParameter("aSendAddress", dto_task.SendAddress),
                     new NamedParameter("aTryCount", dto_task.TryCount),
                     new NamedParameter("aTimeOut", dto_task.QueryTimeOut));
+
                 tasks_.Add((RTask)task);
             }
         }
 
-        public void Execute()
+        public string ForceExecute(int aTaskIDs)
+        {
+            UpdateTaskList();
+            string executed = "";
+            foreach (RTask task in tasks_.Where(t => aTaskIDs == t.ID))
+            {
+                task.Execute();
+                executed += $"#{task.ID} ";
+            }
+
+            return executed;
+        }
+
+        private void WorkCycleMethod()
         {
             UpdateTaskList();
 
@@ -58,62 +73,46 @@ namespace ReportService.Implementations
             double reloadTrigger = 0;
             stepTimer.Start();
             sumTimer.Start();
+            int i = 1;
 
-            for (int i = 1; i < 1000; i++)
-            {
-                Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                CultureInfo.CurrentCulture = new CultureInfo("en-US");
-                Console.WriteLine($"Step {i}. Passed from previous step: {stepTimer.Elapsed} seconds. Total time passed: {sumTimer.Elapsed}. Today: {new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray())}");
-                stepTimer.Restart();
-
-                if (sumTimer.ElapsedMilliseconds / 1000 - reloadTrigger > 60)
-                {
-                    config_.Reload();
-                    UpdateTaskList();
-                    reloadTrigger = sumTimer.ElapsedMilliseconds / 1000;
-                }
-
-                // TODO: schedule support
-                foreach (RTask task in tasks_)
-
-                {
-                    //string schedDays = "tusafr";
-                    //if (schedDays.Contains( new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray())))
-
-                    if (DateTime.Now.ToString("hh:mm:ss") == "13:38:00")
-                        task.Execute();
-                }
-            }
-        }
-
-        public string ForceExecute(int aTaskIDs)
-        {
-
-            UpdateTaskList();
-            string executed = "";
-            foreach (RTask task in tasks_.Where(t => aTaskIDs == t.ID))
-            {
-                task.Execute();
-                executed += $"#{task.ID} ";
-            }
-            return executed;
-        }
-
-        private void WorkCycleMethod()
-        {
             while (working_)
             {
                 try
                 {
-                    // TODO: implement logic
+                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                    CultureInfo.CurrentCulture = new CultureInfo("en-US");
+                    Console.WriteLine($"Step {i}. Passed from previous step: {stepTimer.Elapsed} seconds. " +
+                        $"Total time passed: {sumTimer.Elapsed}. " +
+                        $"Today: {new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray())}");
+                    stepTimer.Restart();
+
+                    if (sumTimer.ElapsedMilliseconds / 1000 - reloadTrigger > 60)
+                    {
+                        UpdateTaskList();
+                        reloadTrigger = sumTimer.ElapsedMilliseconds / 1000;
+                    }
+
+                    // TODO: schedule support
+                    foreach (RTask task in tasks_)
+                    {
+                        string[] schedDays = task.Schedule.Split(' ');
+                        if (schedDays.Any(s => s.Contains(new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray()))))
+                        {
+                            if (1 == 1)
+                            {
+                                Task t = new  Task(() => task.Execute());//что-то подсказывает,что async делается по-другому
+                                t.Start();
+                            }
+                        }
+                    }
+                    i++;
                 }
-                catch (Exception)
+                catch
                 {
                     Task.Delay(100).Wait();
                 }
-            }
+            }//while
         }
-
 
         public void Start()
         {
