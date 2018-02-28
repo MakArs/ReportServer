@@ -5,6 +5,8 @@ namespace ReportService.Interfaces
     {
         void Execute();
         string ForceExecute(int aTaskIDs);
+
+        void Start();
         void Stop();
     }
 }

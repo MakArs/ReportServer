@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -12,7 +13,7 @@ namespace ReportService.Implementations
      * Functions:
      * 1. Task list prepare and update
      * 2. Control schedules
-     * 3. 
+     * 3. Async run RTasks
      */
     public class Logic : ILogic
     {
@@ -20,6 +21,8 @@ namespace ReportService.Implementations
         private List<RTask> tasks_;
         //private IHostHolder holder_;
         private ILifetimeScope autofac_;
+        private bool working_ = true;
+        private Task workTask_ = null;
 
         public Logic(ILifetimeScope aAutofac, IConfig config)
         {
@@ -31,15 +34,17 @@ namespace ReportService.Implementations
         private void UpdateTaskList()
         {
             tasks_.Clear();
-
+            config_.Reload();
             foreach (var dto_task in config_.GetTasks())
             {
                 var task = autofac_.Resolve<IRTask>(
                     new NamedParameter("ID", dto_task.ID),
-                    new NamedParameter("aTemplateID", dto_task.ViewTemplateID),
-                    new NamedParameter("aScheduleID", dto_task.ScheduleID),
+                    new NamedParameter("aTemplate", dto_task.ViewTemplate),
+                    new NamedParameter("aSchedule", dto_task.Schedule),
                     new NamedParameter("aQuery", dto_task.Query),
-                    new NamedParameter("aSendAddress", dto_task.SendAddress));
+                    new NamedParameter("aSendAddress", dto_task.SendAddress),
+                    new NamedParameter("aTryCount", dto_task.TryCount),
+                    new NamedParameter("aTimeOut", dto_task.QueryTimeOut));
                 tasks_.Add((RTask)task);
             }
         }
@@ -47,9 +52,6 @@ namespace ReportService.Implementations
         public void Execute()
         {
             UpdateTaskList();
-            //holder_ = autofac_.Resolve<IHostHolder>(
-            //    new NamedParameter("logic", this));
-            //holder_.Start();
 
             Stopwatch stepTimer = new Stopwatch();
             Stopwatch sumTimer = new Stopwatch();
@@ -60,7 +62,8 @@ namespace ReportService.Implementations
             for (int i = 1; i < 1000; i++)
             {
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                Console.WriteLine($"Step {i}. Passed from previous step: {stepTimer.Elapsed} seconds. Total time passed: {sumTimer.Elapsed}");
+                CultureInfo.CurrentCulture = new CultureInfo("en-US");
+                Console.WriteLine($"Step {i}. Passed from previous step: {stepTimer.Elapsed} seconds. Total time passed: {sumTimer.Elapsed}. Today: {new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray())}");
                 stepTimer.Restart();
 
                 if (sumTimer.ElapsedMilliseconds / 1000 - reloadTrigger > 60)
@@ -74,29 +77,60 @@ namespace ReportService.Implementations
                 foreach (RTask task in tasks_)
 
                 {
-                    if (DateTime.Now.ToString("hh:mm:ss")=="13:38:00")
+                    //string schedDays = "tusafr";
+                    //if (schedDays.Contains( new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray())))
+
+                    if (DateTime.Now.ToString("hh:mm:ss") == "13:38:00")
                         task.Execute();
                 }
             }
-
-            //holder_.Stop();
         }
 
         public string ForceExecute(int aTaskIDs)
         {
+
+            UpdateTaskList();
             string executed = "";
-            foreach (RTask task in tasks_.Where(t => aTaskIDs==t.ID))
+            foreach (RTask task in tasks_.Where(t => aTaskIDs == t.ID))
             {
                 task.Execute();
-                executed += $",{task.ID}";
+                executed += $"#{task.ID} ";
             }
             return executed;
         }
 
+        private void WorkCycleMethod()
+        {
+            while (working_)
+            {
+                try
+                {
+                    // TODO: implement logic
+                }
+                catch (Exception)
+                {
+                    Task.Delay(100).Wait();
+                }
+            }
+        }
+
+
+        public void Start()
+        {
+            if (workTask_ != null)
+                throw new Exception();
+
+            workTask_ = new Task(WorkCycleMethod);
+            workTask_.Start();
+        }
+
         public void Stop()
         {
-            // TODO: some stop logic(?)
-            throw new NotImplementedException();
+            working_ = false;
+
+            //Task.Delay(1000).Wait();
+            //if (!workCycle_.IsCanceled)
+            // KILL
         }
 
     }

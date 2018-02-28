@@ -1,10 +1,10 @@
 ﻿using Autofac;
-using Autofac.Core;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
+using System.Threading.Tasks;
 
 namespace ReportService
 {
@@ -14,6 +14,10 @@ namespace ReportService
         {
             // No registrations should be performed in here, however you may
             // resolve things that are needed during application startup.
+            ILogic log = container.Resolve<ILogic>();
+            Task t = new Task(()=>log.Execute());
+            t.Start();
+            //log.Start();
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)

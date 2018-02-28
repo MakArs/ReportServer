@@ -5,7 +5,7 @@ namespace ReportService.Interfaces
 {
     public interface IConfig
     {
-        int SaveInstance(int taskID, string json, string html);
+        int CreateInstance(int ataskID, string ajson, string ahtml, double aduration, bool asuccess, int atryNumber);
         void Reload();
         List<DTO_Task> GetTasks();
     }

@@ -9,9 +9,11 @@ namespace ReportService.Implementations
     {
         public int ID { get; set; }
         public string SendAddress { get; set; }
-        public int ViewTemplateID { get; set; }
-        public int ScheduleID { get; set; }
+        public string ViewTemplate { get; set; }
+        public string Schedule { get; set; }
         public string Query { get; set; }
+        public int TryCount { get; set; }
+        public int QueryTimeOut { get; set; }
     }
 
     public class ConfigTest : IConfig
@@ -21,16 +23,16 @@ namespace ReportService.Implementations
 
         public ConfigTest()
         {
-            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task where id=2").ToList();
+            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task_").ToList();
         }
 
         public void Reload()
         {
             Tasks = null;
-            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task where id=2").ToList();
+            Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task_").ToList();
         }
-
-        public int SaveInstance(int taskID, string json, string html)
+        
+        public int CreateInstance(int ataskID, string ajson, string ahtml,double aduration,bool asuccess,int atryNumber)
         {
             return SimpleCommand.ExecuteQueryFirstColumn<int>(connStr,
                  $@"INSERT INTO Instance
@@ -38,12 +40,18 @@ namespace ReportService.Implementations
                     Data,
                     ViewData,
                     TaskID,
-                    SaveTime
+                    StartTime,
+                    Duration,
+                    Success,
+                    TryNumber
                     )  
-                    values ('{json}',
-                    '{html}',
-                    {taskID},
-                    getdate()); select cast(scope_identity() as int)")
+                    values ('{ajson}',
+                    '{ahtml}',
+                    {ataskID},
+                    getdate(),
+                    {aduration},
+                    {asuccess},
+                    {atryNumber}); select cast(scope_identity() as int)")
                     .First();
         }
 

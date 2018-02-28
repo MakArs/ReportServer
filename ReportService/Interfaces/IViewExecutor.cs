@@ -2,6 +2,6 @@
 {
     public interface IViewExecutor
     {
-        string Execute(int viewTemplate, string json);
+        string Execute(string viewTemplate, string json);
     }
 }

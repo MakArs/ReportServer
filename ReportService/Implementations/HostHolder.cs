@@ -2,8 +2,6 @@
 using Nancy;
 using Nancy.Hosting.Self;
 using ReportService.Interfaces;
-using Nancy.Bootstrappers.Autofac;
-using Autofac;
 
 namespace ReportService.Implementations
 {
@@ -26,16 +24,20 @@ namespace ReportService.Implementations
 
     public class ReportStatusModule : NancyModule
     {
+        public ILogic logic_;
         public ReportStatusModule(IViewExecutor someView, IDataExecutor someData, IConfig conf, ILogic logic)
         {
+            logic_ = logic;
 
             Get["/reports"] = parameters =>
             {
-                return $"{someView.Execute(1, someData.Execute("select * from instance"))}";
+                return $"{someView.Execute("boo", someData.Execute("select * from instance", 5))}";
             };
+
             Get["/send/{id:int}"] = parameters =>
             {
-                return $"Reports {logic.ForceExecute(parameters.id)} was sended!";
+                string sentReps = logic.ForceExecute(parameters.id);
+                return sentReps != "" ? $"Reports {sentReps} sent!" : "No reports for those ids found...";
             };
         }
     }

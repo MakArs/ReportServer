@@ -28,7 +28,7 @@ th, td
 <body>
 <table>
 <tr>";
-        public string Execute(int viewTemplate, string json)
+        public string Execute(string viewTemplate, string json)
         {
             StringBuilder htmlCode = new StringBuilder(htmlWrap);
 
