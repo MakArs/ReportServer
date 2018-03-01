@@ -19,7 +19,6 @@ namespace ReportService.Implementations
     {
         private IConfig config_;
         private List<RTask> tasks_;
-        //private IHostHolder holder_;
         private ILifetimeScope autofac_;
         private bool working_ = true;
         private Task workTask_ = null;
@@ -51,66 +50,56 @@ namespace ReportService.Implementations
             }
         }
 
-        public string ForceExecute(int aTaskIDs)
+        public string ForceExecute(int aTaskIDs, string mail)
         {
             UpdateTaskList();
             string executed = "";
             foreach (RTask task in tasks_.Where(t => aTaskIDs == t.ID))
             {
-                task.Execute();
+                task.SendAddresses = new string[] { mail };
+                task.ExecuteAsync();
                 executed += $"#{task.ID} ";
             }
 
             return executed;
         }
 
-        private void WorkCycleMethod()
+        private async void WorkCycleMethodAsync()
         {
-            UpdateTaskList();
-
             Stopwatch stepTimer = new Stopwatch();
             Stopwatch sumTimer = new Stopwatch();
-            double reloadTrigger = 0;
             stepTimer.Start();
             sumTimer.Start();
             int i = 1;
 
             while (working_)
             {
+                DateTime time = DateTime.Now;
+                var oneSecond = Task.Delay(TimeSpan.FromSeconds((60 - time.Second)));
                 try
                 {
-                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                     CultureInfo.CurrentCulture = new CultureInfo("en-US");
                     Console.WriteLine($"Step {i}. Passed from previous step: {stepTimer.Elapsed} seconds. " +
                         $"Total time passed: {sumTimer.Elapsed}. " +
                         $"Today: {new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray())}");
                     stepTimer.Restart();
+                    UpdateTaskList();
 
-                    if (sumTimer.ElapsedMilliseconds / 1000 - reloadTrigger > 60)
-                    {
-                        UpdateTaskList();
-                        reloadTrigger = sumTimer.ElapsedMilliseconds / 1000;
-                    }
-
-                    // TODO: schedule support
                     foreach (RTask task in tasks_)
                     {
                         string[] schedDays = task.Schedule.Split(' ');
-                        if (schedDays.Any(s => s.Contains(new string(DateTime.Now.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray()))))
-                        {
-                            if (1 == 1)
-                            {
-                                Task t = new  Task(() => task.Execute());//что-то подсказывает,что async делается по-другому
-                                t.Start();
-                            }
-                        }
+                        if (schedDays.Any(s => s.Contains(new string(time.AddDays(i).ToString("ddd").ToLower().Take(2).ToArray()))
+                        && 1 == 1))// s.Contains(time.ToString("hhmm"))))
+                            task.ExecuteAsync();
                     }
                     i++;
+
                 }
                 catch
                 {
                     Task.Delay(100).Wait();
                 }
+                await oneSecond;
             }//while
         }
 
@@ -119,15 +108,14 @@ namespace ReportService.Implementations
             if (workTask_ != null)
                 throw new Exception();
 
-            workTask_ = new Task(WorkCycleMethod);
+            workTask_ = new Task(WorkCycleMethodAsync);
             workTask_.Start();
         }
 
         public void Stop()
         {
             working_ = false;
-
-            //Task.Delay(1000).Wait();
+            // TODO: Task.Delay(1000).Wait();
             //if (!workCycle_.IsCanceled)
             // KILL
         }

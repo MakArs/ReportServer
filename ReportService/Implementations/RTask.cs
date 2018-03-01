@@ -8,7 +8,7 @@ namespace ReportService.Implementations
     public class RTask : IRTask
     {
         public int ID { get; }
-        public string[] SendAddresses { get; }
+        public string[] SendAddresses { get; set; }
         public string ViewTemplate { get; }
         public string Schedule { get; }
         public string Query { get; }
@@ -36,36 +36,43 @@ namespace ReportService.Implementations
             TimeOut = aTimeOut;
         }
 
-        public void Execute()
+        public async void ExecuteAsync()
         {
-            Stopwatch duration = new Stopwatch();
-            int i = 0;
-            bool dataObtained = false;
-            string jsonReport = "";
-            string htmlReport = "";
 
-            while (!dataObtained && i < TryCount)
-            {
-                try
-                {
-                    jsonReport = dataEx_.Execute(Query, TimeOut);
-                    htmlReport = viewEx_.Execute(ViewTemplate, jsonReport);
-                    dataObtained = true;
-                    i = TryCount; // or break
-                }
-                catch (Exception ex)
-                {
-                    jsonReport = ex.Message;
-                    htmlReport = ex.Message;
-                }
-                i++;
-            }
+            await Task.Run(() =>
+         {
+             Stopwatch duration = new Stopwatch();
+             int i = 1;
+             bool dataObtained = false;
+             string jsonReport = "";
+             string htmlReport = "";
 
-            if (dataObtained)
-                foreach (string addr in SendAddresses)
-                    postMaster_.Send(htmlReport, addr);
+             while (!dataObtained && i <= TryCount)
+             {
+                 try
+                 {
+                     jsonReport = dataEx_.Execute(Query, TimeOut);
+                     htmlReport = viewEx_.Execute(ViewTemplate, jsonReport);
+                     dataObtained = true;
+                     i++;
+                     break;
+                 }
+                 catch (Exception ex)
+                 {
+                     jsonReport = ex.Message;
+                     htmlReport = ex.Message;
+                 }
+                 i++;
+             }
 
-            config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained, i);
+             if (dataObtained)
+                 foreach (string addr in SendAddresses)
+                     postMaster_.Send(htmlReport, addr);
+
+             config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? 1 : 0, i-1);
+
+         });
         }
+
     }
 }

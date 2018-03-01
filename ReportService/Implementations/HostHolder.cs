@@ -34,9 +34,12 @@ namespace ReportService.Implementations
                 return $"{someView.Execute("boo", someData.Execute("select * from instance", 5))}";
             };
 
-            Get["/send/{id:int}"] = parameters =>
+            Get["/send"] = parameters =>
             {
-                string sentReps = logic.ForceExecute(parameters.id);
+                int id = Request.Query.id;
+                string mail = Request.Query.address;
+
+                string sentReps = logic.ForceExecute(id, mail);
                 return sentReps != "" ? $"Reports {sentReps} sent!" : "No reports for those ids found...";
             };
         }

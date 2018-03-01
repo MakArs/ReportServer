@@ -4,20 +4,19 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
-using System.Threading.Tasks;
 
 namespace ReportService
 {
     public class Bootstrapper : AutofacNancyBootstrapper
     {
+        public ILifetimeScope Container => ApplicationContainer;
+
         protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {
             // No registrations should be performed in here, however you may
             // resolve things that are needed during application startup.
-            ILogic log = container.Resolve<ILogic>();
-            //Task t = new Task(()=>log.Execute());
+            ILogic log = Container.Resolve<ILogic>();
             log.Start();
-            //log.Start();
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)

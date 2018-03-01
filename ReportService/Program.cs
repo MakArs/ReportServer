@@ -1,6 +1,4 @@
-﻿using Autofac;
-using ReportService.Implementations;
-using ReportService.Interfaces;
+﻿using ReportService.Implementations;
 using System;
 
 namespace ReportService
@@ -16,7 +14,7 @@ namespace ReportService
 
             HostHolder hld = new HostHolder();
             hld.Start();
-
+            
             Console.ReadLine();
             hld.Stop();
         }

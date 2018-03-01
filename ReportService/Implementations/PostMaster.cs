@@ -27,10 +27,10 @@ namespace ReportService.Implementations
 
     class PostMasterWork : IPostMaster
     {
-        SmtpClient client = new SmtpClient("smtp.mail.ru", 587);
 
         public void Send(string report, string address)
         {
+            SmtpClient client = new SmtpClient("smtp.mail.ru", 587);
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             msg.To.Add(new MailAddress(address));

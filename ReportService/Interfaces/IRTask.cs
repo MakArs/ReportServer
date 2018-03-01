@@ -1,7 +1,9 @@
-﻿namespace ReportService.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace ReportService.Interfaces
 {
     public interface IRTask
     {
-        void Execute();
+        void ExecuteAsync();
     }
 }

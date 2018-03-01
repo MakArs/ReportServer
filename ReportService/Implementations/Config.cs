@@ -31,11 +31,11 @@ namespace ReportService.Implementations
             Tasks = null;
             Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task").ToList();
         }
-        
-        public int CreateInstance(int ataskID, string ajson, string ahtml,double aduration,bool asuccess,int atryNumber)
+
+        public int CreateInstance(int ataskID, string ajson, string ahtml, double aduration, int asuccess, int atryNumber)
         {
             return SimpleCommand.ExecuteQueryFirstColumn<int>(connStr,
-                 $@"INSERT INTO Instance
+                 $@"INSERT INTO Instance_
                   (
                     Data,
                     ViewData,
@@ -45,8 +45,8 @@ namespace ReportService.Implementations
                     Success,
                     TryNumber
                     )  
-                    values ('{ajson}',
-                    '{ahtml}',
+                    values ('{ajson.Replace("'","''")}',
+                    '{ahtml.Replace("'","''")}',
                     {ataskID},
                     getdate(),
                     {aduration},
