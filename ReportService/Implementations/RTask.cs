@@ -1,7 +1,6 @@
 ﻿using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace ReportService.Implementations
 {
@@ -36,43 +35,39 @@ namespace ReportService.Implementations
             TimeOut = aTimeOut;
         }
 
-        public async void ExecuteAsync()
+        public void Execute(params string[] aAddresses)
         {
+            if (aAddresses is null)
+                aAddresses = SendAddresses;
+            Stopwatch duration = new Stopwatch();
+            int i = 1;
+            bool dataObtained = false;
+            string jsonReport = "";
+            string htmlReport = "";
 
-            await Task.Run(() =>
-         {
-             Stopwatch duration = new Stopwatch();
-             int i = 1;
-             bool dataObtained = false;
-             string jsonReport = "";
-             string htmlReport = "";
+            while (!dataObtained && i <= TryCount)
+            {
+                try
+                {
+                    jsonReport = dataEx_.Execute(Query, TimeOut);
+                    htmlReport = viewEx_.Execute(ViewTemplate, jsonReport);
+                    dataObtained = true;
+                    i++;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    jsonReport = ex.Message;
+                    htmlReport = ex.Message;
+                }
+                i++;
+            }
 
-             while (!dataObtained && i <= TryCount)
-             {
-                 try
-                 {
-                     jsonReport = dataEx_.Execute(Query, TimeOut);
-                     htmlReport = viewEx_.Execute(ViewTemplate, jsonReport);
-                     dataObtained = true;
-                     i++;
-                     break;
-                 }
-                 catch (Exception ex)
-                 {
-                     jsonReport = ex.Message;
-                     htmlReport = ex.Message;
-                 }
-                 i++;
-             }
+            if (dataObtained)
+                foreach (string addr in aAddresses)
+                    postMaster_.Send(htmlReport, addr);
 
-             if (dataObtained)
-                 foreach (string addr in SendAddresses)
-                     postMaster_.Send(htmlReport, addr);
-
-             config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? 1 : 0, i-1);
-
-         });
+            config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? 1 : 0, i - 1);
         }
-
-    }
+    }//class
 }

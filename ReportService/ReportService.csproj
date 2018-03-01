@@ -87,6 +87,7 @@
     <Compile Include="Implementations\HostHolder.cs" />
     <Compile Include="Implementations\PostMaster.cs" />
     <Compile Include="Implementations\RTask.cs" />
+    <Compile Include="Implementations\Scheduler.cs" />
     <Compile Include="Interfaces\IConfig.cs" />
     <Compile Include="Interfaces\IDataExecutor.cs" />
     <Compile Include="Interfaces\IHostHolder.cs" />

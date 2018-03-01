@@ -1,9 +1,7 @@
-﻿using System.Threading.Tasks;
-
-namespace ReportService.Interfaces
+﻿namespace ReportService.Interfaces
 {
     public interface IRTask
     {
-        void ExecuteAsync();
+        void Execute(params string[] aAddresses);
     }
 }
