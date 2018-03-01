@@ -68,8 +68,8 @@ namespace ReportService.Implementations
             foreach (var task in tasks_)
                 if (task.ID == aTaskID)
                 {
-                    task.Execute(aMail);
-                    executed += $"#{task.ID} "; //тут выбор,либо выполняется асинхронно и выдаёт надпись про отправку до отправления,либо так.
+                    executed += $"#{task.ID} ";
+                    Task.Factory.StartNew(() => task.Execute(aMail)); 
                     return executed;
                 }
             return executed;
