@@ -17,7 +17,7 @@ namespace ReportService.Implementations
             var serv = RazorEngineService.Create(templateConfig);
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
-            
+
             JArray jObj = JArray.Parse(json);
 
             List<string> headers = new List<string>();
@@ -33,9 +33,9 @@ namespace ReportService.Implementations
                 content.Add(prop);
             }
 
-            var model = new { Headers = headers, Content=content};
+            var model = new { Headers = headers, Content = content };
 
-            return Engine.Razor.Run("somekey", null, model); 
+            return Engine.Razor.Run("somekey", null, model);
         }
     }
 }

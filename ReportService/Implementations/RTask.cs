@@ -37,6 +37,8 @@ namespace ReportService.Implementations
 
         public void Execute(string aAddress = null)
         {
+            //TODO:1) Для Instance добавить числовое поле State - InProcess, Success, Failed.
+            //2) Убрать поле Success
             string[] rassilka = string.IsNullOrEmpty(aAddress) ?
                 SendAddresses
                 : new string[] { aAddress };
