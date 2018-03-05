@@ -2,6 +2,6 @@
 {
     public interface IRTask
     {
-        void Execute(params string[] aAddresses);
+        void Execute(string aAddress = null);
     }
 }

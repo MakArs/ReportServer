@@ -35,10 +35,12 @@ namespace ReportService.Implementations
             TimeOut = aTimeOut;
         }
 
-        public void Execute(params string[] aAddresses)
+        public void Execute(string aAddress = null)
         {
-            if (aAddresses is null)
-                aAddresses = SendAddresses;
+            string[] rassilka = string.IsNullOrEmpty(aAddress) ?
+                SendAddresses
+                : new string[] { aAddress };
+
             Stopwatch duration = new Stopwatch();
             int i = 1;
             bool dataObtained = false;
@@ -64,7 +66,7 @@ namespace ReportService.Implementations
             }
 
             if (dataObtained)
-                foreach (string addr in aAddresses)
+                foreach (string addr in rassilka)
                     postMaster_.Send(htmlReport, addr);
 
             config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? 1 : 0, i - 1);

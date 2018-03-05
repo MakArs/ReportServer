@@ -93,7 +93,7 @@ namespace ReportService.Implementations
 
                 if (schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
                 {
-                    Task.Factory.StartNew(()=>task.Execute()).ContinueWith(
+                    Task.Factory.StartNew(() => task.Execute()).ContinueWith(
                         _ => Console.WriteLine($"Task {task.ID} executed. Mail sent to {task.SendAddresses[0]}"));
                 }
             }//for
@@ -110,6 +110,5 @@ namespace ReportService.Implementations
             UpdateConfigScheduler.OnStop();
             CheckScheduleAndExecuteScheduler.OnStop();
         }
-
     }
 }
