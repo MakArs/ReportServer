@@ -37,8 +37,7 @@ namespace ReportService.Implementations
 
         public void Execute(string aAddress = null)
         {
-            //TODO:1) Для Instance добавить числовое поле State - InProcess, Success, Failed.
-            //2) Убрать поле Success
+            int InstanceID=config_.CreateInstance(ID, "", "", 0, "InProcess", 0);
             string[] rassilka = string.IsNullOrEmpty(aAddress) ?
                 SendAddresses
                 : new string[] { aAddress };
@@ -71,7 +70,7 @@ namespace ReportService.Implementations
                 foreach (string addr in rassilka)
                     postMaster_.Send(htmlReport, addr);
 
-            config_.CreateInstance(ID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? 1 : 0, i - 1);
+            config_.UpdateInstance(InstanceID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? "Success" : "Failed", i - 1);
         }
     }//class
 }

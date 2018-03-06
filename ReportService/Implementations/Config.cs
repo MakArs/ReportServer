@@ -32,17 +32,17 @@ namespace ReportService.Implementations
             Tasks = SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task").ToList();
         }
 
-        public int CreateInstance(int ataskID, string ajson, string ahtml, double aduration, int asuccess, int atryNumber)
+        public int CreateInstance(int ataskID, string ajson, string ahtml, double aduration, string astate, int atryNumber)
         {
             return SimpleCommand.ExecuteQueryFirstColumn<int>(connStr,
-                 $@"INSERT INTO Instance_
+                 $@"INSERT INTO Instance_new
                   (
                     Data,
                     ViewData,
                     TaskID,
                     StartTime,
                     Duration,
-                    Success,
+                    State,
                     TryNumber
                     )  
                     values ('{ajson.Replace("'","''")}',
@@ -50,9 +50,21 @@ namespace ReportService.Implementations
                     {ataskID},
                     getdate(),
                     {aduration},
-                    {asuccess},
+                    '{astate}',
                     {atryNumber}); select cast(scope_identity() as int)")
                     .First();
+        }
+
+        public void UpdateInstance(int ainstanceID, string ajson, string ahtml, double aduration, string astate, int atryNumber)
+        {
+            SimpleCommand.ExecuteNonQuery(connStr,
+                 $@"Update Instance_new 
+                    set  Data='{ajson.Replace("'", "''")}',
+                    ViewData='{ahtml.Replace("'", "''")}',
+                    Duration={aduration},
+                    State='{astate}',
+                    TryNumber={atryNumber}
+                    where id={ainstanceID}");
         }
 
         public List<DTO_Task> GetTasks()

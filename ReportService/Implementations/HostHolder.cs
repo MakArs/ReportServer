@@ -29,7 +29,7 @@ namespace ReportService.Implementations
         {
             logic_ = logic;
 
-            Get["/reports"] = parameters =>
+            Get["/report"] = parameters =>
             {
                 return $"{someView.Execute(conf.GetTasks().ToArray()[1].ViewTemplate, someData.Execute("select * from task", 5))}";
             };
@@ -42,8 +42,11 @@ namespace ReportService.Implementations
                 string sentReps = logic.ForceExecute(id, mail);
                 return sentReps != "" ? $"Reports {sentReps} sent!" : "No reports for those ids found...";
             };
-//  TODO:          3) Добавить метод АПИ - по идентификатору таска возвращать список всех инстансов
-//4) Добавить метод АПИ - возвращать список всех тасков
+
+            Get["/report/{id:int}"] = parameters =>
+            {
+                return $"{someView.Execute(conf.GetTasks().ToArray()[1].ViewTemplate, someData.Execute($"select * from instance_new where taskid={parameters.id}", 5))}";
+            };
         }
     }
 }
