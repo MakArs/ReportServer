@@ -13,6 +13,7 @@ namespace ReportService.Implementations
      * 1. Task list prepare and update
      * 2. Control schedules
      * 3. Async run RTasks
+     * 4. Get Task&Instance html results
      */
     public class Logic : ILogic
     {
@@ -99,6 +100,20 @@ namespace ReportService.Implementations
             }//for
         }
         
+        public string GetTaskView()
+        {
+            IViewExecutor tableView= autofac_.ResolveNamed<IViewExecutor>("tableviewex");
+            IDataExecutor dataEx = autofac_.ResolveNamed<IDataExecutor>("commondataex");
+            return tableView.Execute("", dataEx.Execute("select * from task", 5));
+        }
+
+        public string GetInstancesView(int ataskID)
+        {
+            IViewExecutor tableView = autofac_.ResolveNamed<IViewExecutor>("tableviewex");
+            IDataExecutor dataEx = autofac_.ResolveNamed<IDataExecutor>("commondataex");
+            return tableView.Execute("", dataEx.Execute($"select * from instance_new where taskid={ataskID}", 5));
+        }
+
         public void Start()
         {
             UpdateConfigScheduler.OnStart();

@@ -21,6 +21,7 @@ namespace ReportService
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
+            
             // Perform registration that should have an application lifetime
             existingContainer.Update(builder => builder
                         .RegisterType<ConfigTest>()
@@ -29,12 +30,17 @@ namespace ReportService
 
             existingContainer.Update(builder => builder
                         .RegisterType<DataExecutorTest>()
-                        .As<IDataExecutor>()
+                        .Named<IDataExecutor>("commondataex")
+                        .SingleInstance());
+
+            existingContainer.Update(builder => builder
+                       .RegisterType<TableViewExecutor>()
+                        .Named<IViewExecutor>("tableviewex")
                         .SingleInstance());
 
             existingContainer.Update(builder => builder
                         .RegisterType<ViewExecutor>()
-                        .As<IViewExecutor>()
+                        .Named<IViewExecutor>("commonviewex")
                         .SingleInstance());
 
             existingContainer.Update(builder => builder

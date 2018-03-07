@@ -1,4 +1,5 @@
-﻿using ReportService.Interfaces;
+﻿using Autofac;
+using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
 
@@ -19,11 +20,12 @@ namespace ReportService.Implementations
         private IPostMaster postMaster_;
         private IConfig config_;
 
-        public RTask(IDataExecutor aDataEx, IViewExecutor aViewEx, IPostMaster aPostMaster, IConfig aConfig,
-            int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount, int aTimeOut)
+        public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IConfig aConfig,
+            int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
+            int aTimeOut, string aDataEx = "commondataex", string aViewEx = "commonviewex")
         {
-            dataEx_ = aDataEx;
-            viewEx_ = aViewEx;
+            dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aDataEx);
+            viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aViewEx); ;
             postMaster_ = aPostMaster;
             this.ID = ID;
             Query = aQuery;
@@ -33,11 +35,14 @@ namespace ReportService.Implementations
             config_ = aConfig;
             TryCount = aTryCount;
             TimeOut = aTimeOut;
+
+            // TODO: remove data&view arguments
+            // TODO: resolve data&view by Type and Names
         }
 
         public void Execute(string aAddress = null)
         {
-            int InstanceID=config_.CreateInstance(ID, "", "", 0, "InProcess", 0);
+            int InstanceID = config_.CreateInstance(ID, "", "", 0, "InProcess", 0);
             string[] rassilka = string.IsNullOrEmpty(aAddress) ?
                 SendAddresses
                 : new string[] { aAddress };

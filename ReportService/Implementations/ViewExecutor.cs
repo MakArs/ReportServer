@@ -67,7 +67,7 @@ namespace ReportService.Implementations
     </style>
 </head>
 <body>
-    <h3 align = ""center""> Testing Razor </h3>
+    <h3 align = ""center"">NO Testing Razor </h3>
      
          <table class=""table table-bordered table-hover"">
         <tr>
