@@ -114,6 +114,11 @@ namespace ReportService.Implementations
             return tableView.Execute("", dataEx.Execute($"select * from instance_new where taskid={ataskID}", 5));
         }
 
+        public void CreateBase(string aconnstr)
+        {
+            config_.CreateBase(aconnstr);
+        }
+
         public void Start()
         {
             UpdateConfigScheduler.OnStart();

@@ -45,8 +45,8 @@ namespace ReportService.Implementations
                     State,
                     TryNumber
                     )  
-                    values ('{ajson.Replace("'","''")}',
-                    '{ahtml.Replace("'","''")}',
+                    values ('{ajson.Replace("'", "''")}',
+                    '{ahtml.Replace("'", "''")}',
                     {ataskID},
                     getdate(),
                     {aduration},
@@ -70,6 +70,36 @@ namespace ReportService.Implementations
         public List<DTO_Task> GetTasks()
         {
             return Tasks;
+        }
+
+        public void CreateBase(string abaseConnStr)
+        {
+            try
+            {
+                SimpleCommand.ExecuteNonQuery(abaseConnStr, $@"create table Instance
+                (
+                ID int primary key Identity,
+                Data nvarchar(4000) not null,
+                ViewData nvarchar(4000) not null,
+                TaskID int not null,
+                StartTime datetime not null,
+                Duration int not null,
+                State nvarchar(255) not null,
+                TryNumber int not null
+                )");
+
+                SimpleCommand.ExecuteNonQuery(abaseConnStr, $@"create table Task
+                (ID int primary key Identity,
+                ViewTemplate nvarchar(4000) not null,
+                Schedule nvarchar(255) not null,
+                SendAddress nvarchar(4000) not null,
+                Query nvarchar(4000) not null,
+                TryCount int not null,
+                QueryTimeOut int not null
+                )");
+            }
+            catch { }
+
         }
     }
 }

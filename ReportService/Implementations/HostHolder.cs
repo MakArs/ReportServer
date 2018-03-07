@@ -45,6 +45,7 @@ namespace ReportService.Implementations
 
             Get["/report/{id:int}"] = parameters =>
             {
+                logic.CreateBase(@"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True");
                 return $"{logic_.GetInstancesView(parameters.id)}";
             };
         }

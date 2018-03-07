@@ -24,8 +24,24 @@ namespace ReportService.Implementations
             int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
             int aTimeOut, string aDataEx = "commondataex", string aViewEx = "commonviewex")
         {
-            dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aDataEx);
-            viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aViewEx); ;
+            try
+            {
+                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aDataEx);
+            }
+            catch
+            {
+                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataex");
+            }
+
+            try
+            {
+                viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aViewEx);
+            }
+            catch
+            {
+                viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
+            }
+
             postMaster_ = aPostMaster;
             this.ID = ID;
             Query = aQuery;
@@ -35,9 +51,6 @@ namespace ReportService.Implementations
             config_ = aConfig;
             TryCount = aTryCount;
             TimeOut = aTimeOut;
-
-            // TODO: remove data&view arguments
-            // TODO: resolve data&view by Type and Names
         }
 
         public void Execute(string aAddress = null)
