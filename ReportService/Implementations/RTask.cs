@@ -20,6 +20,7 @@ namespace ReportService.Implementations
         public string Query { get; }
         public int TryCount { get; }
         public int TimeOut { get; }
+        public RTaskType Type { get; }
 
         private IDataExecutor dataEx_;
         private IViewExecutor viewEx_;
@@ -28,7 +29,7 @@ namespace ReportService.Implementations
 
         public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IConfig aConfig,
             int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
-            int aTimeOut, string TaskType)
+            int aTimeOut, RTaskType TaskType)
         {
             if (TaskType == "common")
             {

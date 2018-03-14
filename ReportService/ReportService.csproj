@@ -99,6 +99,7 @@
     <Compile Include="Implementations\DataExecutor.cs" />
     <Compile Include="Implementations\Logic.cs" />
     <Compile Include="Implementations\ViewExecutor.cs" />
+    <Compile Include="PluginFolder\SenderCopy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -108,5 +109,6 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
