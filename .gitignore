@@ -12,6 +12,8 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -141,6 +143,9 @@ DocProject/Help/*.hhk
 DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
+
+#ignore app.config
+App.config
 
 # Click-Once directory
 publish/

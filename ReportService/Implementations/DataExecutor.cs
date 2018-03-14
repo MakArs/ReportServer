@@ -36,4 +36,16 @@ namespace ReportService.Implementations
             return jsString;
         }
     }
+
+    public class DataExecutorSunday : IDataExecutor
+    {
+        public string Execute(string aquery, int aTimeOut)
+        {
+            var queryResult = new List<Dictionary<string, object>>();
+            queryResult.Add(new Dictionary<string, object>());
+
+            string jsString = JsonConvert.SerializeObject(queryResult);
+            return jsString;
+        }
+    }
 }

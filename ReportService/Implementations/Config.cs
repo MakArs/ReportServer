@@ -12,8 +12,9 @@ namespace ReportService.Implementations
         public string ViewTemplate { get; set; }
         public string Schedule { get; set; }
         public string Query { get; set; }
-        public int TryCount { get; set; }
-        public int QueryTimeOut { get; set; }
+        public byte TryCount { get; set; }
+        public byte QueryTimeOut { get; set; } //seconds
+        public byte TaskType { get; set; }
     }
 
     public class ConfigTest : IConfig
@@ -35,7 +36,7 @@ namespace ReportService.Implementations
         public int CreateInstance(int ataskID, string ajson, string ahtml, double aduration, string astate, int atryNumber)
         {
             return SimpleCommand.ExecuteQueryFirstColumn<int>(connStr,
-                 $@"INSERT INTO Instance_new
+                 $@"INSERT INTO Instance
                   (
                     Data,
                     ViewData,
@@ -58,7 +59,7 @@ namespace ReportService.Implementations
         public void UpdateInstance(int ainstanceID, string ajson, string ahtml, double aduration, string astate, int atryNumber)
         {
             SimpleCommand.ExecuteNonQuery(connStr,
-                 $@"Update Instance_new 
+                 $@"Update Instance
                     set  Data='{ajson.Replace("'", "''")}',
                     ViewData='{ahtml.Replace("'", "''")}',
                     Duration={aduration},
@@ -79,8 +80,8 @@ namespace ReportService.Implementations
                 SimpleCommand.ExecuteNonQuery(abaseConnStr, $@"create table Instance
                 (
                 ID int primary key Identity,
-                Data nvarchar(4000) not null,
-                ViewData nvarchar(4000) not null,
+                Data nvarchar(MAX) not null,
+                ViewData nvarchar(MAX) not null,
                 TaskID int not null,
                 StartTime datetime not null,
                 Duration int not null,
@@ -90,16 +91,16 @@ namespace ReportService.Implementations
 
                 SimpleCommand.ExecuteNonQuery(abaseConnStr, $@"create table Task
                 (ID int primary key Identity,
-                ViewTemplate nvarchar(4000) not null,
+                ViewTemplate nvarchar(MAX) not null,
                 Schedule nvarchar(255) not null,
-                SendAddress nvarchar(4000) not null,
-                Query nvarchar(4000) not null,
-                TryCount int not null,
-                QueryTimeOut int not null
+                SendAddress varchar(4000) not null,
+                Query nvarchar(MAX) not null,
+                TryCount TINYINT not null,
+                QueryTimeOut TINYINT not null,
+                TaskType TINYINT not null 
                 )");
             }
             catch { }
-
         }
     }
 }

@@ -50,7 +50,8 @@ namespace ReportService.Implementations
                         new NamedParameter("aQuery", dto_task.Query),
                         new NamedParameter("aSendAddress", dto_task.SendAddress),
                         new NamedParameter("aTryCount", dto_task.TryCount),
-                        new NamedParameter("aTimeOut", dto_task.QueryTimeOut));
+                        new NamedParameter("aTimeOut", dto_task.QueryTimeOut),
+                        new NamedParameter("TaskType",dto_task.TaskType));
 
                     tasks_.Add((RTask)task);
                 }
@@ -111,7 +112,7 @@ namespace ReportService.Implementations
         {
             IViewExecutor tableView = autofac_.ResolveNamed<IViewExecutor>("tableviewex");
             IDataExecutor dataEx = autofac_.ResolveNamed<IDataExecutor>("commondataex");
-            return tableView.Execute("", dataEx.Execute($"select * from instance_new where taskid={ataskID}", 5));
+            return tableView.Execute("", dataEx.Execute($"select * from instance where taskid={ataskID}", 5));
         }
 
         public void CreateBase(string aconnstr)

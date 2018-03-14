@@ -5,6 +5,12 @@ using System.Diagnostics;
 
 namespace ReportService.Implementations
 {
+    public enum RTaskType : byte
+    {
+        Common = 1,
+        Custom = 2
+    }
+
     public class RTask : IRTask
     {
         public int ID { get; }
@@ -22,24 +28,17 @@ namespace ReportService.Implementations
 
         public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IConfig aConfig,
             int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
-            int aTimeOut, string aDataEx = "commondataex", string aViewEx = "commonviewex")
+            int aTimeOut, string TaskType)
         {
-            try
-            {
-                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aDataEx);
-            }
-            catch
+            if (TaskType == "common")
             {
                 dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataex");
-            }
-
-            try
-            {
-                viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aViewEx);
-            }
-            catch
-            {
                 viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
+            }
+            else
+            {
+                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aQuery);
+                viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aTemplate);
             }
 
             postMaster_ = aPostMaster;
@@ -56,7 +55,7 @@ namespace ReportService.Implementations
         public void Execute(string aAddress = null)
         {
             int InstanceID = config_.CreateInstance(ID, "", "", 0, "InProcess", 0);
-            string[] rassilka = string.IsNullOrEmpty(aAddress) ?
+            string[] deliveryAddrs = string.IsNullOrEmpty(aAddress) ?
                 SendAddresses
                 : new string[] { aAddress };
 
@@ -85,7 +84,7 @@ namespace ReportService.Implementations
             }
 
             if (dataObtained)
-                foreach (string addr in rassilka)
+                foreach (string addr in deliveryAddrs)
                     postMaster_.Send(htmlReport, addr);
 
             config_.UpdateInstance(InstanceID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? "Success" : "Failed", i - 1);
