@@ -99,7 +99,7 @@
     <Compile Include="Implementations\DataExecutor.cs" />
     <Compile Include="Implementations\Logic.cs" />
     <Compile Include="Implementations\ViewExecutor.cs" />
-    <Compile Include="PluginFolder\SenderCopy.cs" />
+    <Compile Include="PluginFolder\DailyReport.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -12,9 +12,9 @@ namespace ReportService.Implementations
         public string ViewTemplate { get; set; }
         public string Schedule { get; set; }
         public string Query { get; set; }
-        public byte TryCount { get; set; }
-        public byte QueryTimeOut { get; set; } //seconds
-        public byte TaskType { get; set; }
+        public int TryCount { get; set; }
+        public int QueryTimeOut { get; set; } //seconds
+        public int TaskType { get; set; }
     }
 
     public class ConfigTest : IConfig

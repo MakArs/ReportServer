@@ -4,6 +4,7 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
+using ReportService.PluginFolder;
 
 namespace ReportService
 {
@@ -31,6 +32,11 @@ namespace ReportService
             existingContainer.Update(builder => builder
                         .RegisterType<DataExecutorTest>()
                         .Named<IDataExecutor>("commondataex")
+                        .SingleInstance());
+
+            existingContainer.Update(builder => builder
+                        .RegisterType<Daily_DataEx>()
+                        .Named<IDataExecutor>("commondataexx")
                         .SingleInstance());
 
             existingContainer.Update(builder => builder

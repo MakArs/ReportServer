@@ -29,11 +29,12 @@ namespace ReportService.Implementations
 
         public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IConfig aConfig,
             int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
-            int aTimeOut, RTaskType TaskType)
+            int aTimeOut, int TaskType)
         {
-            if (TaskType == "common")
+            Type = (RTaskType)TaskType;
+            if (Type.ToString()== "Common")
             {
-                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataex");
+                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataexx");
                 viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
             }
             else
