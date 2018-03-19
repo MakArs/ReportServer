@@ -15,6 +15,13 @@ namespace ReportService.Implementations
      * 3. Async run RTasks
      * 4. Get Task&Instance html results
      */
+
+    public enum RTaskType : byte
+    {
+        Common = 1,
+        Custom = 2
+    }
+
     public class Logic : ILogic
     {
         private IConfig config_;
@@ -23,6 +30,7 @@ namespace ReportService.Implementations
 
         private Scheduler UpdateConfigScheduler;
         private Scheduler CheckScheduleAndExecuteScheduler;
+
 
         public Logic(ILifetimeScope aAutofac, IConfig config)
         {
@@ -51,7 +59,7 @@ namespace ReportService.Implementations
                         new NamedParameter("aSendAddress", dto_task.SendAddress),
                         new NamedParameter("aTryCount", dto_task.TryCount),
                         new NamedParameter("aTimeOut", dto_task.QueryTimeOut),
-                        new NamedParameter("TaskType",dto_task.TaskType));
+                        new NamedParameter("aTaskType", (RTaskType)dto_task.TaskType));
 
                     tasks_.Add((RTask)task);
                 }
@@ -71,7 +79,7 @@ namespace ReportService.Implementations
                 if (task.ID == aTaskID)
                 {
                     executed += $"#{task.ID} ";
-                    Task.Factory.StartNew(() => task.Execute(aMail)); 
+                    Task.Factory.StartNew(() => task.Execute(aMail));
                     return executed;
                 }
             return executed;
@@ -100,10 +108,10 @@ namespace ReportService.Implementations
                 }
             }//for
         }
-        
+
         public string GetTaskView()
         {
-            IViewExecutor tableView= autofac_.ResolveNamed<IViewExecutor>("tableviewex");
+            IViewExecutor tableView = autofac_.ResolveNamed<IViewExecutor>("tableviewex");
             IDataExecutor dataEx = autofac_.ResolveNamed<IDataExecutor>("commondataex");
             return tableView.Execute("", dataEx.Execute("select * from task", 5));
         }

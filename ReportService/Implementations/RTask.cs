@@ -5,11 +5,7 @@ using System.Diagnostics;
 
 namespace ReportService.Implementations
 {
-    public enum RTaskType : byte
-    {
-        Common = 1,
-        Custom = 2
-    }
+
 
     public class RTask : IRTask
     {
@@ -29,18 +25,22 @@ namespace ReportService.Implementations
 
         public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IConfig aConfig,
             int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
-            int aTimeOut, int TaskType)
+            int aTimeOut, RTaskType aTaskType)
         {
-            Type = (RTaskType)TaskType;
-            if (Type.ToString()== "Common")
+            Type = aTaskType;
+
+            switch (Type)
             {
-                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataexx");
-                viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
-            }
-            else
-            {
-                dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aQuery);
-                viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aTemplate);
+                case RTaskType.Common:
+                    dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("dailyreport_de");
+                    viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
+                    break;
+                case RTaskType.Custom:
+                    dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aQuery);
+                    viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aTemplate);
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
 
             postMaster_ = aPostMaster;

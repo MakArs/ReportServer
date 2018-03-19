@@ -36,7 +36,7 @@ namespace ReportService
 
             existingContainer.Update(builder => builder
                         .RegisterType<Daily_DataEx>()
-                        .Named<IDataExecutor>("commondataexx")
+                        .Named<IDataExecutor>("dailyreport_de")
                         .SingleInstance());
 
             existingContainer.Update(builder => builder
