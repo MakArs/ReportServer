@@ -8,7 +8,7 @@ namespace ReportService.Implementations
 {
     public class HostHolder : IHostHolder
     {
-        private NancyHost nanHost = new NancyHost(new Uri($"http://localhost:12345/"));
+        private NancyHost nanHost = new NancyHost( new Uri($"http://localhost:12345/"));
 
         public HostHolder() { }
 

@@ -8,7 +8,7 @@ using ReportService.PluginFolder;
 
 namespace ReportService
 {
-    public class Bootstrapper : AutofacNancyBootstrapper
+    public partial class Bootstrapper : AutofacNancyBootstrapper
     {
         public ILifetimeScope Container => ApplicationContainer;
 

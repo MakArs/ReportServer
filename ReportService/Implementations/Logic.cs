@@ -15,13 +15,6 @@ namespace ReportService.Implementations
      * 3. Async run RTasks
      * 4. Get Task&Instance html results
      */
-
-    public enum RTaskType : byte
-    {
-        Common = 1,
-        Custom = 2
-    }
-
     public class Logic : ILogic
     {
         private IConfig config_;
