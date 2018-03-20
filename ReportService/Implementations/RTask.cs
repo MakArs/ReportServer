@@ -32,7 +32,7 @@ namespace ReportService.Implementations
             switch (Type)
             {
                 case RTaskType.Common:
-                    dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("dailyreport_de");
+                    dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataex");
                     viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
                     break;
                 case RTaskType.Custom:

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Gerakul.FastSql;
 using Newtonsoft.Json;
 using ReportService.Interfaces;

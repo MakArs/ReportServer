@@ -4,7 +4,11 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
-using ReportService.PluginFolder;
+
+public interface IPrivateBootstrapper
+{
+    void PrivateConfigureApplicationContainer(ILifetimeScope existingContainer);
+}
 
 namespace ReportService
 {
@@ -34,18 +38,14 @@ namespace ReportService
                         .Named<IDataExecutor>("commondataex")
                         .SingleInstance());
 
-            if (check)
-                PrivateConfigureApplicationContainer(existingContainer);
-
-            existingContainer.Update(builder => builder
-                       .RegisterType<TableViewExecutor>()
-                        .Named<IViewExecutor>("tableviewex")
-                        .SingleInstance());
-
             existingContainer.Update(builder => builder
                         .RegisterType<ViewExecutor>()
                         .Named<IViewExecutor>("commonviewex")
                         .SingleInstance());
+
+            IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
+            if (privboots != null)
+                privboots.PrivateConfigureApplicationContainer(existingContainer);
 
             existingContainer.Update(builder => builder
                         .RegisterType<PostMasterWork>()
