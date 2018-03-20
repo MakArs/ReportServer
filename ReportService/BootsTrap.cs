@@ -34,10 +34,8 @@ namespace ReportService
                         .Named<IDataExecutor>("commondataex")
                         .SingleInstance());
 
-            existingContainer.Update(builder => builder
-                        .RegisterType<Daily_DataEx>()
-                        .Named<IDataExecutor>("dailyreport_de")
-                        .SingleInstance());
+            if (check)
+                PrivateConfigureApplicationContainer(existingContainer);
 
             existingContainer.Update(builder => builder
                        .RegisterType<TableViewExecutor>()
@@ -62,6 +60,7 @@ namespace ReportService
             existingContainer.Update(builder => builder
                                     .RegisterType<RTask>()
                                     .As<IRTask>());
+            
 
             existingContainer.Update(builder => builder
                                    .Register(c => existingContainer));
