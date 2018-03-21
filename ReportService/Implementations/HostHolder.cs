@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Autofac.Features.Indexed;
 using Nancy;
 using Nancy.Hosting.Self;

@@ -11,14 +11,14 @@ namespace ReportService.Implementations
         public int Period { get; set; } = 60; // in seconds
         public Action TaskMethod { get; set; } = null; // may be with exceptions
 
-        private Task workTask_;
-        private bool started_ = false;
+        private Task _workTask;
+        private bool _started = false;
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
         private CancellationToken cancelToken;
 
         private void WorkCycle()
         {
-            while (started_)
+            while (_started)
             {
                 try
                 {
@@ -33,19 +33,19 @@ namespace ReportService.Implementations
 
         public void OnStart()
         {
-            started_ = true;
+            _started = true;
             cancelToken = cancelSource.Token;
 
-            workTask_ = new Task(WorkCycle, cancelToken);
-            workTask_.Start();
+            _workTask = new Task(WorkCycle, cancelToken);
+            _workTask.Start();
         }
 
         public void OnStop()
         {
-            started_ = false;
+            _started = false;
             Task.Delay(1000).Wait();
 
-            if (!workTask_.IsCanceled)
+            if (!_workTask.IsCanceled)
                 cancelSource.Cancel();
 
         }

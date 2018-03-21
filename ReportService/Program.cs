@@ -1,5 +1,7 @@
-﻿using ReportService.Implementations;
-using System;
+﻿using System;
+using System.IO;
+using System.Reflection;
+using ReportService.Implementations;
 using Topshelf;
 
 namespace ReportService
@@ -18,20 +20,20 @@ namespace ReportService
 
             //Console.ReadLine();
             //hld.Stop();
-
-            HostFactory.Run(x =>
+            HostFactory.Run(hostConfigurator =>
             {
-                x.Service<HostHolder>(s =>
+                hostConfigurator.Service<HostHolder>(serviceConfigurator =>
                 {
-                    s.ConstructUsing(name => new HostHolder());
-                    s.WhenStarted(tc => tc.Start());
-                    s.WhenStopped(tc => tc.Stop());
+                    serviceConfigurator.ConstructUsing(name => new HostHolder());
+                    serviceConfigurator.WhenStarted(hostHolder => hostHolder.Start());
+                    serviceConfigurator.WhenStopped(hostHolder => hostHolder.Stop());
                 });
 
-                x.RunAsLocalSystem();
-                x.SetDescription("ReportServer service");
-                x.SetDisplayName("ReportServer");
-                x.SetServiceName("ReportServer");
+                hostConfigurator.RunAsLocalSystem();
+                //System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
+                hostConfigurator.SetDescription("ReportServer service");
+                hostConfigurator.SetDisplayName("ReportServerr");
+                hostConfigurator.SetServiceName("ReportServer");
             });
         }
     }
