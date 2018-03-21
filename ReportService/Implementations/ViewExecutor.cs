@@ -1,4 +1,5 @@
-﻿using ReportService.Interfaces;
+﻿using System;
+using ReportService.Interfaces;
 using Newtonsoft.Json.Linq;
 using RazorEngine;
 using RazorEngine.Templating;
@@ -11,6 +12,8 @@ namespace ReportService.Implementations
     {
         public virtual string Execute(string viewTemplate, string json)
         {
+            string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
+
             TemplateServiceConfiguration templateConfig = new TemplateServiceConfiguration();
             templateConfig.DisableTempFileLocking = true;
             templateConfig.CachingProvider = new DefaultCachingProvider(t => { });
@@ -24,6 +27,7 @@ namespace ReportService.Implementations
             foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
                 headers.Add(p.Name);
 
+
             List<List<string>> content = new List<List<string>>();
             foreach (JObject j in jObj.Children<JObject>())
             {
@@ -33,7 +37,7 @@ namespace ReportService.Implementations
                 content.Add(prop);
             }
 
-            var model = new { Headers = headers, Content = content };
+            var model = new { Headers = headers, Content = content, Date = date };
 
             return Engine.Razor.Run("somekey", null, model);
         }

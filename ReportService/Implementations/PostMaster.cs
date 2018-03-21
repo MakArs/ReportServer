@@ -34,7 +34,7 @@ namespace ReportService.Implementations
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             msg.To.Add(new MailAddress(address));
-            msg.Subject = "Testing";
+            msg.Subject = "Отчёт";
             msg.IsBodyHtml = true;
             msg.Body = report;
 
