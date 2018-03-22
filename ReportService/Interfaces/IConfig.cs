@@ -10,5 +10,8 @@ namespace ReportService.Interfaces
         void Reload();
         void CreateBase(string abaseConnStr);
         List<DTO_Task> GetTasks();
+        void UpdateTask(int ataskID, DTO_Task atask);
+        void DeleteTask(int ataskID);
+        int CreateTask(DTO_Task atask);
     }
 }

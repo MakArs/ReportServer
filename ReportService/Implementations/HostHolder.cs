@@ -23,7 +23,6 @@ namespace ReportService.Implementations
 
             _monik = Bootstrapper.Global.Resolve<IClientControl>();
             _monik.ApplicationInfo("HostHolder.ctor");
-
         }
 
         public static HostConfiguration HostConfigs = new HostConfiguration()
@@ -84,7 +83,6 @@ namespace ReportService.Implementations
             {
                 try
                 {
-                    //logic.CreateBase(@"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True");
                     return $"{_logic.GetInstancesView(parameters.id)}";
                 }
                 catch
@@ -92,6 +90,59 @@ namespace ReportService.Implementations
                     return "no report with this id found...";
                 }
             };
+
+            Put["/createdatabase/{ConnectionString}"] = parameters =>
+            {
+                try
+                {
+                    logic.CreateBase(parameters.ConnectionString);
+                    return "DataBase successful created!";
+                }
+                catch (Exception e)
+                {
+                    return $"DataBase was not created...{e.Message}";
+                }
+            };
+
+            Get["/delete/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteTask(parameters.id);
+                    return $"deleted task {parameters.id}";
+                }
+                catch
+                {
+                    return "no task with this id found...";
+                }
+            };
+
+            Get["/create/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.CreateTask(((Logic)logic)._tasks[parameters.id]);
+                    return $"created copy of task {parameters.id}";
+                }
+                catch
+                {
+                    return "no task with this id found...";
+                }
+            };
+
+            Get["/update/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.UpdateTask(parameters.id,((Logic)logic)._tasks[0]);
+                    return $"updated task {parameters.id}";
+                }
+                catch
+                {
+                    return "no task with this id found...";
+                }
+            };
+
         }
     } //class
 }

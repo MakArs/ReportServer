@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Gerakul.FastSql;
 using ReportService.Interfaces;
@@ -8,10 +9,11 @@ namespace ReportService.Implementations
     public class DTO_Task
     {
         public int ID { get; set; }
-        public string SendAddress { get; set; }
-        public string ViewTemplate { get; set; }
         public string Schedule { get; set; }
+        public  string ConnectionString { get; set; }
+        public string ViewTemplate { get; set; }
         public string Query { get; set; }
+        public string SendAddress { get; set; }
         public int TryCount { get; set; }
         public int QueryTimeOut { get; set; } //seconds
         public int TaskType { get; set; }
@@ -73,10 +75,52 @@ namespace ReportService.Implementations
             return Tasks;
         }
 
+        public void UpdateTask(int ataskID, DTO_Task atask)
+        {
+                SimpleCommand.ExecuteNonQuery(connStr, $@"update Task
+                set Schedule='{atask.Schedule}',
+                ConnectionString ='{atask.ConnectionString}',
+                ViewTemplate='{atask.ViewTemplate}',
+                Query='{atask.Query}',
+                SendAddress='{atask.SendAddress}',
+                TryCount={atask.TryCount},
+                QueryTimeOut={atask.QueryTimeOut},
+                TaskType={atask.TaskType}
+                where id={ataskID}");
+        }
+
+        public void DeleteTask(int ataskID)
+        {
+            SimpleCommand.ExecuteNonQuery(connStr, $@"delete Task where id={ataskID}");
+        }
+
+        public int CreateTask(DTO_Task atask)
+        {
+           return SimpleCommand.ExecuteQueryFirstColumn<int>(connStr, $@"INSERT INTO Task
+                (Schedule,
+                ConnectionString,
+                ViewTemplate,
+                Query,
+                SendAddress,
+                TryCount,
+                QueryTimeOut,
+                TaskType
+                )
+                values
+                ('{atask.Schedule}',
+                '{atask.ConnectionString}',
+                '{atask.ViewTemplate}',
+                '{atask.Query}',
+                '{atask.SendAddress}',
+                {atask.TryCount},
+                {atask.QueryTimeOut},
+                {atask.TaskType}
+                );
+                select cast(scope_identity() as int)").First();
+        }
+
         public void CreateBase(string abaseConnStr)
         {
-            try
-            {
                 SimpleCommand.ExecuteNonQuery(abaseConnStr, $@"create table Instance
                 (
                 ID int primary key Identity,
@@ -91,16 +135,15 @@ namespace ReportService.Implementations
 
                 SimpleCommand.ExecuteNonQuery(abaseConnStr, $@"create table Task
                 (ID int primary key Identity,
-                ViewTemplate nvarchar(MAX) not null,
                 Schedule nvarchar(255) not null,
-                SendAddress varchar(4000) not null,
+                ConnectionString nvarchar(255) null,
+                ViewTemplate nvarchar(MAX) not null,
                 Query nvarchar(MAX) not null,
+                SendAddress varchar(4000) not null,
                 TryCount TINYINT not null,
                 QueryTimeOut TINYINT not null,
                 TaskType TINYINT not null 
                 )");
-            }
-            catch { }
         }
     }
 }

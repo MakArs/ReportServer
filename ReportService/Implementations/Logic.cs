@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,35 +19,35 @@ namespace ReportService.Implementations
      */
     public class Logic : ILogic
     {
-        private IConfig config_;
-        private List<RTask> tasks_;
-        private ILifetimeScope autofac_;
+        private IConfig _config;
+        public List<RTask> _tasks { get; }
+        private ILifetimeScope _autofac;
 
         private Scheduler UpdateConfigScheduler;
         private Scheduler CheckScheduleAndExecuteScheduler;
-        private readonly IClientControl _monik;
+        public readonly IClientControl Monik;
 
-        public Logic(ILifetimeScope aAutofac, IConfig config)
+        public Logic(ILifetimeScope aAutofac, IConfig config, IClientControl monik)
         {
-            autofac_ = aAutofac;
-            config_ = config;
-            tasks_ = new List<RTask>();
+            _autofac = aAutofac;
+            _config = config;
+            _tasks = new List<RTask>();
             UpdateConfigScheduler = new Scheduler() { TaskMethod = UpdateTaskList };
             CheckScheduleAndExecuteScheduler = new Scheduler() { TaskMethod = CheckScheduleAndExecute };
-            _monik = aAutofac.Resolve<IClientControl>();
+            Monik = monik;
         }
 
         private void UpdateTaskList()
         {
-            config_.Reload();
+            _config.Reload();
 
             lock (this)
             {
-                tasks_.Clear();
+                _tasks.Clear();
 
-                foreach (var dtoTask in config_.GetTasks())
+                foreach (var dtoTask in _config.GetTasks())
                 {
-                    var task = autofac_.Resolve<IRTask>(
+                    var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("ID", dtoTask.ID),
                         new NamedParameter("aTemplate", dtoTask.ViewTemplate),
                         new NamedParameter("aSchedule", dtoTask.Schedule),
@@ -56,7 +57,7 @@ namespace ReportService.Implementations
                         new NamedParameter("aTimeOut", dtoTask.QueryTimeOut),
                         new NamedParameter("aTaskType", (RTaskType)dtoTask.TaskType));
 
-                    tasks_.Add((RTask)task);
+                    _tasks.Add((RTask)task);
                 }
             }//lock
         }
@@ -68,12 +69,12 @@ namespace ReportService.Implementations
             UpdateTaskList();
             string executed = "";
             lock (this)
-                tasks = tasks_.ToList();
+                tasks = _tasks.ToList();
 
-            foreach (var task in tasks_)
+            foreach (var task in _tasks)
                 if (task.ID == aTaskID)
                 {
-                    _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {aMail}");
+                    Monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {aMail}");
                     executed += $"#{task.ID} ";
                     Task.Factory.StartNew(() => task.Execute(aMail));
                     return executed;
@@ -86,7 +87,7 @@ namespace ReportService.Implementations
             List<RTask> tasks;
 
             lock (this)
-                tasks = tasks_.ToList();
+                tasks = _tasks.ToList();
 
             DateTime time = DateTime.Now;
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
@@ -99,7 +100,7 @@ namespace ReportService.Implementations
 
                 if (schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
                 {
-                    foreach(var mail in task.SendAddresses) _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {mail}");
+                    foreach(var mail in task.SendAddresses) Monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {mail}");
                     Task.Factory.StartNew(() => task.Execute()).ContinueWith(
                         _ => Console.WriteLine($"Task {task.ID} executed. Mail sent to {task.SendAddresses[0]}"));
                 }
@@ -108,21 +109,21 @@ namespace ReportService.Implementations
 
         public string GetTaskView()
         {
-            IViewExecutor tableView = autofac_.ResolveNamed<IViewExecutor>("tableviewex");
-            IDataExecutor dataEx = autofac_.ResolveNamed<IDataExecutor>("commondataex");
+            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
+            IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
             return tableView.Execute("", dataEx.Execute("select * from task", 5));
         }
 
         public string GetInstancesView(int ataskID)
         {
-            IViewExecutor tableView = autofac_.ResolveNamed<IViewExecutor>("tableviewex");
-            IDataExecutor dataEx = autofac_.ResolveNamed<IDataExecutor>("commondataex");
+            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
+            IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
             return tableView.Execute("", dataEx.Execute($"select * from instance where taskid={ataskID}", 5));
         }
 
         public void CreateBase(string aconnstr)
         {
-            config_.CreateBase(aconnstr);
+            _config.CreateBase(aconnstr);
         }
 
         public void Start()
@@ -135,6 +136,42 @@ namespace ReportService.Implementations
         {
             UpdateConfigScheduler.OnStop();
             CheckScheduleAndExecuteScheduler.OnStop();
+        }
+
+        public void UpdateTask(int ataskID, RTask atask)
+        {
+            var dtoTask = new DTO_Task() {
+                Schedule =atask.Schedule,
+                ConnectionString ="",
+                ViewTemplate = atask.ViewTemplate,
+                Query = atask.Query,
+                SendAddress = String.Join(";",atask.SendAddresses),
+                TryCount = atask.TryCount,
+                QueryTimeOut = atask.TimeOut,
+                TaskType = (int)atask.Type};
+
+            _config.UpdateTask(ataskID, dtoTask);
+        }
+
+        public void DeleteTask(int ataskID)
+        {
+            _config.DeleteTask(ataskID);
+        }
+
+        public int CreateTask(RTask atask)
+        {
+            var dtoTask = new DTO_Task()
+            {
+                Schedule = atask.Schedule,
+                ConnectionString = "",
+                ViewTemplate = atask.ViewTemplate,
+                Query = atask.Query,
+                SendAddress = String.Join(";", atask.SendAddresses),
+                TryCount = atask.TryCount,
+                QueryTimeOut = atask.TimeOut,
+                TaskType = (int)atask.Type
+            };
+            return _config.CreateTask(dtoTask);
         }
     }
 }
