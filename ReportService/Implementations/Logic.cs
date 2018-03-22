@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +22,6 @@ namespace ReportService.Implementations
         public List<RTask> _tasks { get; }
         private ILifetimeScope _autofac;
 
-        private Scheduler UpdateConfigScheduler;
         private Scheduler CheckScheduleAndExecuteScheduler;
         public readonly IClientControl Monik;
 
@@ -32,7 +30,6 @@ namespace ReportService.Implementations
             _autofac = aAutofac;
             _config = config;
             _tasks = new List<RTask>();
-            UpdateConfigScheduler = new Scheduler() { TaskMethod = UpdateTaskList };
             CheckScheduleAndExecuteScheduler = new Scheduler() { TaskMethod = CheckScheduleAndExecute };
             Monik = monik;
         }
@@ -66,7 +63,6 @@ namespace ReportService.Implementations
         {
             List<RTask> tasks;
 
-            UpdateTaskList();
             string executed = "";
             lock (this)
                 tasks = _tasks.ToList();
@@ -85,7 +81,7 @@ namespace ReportService.Implementations
         private void CheckScheduleAndExecute()
         {
             List<RTask> tasks;
-
+            UpdateTaskList();
             lock (this)
                 tasks = _tasks.ToList();
 
@@ -128,34 +124,35 @@ namespace ReportService.Implementations
 
         public void Start()
         {
-            UpdateConfigScheduler.OnStart();
             CheckScheduleAndExecuteScheduler.OnStart();
         }
 
         public void Stop()
         {
-            UpdateConfigScheduler.OnStop();
             CheckScheduleAndExecuteScheduler.OnStop();
         }
 
         public void UpdateTask(int ataskID, RTask atask)
         {
-            var dtoTask = new DTO_Task() {
-                Schedule =atask.Schedule,
-                ConnectionString ="",
-                ViewTemplate = atask.ViewTemplate,
-                Query = atask.Query,
-                SendAddress = String.Join(";",atask.SendAddresses),
-                TryCount = atask.TryCount,
-                QueryTimeOut = atask.TimeOut,
-                TaskType = (int)atask.Type};
+                var dtoTask = new DTO_Task()
+                {
+                    Schedule = atask.Schedule,
+                    ConnectionString = "",
+                    ViewTemplate = atask.ViewTemplate,
+                    Query = atask.Query,
+                    SendAddress = String.Join(";", atask.SendAddresses),
+                    TryCount = atask.TryCount,
+                    QueryTimeOut = atask.TimeOut,
+                    TaskType = (int) atask.Type
+                };
 
-            _config.UpdateTask(ataskID, dtoTask);
+                _config.UpdateTask(ataskID, dtoTask);
+                UpdateTaskList();
         }
-
         public void DeleteTask(int ataskID)
         {
             _config.DeleteTask(ataskID);
+            UpdateTaskList();
         }
 
         public int CreateTask(RTask atask)
@@ -171,6 +168,7 @@ namespace ReportService.Implementations
                 QueryTimeOut = atask.TimeOut,
                 TaskType = (int)atask.Type
             };
+            UpdateTaskList();
             return _config.CreateTask(dtoTask);
         }
     }
