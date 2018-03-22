@@ -12,13 +12,13 @@ namespace ReportService.Implementations
         public DataExecutorTest()
         { }
 
-        public string Execute(string aquery, int aTimeOut)
+        public string Execute(string query, int timeOut)
         {
             var queryResult = new List<Dictionary<string, object>>();
 
             SqlScope.UsingConnection(connStr, scope =>
                 {
-                    using (var reader = scope.CreateSimple(new QueryOptions(aTimeOut), $"{aquery}").ExecuteReader())
+                    using (var reader = scope.CreateSimple(new QueryOptions(timeOut), $"{query}").ExecuteReader())
                     {
                         while (reader.Read())
                         {

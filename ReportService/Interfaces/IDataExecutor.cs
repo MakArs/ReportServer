@@ -2,6 +2,6 @@
 {
     public interface IDataExecutor
     {
-        string Execute(string aquery, int aTimeOut);
+        string Execute(string query, int timeOut);
     }
 }

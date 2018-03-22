@@ -8,7 +8,7 @@
 
     public interface IRTask
     {
-        void Execute(string aAddress = null);
+        void Execute(string address = null);
 
         // RTaskType MyType...
     }

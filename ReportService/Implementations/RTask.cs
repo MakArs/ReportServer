@@ -5,11 +5,9 @@ using System.Diagnostics;
 
 namespace ReportService.Implementations
 {
-
-
     public class RTask : IRTask
     {
-        public int ID { get; }
+        public int Id { get; }
         public string[] SendAddresses { get; set; }
         public string ViewTemplate { get; }
         public string Schedule { get; }
@@ -21,10 +19,10 @@ namespace ReportService.Implementations
         private IDataExecutor dataEx_;
         private IViewExecutor viewEx_;
         private IPostMaster postMaster_;
-        private IConfig config_;
+        private IRepository _repository;
 
-        public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IConfig aConfig,
-            int ID, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
+        public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IRepository aRepository,
+            int id, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
             int aTimeOut, RTaskType aTaskType)
         {
             Type = aTaskType;
@@ -44,22 +42,22 @@ namespace ReportService.Implementations
             }
 
             postMaster_ = aPostMaster;
-            this.ID = ID;
+            Id = id;
             Query = aQuery;
             ViewTemplate = aTemplate;
             SendAddresses = aSendAddress.Split(';');
             Schedule = aSchedule;
-            config_ = aConfig;
+            _repository = aRepository;
             TryCount = aTryCount;
             TimeOut = aTimeOut;
         }
 
-        public void Execute(string aAddress = null)
+        public void Execute(string address = null)
         {
-            int InstanceID = config_.CreateInstance(ID, "", "", 0, "InProcess", 0);
-            string[] deliveryAddrs = string.IsNullOrEmpty(aAddress) ?
+            int instanceId = _repository.CreateInstance(Id, "", "", 0, "InProcess", 0);
+            string[] deliveryAddrs = string.IsNullOrEmpty(address) ?
                 SendAddresses
-                : new string[] { aAddress };
+                : new string[] { address };
 
             Stopwatch duration = new Stopwatch();
             int i = 1;
@@ -89,7 +87,7 @@ namespace ReportService.Implementations
                 foreach (string addr in deliveryAddrs)
                     postMaster_.Send(htmlReport, addr);
 
-            config_.UpdateInstance(InstanceID, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? "Success" : "Failed", i - 1);
+            _repository.UpdateInstance(instanceId, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? "Success" : "Failed", i - 1);
         }
     }//class
 }

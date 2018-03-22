@@ -116,17 +116,18 @@
   <ItemGroup>
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Implementations\HostHolder.cs" />
+    <Compile Include="Implementations\NancyModuler.cs" />
     <Compile Include="Implementations\PostMaster.cs" />
     <Compile Include="Implementations\RTask.cs" />
     <Compile Include="Implementations\Scheduler.cs" />
-    <Compile Include="Interfaces\IConfig.cs" />
+    <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Interfaces\IDataExecutor.cs" />
     <Compile Include="Interfaces\IHostHolder.cs" />
     <Compile Include="Interfaces\ILogic.cs" />
     <Compile Include="Interfaces\IPostMaster.cs" />
     <Compile Include="Interfaces\IRTask.cs" />
     <Compile Include="Interfaces\IViewExecutor.cs" />
-    <Compile Include="Implementations\Config.cs" />
+    <Compile Include="Implementations\Repository.cs" />
     <Compile Include="Implementations\DataExecutor.cs" />
     <Compile Include="Implementations\Logic.cs" />
     <Compile Include="Implementations\ViewExecutor.cs" />

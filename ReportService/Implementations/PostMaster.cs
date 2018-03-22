@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Mail;
 using ReportService.Interfaces;
 using System.Configuration;
@@ -9,19 +8,19 @@ namespace ReportService.Implementations
 {
     class PostMasterTest : IPostMaster
     {
-        private string filename;
+        private string _filename;
 
         public void Send(string report, string address)
         {
-            filename = $"Report{DateTime.Now.ToString("HHmmss")}.html";
+            _filename = $"Report{DateTime.Now:HHmmss}.html";
 
-            using (FileStream fs = new FileStream($@"C:\ArsMak\job\{filename}", FileMode.CreateNew))
+            using (FileStream fs = new FileStream($@"C:\ArsMak\job\{_filename}", FileMode.CreateNew))
             {
                 byte[] array = System.Text.Encoding.Default.GetBytes(report);
                 fs.Write(array, 0, array.Length);
             }
 
-            Console.WriteLine($"file {filename} saved to disk...");
+            Console.WriteLine($"file {_filename} saved to disk...");
         }
     } //saving at disk
 
@@ -30,7 +29,7 @@ namespace ReportService.Implementations
 
         public void Send(string report, string address)
         {
-            SmtpClient client = new SmtpClient("smtp.mail.ru", 587);
+            SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             msg.To.Add(new MailAddress(address));
@@ -40,7 +39,6 @@ namespace ReportService.Implementations
 
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
-            client.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["from"], ConfigurationManager.AppSettings["pass"]);
 
             try
             {

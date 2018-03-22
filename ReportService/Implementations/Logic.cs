@@ -18,34 +18,33 @@ namespace ReportService.Implementations
      */
     public class Logic : ILogic
     {
-        private IConfig _config;
-        public List<RTask> _tasks { get; }
-        private ILifetimeScope _autofac;
+        private readonly ILifetimeScope _autofac;
+        private readonly IRepository _repository;
+        private readonly IClientControl _monik;
 
-        private Scheduler CheckScheduleAndExecuteScheduler;
-        public readonly IClientControl Monik;
+        private List<RTask> _tasks;
 
-        public Logic(ILifetimeScope aAutofac, IConfig config, IClientControl monik)
+        private readonly Scheduler _checkScheduleAndExecuteScheduler;
+
+        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik)
         {
-            _autofac = aAutofac;
-            _config = config;
+            _autofac = autofac;
+            _repository = repository;
             _tasks = new List<RTask>();
-            CheckScheduleAndExecuteScheduler = new Scheduler() { TaskMethod = CheckScheduleAndExecute };
-            Monik = monik;
+            _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
+            _monik = monik;
         }
 
         private void UpdateTaskList()
         {
-            _config.Reload();
-
             lock (this)
             {
                 _tasks.Clear();
 
-                foreach (var dtoTask in _config.GetTasks())
+                foreach (var dtoTask in _repository.GetTasks())
                 {
                     var task = _autofac.Resolve<IRTask>(
-                        new NamedParameter("ID", dtoTask.ID),
+                        new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("aTemplate", dtoTask.ViewTemplate),
                         new NamedParameter("aSchedule", dtoTask.Schedule),
                         new NamedParameter("aQuery", dtoTask.Query),
@@ -59,22 +58,23 @@ namespace ReportService.Implementations
             }//lock
         }
 
-        public string ForceExecute(int aTaskID, string aMail)
+        public string ForceExecute(int taskId, string mail)
         {
             List<RTask> tasks;
-
             string executed = "";
             lock (this)
                 tasks = _tasks.ToList();
 
             foreach (var task in _tasks)
-                if (task.ID == aTaskID)
+                if (task.Id == taskId)
                 {
-                    Monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {aMail}");
-                    executed += $"#{task.ID} ";
-                    Task.Factory.StartNew(() => task.Execute(aMail));
+                    _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.Id} на адрес {mail}");
+
+                    executed += $"#{task.Id} ";
+                    Task.Factory.StartNew(() => task.Execute(mail));
                     return executed;
                 }
+
             return executed;
         }
 
@@ -96,9 +96,11 @@ namespace ReportService.Implementations
 
                 if (schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
                 {
-                    foreach(var mail in task.SendAddresses) Monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {mail}");
+                    foreach(var mail in task.SendAddresses)
+                        _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.Id} на адрес {mail}");
+
                     Task.Factory.StartNew(() => task.Execute()).ContinueWith(
-                        _ => Console.WriteLine($"Task {task.ID} executed. Mail sent to {task.SendAddresses[0]}"));
+                        _ => Console.WriteLine($"Task {task.Id} executed. Mail sent to {task.SendAddresses[0]}"));
                 }
             }//for
         }
@@ -110,66 +112,70 @@ namespace ReportService.Implementations
             return tableView.Execute("", dataEx.Execute("select * from task", 5));
         }
 
-        public string GetInstancesView(int ataskID)
+        public string GetInstancesView(int taskId)
         {
             IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
             IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
-            return tableView.Execute("", dataEx.Execute($"select * from instance where taskid={ataskID}", 5));
+            return tableView.Execute("", dataEx.Execute($"select * from instance where taskid={taskId}", 5));
         }
 
-        public void CreateBase(string aconnstr)
+        public void CreateBase(string connStr)
         {
-            _config.CreateBase(aconnstr);
+            _repository.CreateBase(connStr);
         }
 
         public void Start()
         {
-            CheckScheduleAndExecuteScheduler.OnStart();
+            _checkScheduleAndExecuteScheduler.OnStart();
         }
 
         public void Stop()
         {
-            CheckScheduleAndExecuteScheduler.OnStop();
+            _checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public void UpdateTask(int ataskID, RTask atask)
+        public void UpdateTask(int taskId, RTask task)
         {
                 var dtoTask = new DTO_Task()
                 {
-                    Schedule = atask.Schedule,
+                    Id=taskId,
+                    Schedule = task.Schedule,
                     ConnectionString = "",
-                    ViewTemplate = atask.ViewTemplate,
-                    Query = atask.Query,
-                    SendAddress = String.Join(";", atask.SendAddresses),
-                    TryCount = atask.TryCount,
-                    QueryTimeOut = atask.TimeOut,
-                    TaskType = (int) atask.Type
+                    ViewTemplate = task.ViewTemplate,
+                    Query = task.Query,
+                    SendAddress = String.Join(";", task.SendAddresses),
+                    TryCount = task.TryCount,
+                    QueryTimeOut = task.TimeOut,
+                    TaskType = (int) task.Type
                 };
 
-                _config.UpdateTask(ataskID, dtoTask);
+                _repository.UpdateTask(taskId, dtoTask);
                 UpdateTaskList();
         }
-        public void DeleteTask(int ataskID)
+
+        public void DeleteTask(int taskId)
         {
-            _config.DeleteTask(ataskID);
+            _repository.DeleteTask(taskId);
             UpdateTaskList();
         }
 
-        public int CreateTask(RTask atask)
+        public int CreateTask(RTask task)
         {
             var dtoTask = new DTO_Task()
             {
-                Schedule = atask.Schedule,
+                Schedule = task.Schedule,
                 ConnectionString = "",
-                ViewTemplate = atask.ViewTemplate,
-                Query = atask.Query,
-                SendAddress = String.Join(";", atask.SendAddresses),
-                TryCount = atask.TryCount,
-                QueryTimeOut = atask.TimeOut,
-                TaskType = (int)atask.Type
+                ViewTemplate = task.ViewTemplate,
+                Query = task.Query,
+                SendAddress = String.Join(";", task.SendAddresses),
+                TryCount = task.TryCount,
+                QueryTimeOut = task.TimeOut,
+                TaskType = (int)task.Type
             };
+
             UpdateTaskList();
-            return _config.CreateTask(dtoTask);
+
+            return _repository.CreateTask(dtoTask);
         }
-    }
+    }//class
 }

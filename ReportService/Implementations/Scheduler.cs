@@ -13,8 +13,8 @@ namespace ReportService.Implementations
 
         private Task _workTask;
         private bool _started = false;
-        private CancellationTokenSource cancelSource = new CancellationTokenSource();
-        private CancellationToken cancelToken;
+        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
+        private CancellationToken _cancelToken;
 
         private void WorkCycle()
         {
@@ -34,9 +34,9 @@ namespace ReportService.Implementations
         public void OnStart()
         {
             _started = true;
-            cancelToken = cancelSource.Token;
+            _cancelToken = _cancelSource.Token;
 
-            _workTask = new Task(WorkCycle, cancelToken);
+            _workTask = new Task(WorkCycle, _cancelToken);
             _workTask.Start();
         }
 
@@ -46,7 +46,7 @@ namespace ReportService.Implementations
             Task.Delay(1000).Wait();
 
             if (!_workTask.IsCanceled)
-                cancelSource.Cancel();
+                _cancelSource.Cancel();
 
         }
     }
