@@ -20,6 +20,7 @@ namespace ReportService
 
             //Console.ReadLine();
             //hld.Stop();
+
             HostFactory.Run(hostConfigurator =>
             {
                 hostConfigurator.Service<HostHolder>(serviceConfigurator =>

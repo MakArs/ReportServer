@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Autofac;
 using Autofac.Features.Indexed;
+using Monik.Client;
 using Nancy;
 using Nancy.Hosting.Self;
 using ReportService.Interfaces;
@@ -9,10 +11,19 @@ namespace ReportService.Implementations
 {
     public class HostHolder : IHostHolder
     {
-        private NancyHost nanHost = new NancyHost(new Uri("http://localhost:12345"), new Bootstrapper(), HostConfigs);
+        private readonly IClientControl _monik;
+        private readonly NancyHost _nancyHost;
 
         public HostHolder()
         {
+            _nancyHost = new NancyHost(
+                new Uri("http://localhost:12345"), 
+                new Bootstrapper(), 
+                HostConfigs);
+
+            _monik = Bootstrapper.Global.Resolve<IClientControl>();
+            _monik.ApplicationInfo("HostHolder.ctor");
+
         }
 
         public static HostConfiguration HostConfigs = new HostConfiguration()
@@ -22,30 +33,50 @@ namespace ReportService.Implementations
 
         public void Start()
         {
-            nanHost.Start();
+            _monik.ApplicationWarning("Started");
+
+            try
+            {
+                _nancyHost.Start();
+            }
+            catch (Exception e)
+            {
+                _monik.ApplicationError(e.Message);
+            }
         }
 
         public void Stop()
         {
-            nanHost.Stop();
+            try
+            {
+                _nancyHost.Stop();
+            }
+            catch (Exception e)
+            {
+                _monik.ApplicationError(e.Message);
+            }
+
+            _monik.ApplicationWarning("Stopped");
+            _monik.OnStop();
         }
     }
 
     public class ReportStatusModule : NancyModule
     {
-        public ILogic logic_;
+        private readonly ILogic _logic;
 
         public ReportStatusModule(ILogic logic)
         {
-            logic_ = logic;
-            Get["/report"] = parameters => { return $"{logic_.GetTaskView()}"; };
+            _logic = logic;
+
+            Get["/report"] = parameters => { return $"{_logic.GetTaskView()}"; };
 
             Get["/send"] = parameters =>
             {
                 int id = Request.Query.id;
                 string mail = Request.Query.address;
 
-                string sentReps = logic_.ForceExecute(id, mail);
+                string sentReps = _logic.ForceExecute(id, mail);
                 return sentReps != "" ? $"Reports {sentReps} sent!" : "No reports for those ids found...";
             };
 
@@ -54,7 +85,7 @@ namespace ReportService.Implementations
                 try
                 {
                     //logic.CreateBase(@"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True");
-                    return $"{logic_.GetInstancesView(parameters.id)}";
+                    return $"{_logic.GetInstancesView(parameters.id)}";
                 }
                 catch
                 {
@@ -62,5 +93,5 @@ namespace ReportService.Implementations
                 }
             };
         }
-    }
+    } //class
 }

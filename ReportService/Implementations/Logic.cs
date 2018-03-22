@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Monik.Client;
 using ReportService.Interfaces;
 
 namespace ReportService.Implementations
@@ -23,7 +24,7 @@ namespace ReportService.Implementations
 
         private Scheduler UpdateConfigScheduler;
         private Scheduler CheckScheduleAndExecuteScheduler;
-
+        private readonly IClientControl _monik;
 
         public Logic(ILifetimeScope aAutofac, IConfig config)
         {
@@ -31,7 +32,8 @@ namespace ReportService.Implementations
             config_ = config;
             tasks_ = new List<RTask>();
             UpdateConfigScheduler = new Scheduler() { TaskMethod = UpdateTaskList };
-            CheckScheduleAndExecuteScheduler = new Scheduler() { Period = 1, TaskMethod = CheckScheduleAndExecute };
+            CheckScheduleAndExecuteScheduler = new Scheduler() { TaskMethod = CheckScheduleAndExecute };
+            _monik = aAutofac.Resolve<IClientControl>();
         }
 
         private void UpdateTaskList()
@@ -42,17 +44,17 @@ namespace ReportService.Implementations
             {
                 tasks_.Clear();
 
-                foreach (var dto_task in config_.GetTasks())
+                foreach (var dtoTask in config_.GetTasks())
                 {
                     var task = autofac_.Resolve<IRTask>(
-                        new NamedParameter("ID", dto_task.ID),
-                        new NamedParameter("aTemplate", dto_task.ViewTemplate),
-                        new NamedParameter("aSchedule", dto_task.Schedule),
-                        new NamedParameter("aQuery", dto_task.Query),
-                        new NamedParameter("aSendAddress", dto_task.SendAddress),
-                        new NamedParameter("aTryCount", dto_task.TryCount),
-                        new NamedParameter("aTimeOut", dto_task.QueryTimeOut),
-                        new NamedParameter("aTaskType", (RTaskType)dto_task.TaskType));
+                        new NamedParameter("ID", dtoTask.ID),
+                        new NamedParameter("aTemplate", dtoTask.ViewTemplate),
+                        new NamedParameter("aSchedule", dtoTask.Schedule),
+                        new NamedParameter("aQuery", dtoTask.Query),
+                        new NamedParameter("aSendAddress", dtoTask.SendAddress),
+                        new NamedParameter("aTryCount", dtoTask.TryCount),
+                        new NamedParameter("aTimeOut", dtoTask.QueryTimeOut),
+                        new NamedParameter("aTaskType", (RTaskType)dtoTask.TaskType));
 
                     tasks_.Add((RTask)task);
                 }
@@ -71,6 +73,7 @@ namespace ReportService.Implementations
             foreach (var task in tasks_)
                 if (task.ID == aTaskID)
                 {
+                    _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {aMail}");
                     executed += $"#{task.ID} ";
                     Task.Factory.StartNew(() => task.Execute(aMail));
                     return executed;
@@ -96,6 +99,7 @@ namespace ReportService.Implementations
 
                 if (schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
                 {
+                    foreach(var mail in task.SendAddresses) _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.ID} на адрес {mail}");
                     Task.Factory.StartNew(() => task.Execute()).ContinueWith(
                         _ => Console.WriteLine($"Task {task.ID} executed. Mail sent to {task.SendAddresses[0]}"));
                 }
