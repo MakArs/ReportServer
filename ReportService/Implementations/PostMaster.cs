@@ -3,10 +3,11 @@ using System.IO;
 using System.Net.Mail;
 using ReportService.Interfaces;
 using System.Configuration;
+using Monik.Client;
 
 namespace ReportService.Implementations
 {
-    class PostMasterTest : IPostMaster
+    internal class PostMasterTest : IPostMaster
     {
         private string _filename;
 
@@ -24,8 +25,14 @@ namespace ReportService.Implementations
         }
     } //saving at disk
 
-    class PostMasterWork : IPostMaster
+    public class PostMasterWork : IPostMaster
     {
+        private readonly IClientControl _monik;
+
+        public PostMasterWork(IClientControl monik)
+        {
+            _monik = monik;
+        }
 
         public void Send(string report, string address)
         {
@@ -43,11 +50,10 @@ namespace ReportService.Implementations
             try
             {
                 client.Send(msg);
-                Console.WriteLine($"Mail to {address} has been successfully sent!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error:" + ex.Message);
+                _monik.ApplicationError($"Отчёт не выслан на адрес {address}:" + ex.Message);
             }
             finally
             {

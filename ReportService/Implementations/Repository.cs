@@ -5,7 +5,7 @@ using ReportService.Interfaces;
 
 namespace ReportService.Implementations
 {
-    public class DTO_Task
+    public class DTOTask
     {
         public int Id { get; set; }
         public string Schedule { get; set; }
@@ -18,11 +18,11 @@ namespace ReportService.Implementations
         public int TaskType { get; set; }
     }
 
-    public class RepositoryTest : IRepository
+    public class Repository : IRepository
     {
         private string connStr = @"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True";
 
-        public RepositoryTest()
+        public Repository()
         {
         }
 
@@ -51,7 +51,7 @@ namespace ReportService.Implementations
 
         public void UpdateInstance(int instanceId, string json, string html, double duration, string state, int tryNumber)
         {
-            // DTO_Instance xx = ....
+            // TODO:DTO_Instance xx = ....;catch error with updating db(formatting...)
             SimpleCommand.ExecuteNonQuery(connStr,
                  $@"Update Instance
                     set  Data='{json.Replace("'", "''")}',
@@ -62,12 +62,12 @@ namespace ReportService.Implementations
                     where id={instanceId}");
         }
 
-        public List<DTO_Task> GetTasks()
+        public List<DTOTask> GetTasks()
         {
-            return SimpleCommand.ExecuteQuery<DTO_Task>(connStr, @"select * from task").ToList(); ;
+            return SimpleCommand.ExecuteQuery<DTOTask>(connStr, @"select * from task").ToList(); ;
         }
 
-        public void UpdateTask(int taskId, DTO_Task task)
+        public void UpdateTask(int taskId, DTOTask task)
         {
             MappedCommand.Update(connStr, "Task", task, "Id");
         }
@@ -77,7 +77,7 @@ namespace ReportService.Implementations
             SimpleCommand.ExecuteNonQuery(connStr, $@"delete Task where id={taskId}");
         }
 
-        public int CreateTask(DTO_Task task)
+        public int CreateTask(DTOTask task)
         {
             var id = MappedCommand.InsertAndGetId(connStr, "Task", task, "Id");
             return (int)id;

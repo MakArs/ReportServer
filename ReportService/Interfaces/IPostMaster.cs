@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ReportService.Interfaces
+﻿namespace ReportService.Interfaces
 {
     public interface IPostMaster
     {

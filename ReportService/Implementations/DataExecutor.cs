@@ -5,11 +5,11 @@ using ReportService.Interfaces;
 
 namespace ReportService.Implementations
 {
-    public class DataExecutorTest : IDataExecutor
+    public class DataExecutor : IDataExecutor
     {
         private string connStr = @"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True"; // TODO: change connstring
 
-        public DataExecutorTest()
+        public DataExecutor()
         { }
 
         public string Execute(string query, int timeOut)

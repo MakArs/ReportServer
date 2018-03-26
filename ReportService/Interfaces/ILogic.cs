@@ -7,7 +7,7 @@ namespace ReportService.Interfaces
     {
         string ForceExecute(int taskId, string mail);
         string GetTaskView();
-        string GetInstancesView(int ataskID);
+        string GetInstancesView(int taskId);
         void CreateBase(string aconnstr);
 
         void Start();

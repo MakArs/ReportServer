@@ -32,8 +32,8 @@ namespace ReportService
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
             // Perform registration that should have an application lifetime
-            existingContainer.RegisterSingleton<IRepository, RepositoryTest>();
-            existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutorTest>("commondataex");
+            existingContainer.RegisterSingleton<IRepository, Repository>();
+            existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
             existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer.RegisterSingleton<ILogic, Logic>();

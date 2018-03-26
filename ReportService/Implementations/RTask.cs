@@ -8,7 +8,7 @@ namespace ReportService.Implementations
     public class RTask : IRTask
     {
         public int Id { get; }
-        public string[] SendAddresses { get; set; }
+        public string[] SendAddresses { get; }
         public string ViewTemplate { get; }
         public string Schedule { get; }
         public string Query { get; }
@@ -16,40 +16,40 @@ namespace ReportService.Implementations
         public int TimeOut { get; }
         public RTaskType Type { get; }
 
-        private IDataExecutor dataEx_;
-        private IViewExecutor viewEx_;
-        private IPostMaster postMaster_;
-        private IRepository _repository;
+        private readonly IDataExecutor _dataEx;
+        private readonly IViewExecutor _viewEx;
+        private readonly IPostMaster _postMaster;
+        private readonly IRepository _repository;
 
-        public RTask(ILifetimeScope aAutofac, IPostMaster aPostMaster, IRepository aRepository,
-            int id, string aTemplate, string aSchedule, string aQuery, string aSendAddress, int aTryCount,
-            int aTimeOut, RTaskType aTaskType)
+        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository,
+            int id, string template, string schedule, string query, string sendAddress, int tryCount,
+            int timeOut, RTaskType taskType)
         {
-            Type = aTaskType;
+            Type = taskType;
 
             switch (Type)
             {
                 case RTaskType.Common:
-                    dataEx_ = aAutofac.ResolveNamed<IDataExecutor>("commondataex");
-                    viewEx_ = aAutofac.ResolveNamed<IViewExecutor>("commonviewex");
+                    _dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
+                    _viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
                     break;
                 case RTaskType.Custom:
-                    dataEx_ = aAutofac.ResolveNamed<IDataExecutor>(aQuery);
-                    viewEx_ = aAutofac.ResolveNamed<IViewExecutor>(aTemplate);
+                    _dataEx = autofac.ResolveNamed<IDataExecutor>(query);
+                    _viewEx = autofac.ResolveNamed<IViewExecutor>(template);
                     break;
                 default:
                     throw new NotImplementedException();
             }
 
-            postMaster_ = aPostMaster;
+            _postMaster = postMaster;
             Id = id;
-            Query = aQuery;
-            ViewTemplate = aTemplate;
-            SendAddresses = aSendAddress.Split(';');
-            Schedule = aSchedule;
-            _repository = aRepository;
-            TryCount = aTryCount;
-            TimeOut = aTimeOut;
+            Query = query;
+            ViewTemplate = template;
+            SendAddresses = sendAddress.Split(';');
+            Schedule = schedule;
+            _repository = repository;
+            TryCount = tryCount;
+            TimeOut = timeOut;
         }
 
         public void Execute(string address = null)
@@ -60,6 +60,7 @@ namespace ReportService.Implementations
                 : new string[] { address };
 
             Stopwatch duration = new Stopwatch();
+            duration.Start();
             int i = 1;
             bool dataObtained = false;
             string jsonReport = "";
@@ -69,8 +70,8 @@ namespace ReportService.Implementations
             {
                 try
                 {
-                    jsonReport = dataEx_.Execute(Query, TimeOut);
-                    htmlReport = viewEx_.Execute(ViewTemplate, jsonReport);
+                    jsonReport = _dataEx.Execute(Query, TimeOut);
+                    htmlReport = _viewEx.Execute(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;
@@ -85,8 +86,8 @@ namespace ReportService.Implementations
 
             if (dataObtained)
                 foreach (string addr in deliveryAddrs)
-                    postMaster_.Send(htmlReport, addr);
-
+                    _postMaster.Send(htmlReport, addr);
+            duration.Stop();
             _repository.UpdateInstance(instanceId, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? "Success" : "Failed", i - 1);
         }
     }//class

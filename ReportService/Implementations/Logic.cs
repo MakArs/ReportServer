@@ -9,13 +9,6 @@ using ReportService.Interfaces;
 
 namespace ReportService.Implementations
 {
-    /* 
-     * Functions:
-     * 1. Task list prepare and update
-     * 2. Control schedules
-     * 3. Async run RTasks
-     * 4. Get Task&Instance html results
-     */
     public class Logic : ILogic
     {
         private readonly ILifetimeScope _autofac;
@@ -45,13 +38,13 @@ namespace ReportService.Implementations
                 {
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
-                        new NamedParameter("aTemplate", dtoTask.ViewTemplate),
-                        new NamedParameter("aSchedule", dtoTask.Schedule),
-                        new NamedParameter("aQuery", dtoTask.Query),
-                        new NamedParameter("aSendAddress", dtoTask.SendAddress),
-                        new NamedParameter("aTryCount", dtoTask.TryCount),
-                        new NamedParameter("aTimeOut", dtoTask.QueryTimeOut),
-                        new NamedParameter("aTaskType", (RTaskType)dtoTask.TaskType));
+                        new NamedParameter("template", dtoTask.ViewTemplate),
+                        new NamedParameter("schedule", dtoTask.Schedule),
+                        new NamedParameter("query", dtoTask.Query),
+                        new NamedParameter("sendAddress", dtoTask.SendAddress),
+                        new NamedParameter("tryCount", dtoTask.TryCount),
+                        new NamedParameter("timeOut", dtoTask.QueryTimeOut),
+                        new NamedParameter("taskType", (RTaskType)dtoTask.TaskType));
 
                     _tasks.Add((RTask)task);
                 }
@@ -65,10 +58,10 @@ namespace ReportService.Implementations
             lock (this)
                 tasks = _tasks.ToList();
 
-            foreach (var task in _tasks)
+            foreach (var task in tasks)
                 if (task.Id == taskId)
                 {
-                    _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.Id} на адрес {mail}");
+                    _monik.ApplicationInfo($"Отсылка отчёта { task.Id} на адрес {mail} (ручной запуск)");
 
                     executed += $"#{task.Id} ";
                     Task.Factory.StartNew(() => task.Execute(mail));
@@ -81,7 +74,6 @@ namespace ReportService.Implementations
         private void CheckScheduleAndExecute()
         {
             List<RTask> tasks;
-            UpdateTaskList();
             lock (this)
                 tasks = _tasks.ToList();
 
@@ -94,14 +86,14 @@ namespace ReportService.Implementations
             {
                 string[] schedDays = task.Schedule.Split(' ');
 
-                if (schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
+                if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
+                foreach (var mail in task.SendAddresses)
                 {
-                    foreach(var mail in task.SendAddresses)
-                        _monik.ApplicationInfo($"Начинаем отсылку отчёта {task.Id} на адрес {mail}");
-
+                    _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} по расписанию");
                     Task.Factory.StartNew(() => task.Execute()).ContinueWith(
-                        _ => Console.WriteLine($"Task {task.Id} executed. Mail sent to {task.SendAddresses[0]}"));
+                        _ => _monik.ApplicationInfo($"Отчёт {task.Id} успешно отослан на адрес {mail}"));
                 }
+
             }//for
         }
 
@@ -126,6 +118,7 @@ namespace ReportService.Implementations
 
         public void Start()
         {
+            UpdateTaskList();
             _checkScheduleAndExecuteScheduler.OnStart();
         }
 
@@ -136,7 +129,7 @@ namespace ReportService.Implementations
 
         public void UpdateTask(int taskId, RTask task)
         {
-                var dtoTask = new DTO_Task()
+                var dtoTask = new DTOTask()
                 {
                     Id=taskId,
                     Schedule = task.Schedule,
@@ -161,7 +154,7 @@ namespace ReportService.Implementations
 
         public int CreateTask(RTask task)
         {
-            var dtoTask = new DTO_Task()
+            var dtoTask = new DTOTask()
             {
                 Schedule = task.Schedule,
                 ConnectionString = "",
@@ -173,9 +166,9 @@ namespace ReportService.Implementations
                 TaskType = (int)task.Type
             };
 
+            var newTaskId= _repository.CreateTask(dtoTask);
             UpdateTaskList();
-
-            return _repository.CreateTask(dtoTask);
+            return newTaskId;
         }
     }//class
 }
