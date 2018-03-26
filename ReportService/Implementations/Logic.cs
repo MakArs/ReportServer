@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Monik.Client;
+using Newtonsoft.Json;
 using ReportService.Interfaces;
 
 namespace ReportService.Implementations
@@ -15,7 +16,7 @@ namespace ReportService.Implementations
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
 
-        private List<RTask> _tasks;
+        public List<RTask> _tasks { get; set; }
 
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
 
@@ -44,7 +45,8 @@ namespace ReportService.Implementations
                         new NamedParameter("sendAddress", dtoTask.SendAddress),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", dtoTask.QueryTimeOut),
-                        new NamedParameter("taskType", (RTaskType)dtoTask.TaskType));
+                        new NamedParameter("taskType", (RTaskType)dtoTask.TaskType),
+                        new NamedParameter("connStr", dtoTask.ConnectionString));
 
                     _tasks.Add((RTask)task);
                 }
@@ -97,18 +99,22 @@ namespace ReportService.Implementations
             }//for
         }
 
-        public string GetTaskView()
+        public string GetTaskList_HtmlPage()
         {
-            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
-            IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
-            return tableView.Execute("", dataEx.Execute("select * from task", 5));
+            List<RTask> tasks;
+            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+            lock (this)
+                tasks = _tasks.ToList();
+            var t = JsonConvert.SerializeObject(tasks);
+            return tableView.Execute("",t);
         }
 
-        public string GetInstancesView(int taskId)
+        public string GetInstanceList_HtmlPage(int taskId)
         {
-            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
-            IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
-            return tableView.Execute("", dataEx.Execute($"select * from instance where taskid={taskId}", 5));
+            //IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
+            //IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
+            //return tableView.Execute("", dataEx.ExecuteNoTask($"select * from instance where taskid={taskId}", 5));
+            return "";
         }
 
         public void CreateBase(string connStr)
@@ -127,11 +133,11 @@ namespace ReportService.Implementations
             _checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public void UpdateTask(int taskId, RTask task)
+        public void UpdateTask(RTask task)
         {
                 var dtoTask = new DTOTask()
                 {
-                    Id=taskId,
+                    Id= task.Id,
                     Schedule = task.Schedule,
                     ConnectionString = "",
                     ViewTemplate = task.ViewTemplate,
@@ -142,7 +148,7 @@ namespace ReportService.Implementations
                     TaskType = (int) task.Type
                 };
 
-                _repository.UpdateTask(taskId, dtoTask);
+                _repository.UpdateTask(dtoTask);
                 UpdateTaskList();
         }
 
@@ -156,6 +162,7 @@ namespace ReportService.Implementations
         {
             var dtoTask = new DTOTask()
             {
+                Id = task.Id,
                 Schedule = task.Schedule,
                 ConnectionString = "",
                 ViewTemplate = task.ViewTemplate,

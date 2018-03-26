@@ -130,7 +130,8 @@
     <Compile Include="Implementations\Repository.cs" />
     <Compile Include="Implementations\DataExecutor.cs" />
     <Compile Include="Implementations\Logic.cs" />
-    <Compile Include="Implementations\ViewExecutor.cs" />
+    <Compile Include="View\TaskListViewExecutor.cs" />
+    <Compile Include="View\ViewExecutor.cs" />
     <Compile Include="PluginFolder\DailyDataEx.cs" />
     <Compile Include="PluginFolder\WeeklyReport.cs" />
     <Compile Include="PluginFolder\PrivateBootsTrap.cs" />

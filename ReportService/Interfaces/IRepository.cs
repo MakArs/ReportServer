@@ -5,12 +5,13 @@ namespace ReportService.Interfaces
 {
     public interface IRepository
     {
-        int CreateInstance(int taskId, string json, string html, double duration, string state, int tryNumber);
-        void UpdateInstance(int instanceId, string json, string html, double duration, string state, int tryNumber);
-        void CreateBase(string baseConnStr);
+        List<DTOInstance> GetInstances();
+        void UpdateInstance(DTOInstance instance);
+        int CreateInstance(DTOInstance instance);
         List<DTOTask> GetTasks();
-        void UpdateTask(int taskId, DTOTask task);
+        void UpdateTask(DTOTask task);
         void DeleteTask(int taskId);
         int CreateTask(DTOTask task);
+        void CreateBase(string baseConnStr);
     }
 }

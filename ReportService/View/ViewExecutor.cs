@@ -1,12 +1,12 @@
 ﻿using System;
-using ReportService.Interfaces;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using RazorEngine;
-using RazorEngine.Templating;
-using System.Collections.Generic;
 using RazorEngine.Configuration;
+using RazorEngine.Templating;
+using ReportService.Interfaces;
 
-namespace ReportService.Implementations
+namespace ReportService.View
 {
     public class ViewExecutor : IViewExecutor
     {
@@ -26,7 +26,6 @@ namespace ReportService.Implementations
             List<string> headers = new List<string>();
             foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
                 headers.Add(p.Name);
-
 
             List<List<string>> content = new List<List<string>>();
             foreach (JObject j in jObj.Children<JObject>())

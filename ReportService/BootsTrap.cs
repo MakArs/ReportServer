@@ -6,6 +6,7 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
+using ReportService.View;
 
 public interface IPrivateBootstrapper
 {
@@ -32,13 +33,16 @@ namespace ReportService
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
             // Perform registration that should have an application lifetime
-            existingContainer.RegisterSingleton<IRepository, Repository>();
             existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
+            existingContainer.RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
             existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer.RegisterSingleton<ILogic, Logic>();
             existingContainer.RegisterImplementation<IRTask, RTask>();
 
+            var repository=new Repository(ConfigurationManager.AppSettings["DBConnStr"]);
+            existingContainer.RegisterInstance<IRepository, Repository>(repository);
+            
             // Configure Monik
 
             var logSender = new AzureSender(

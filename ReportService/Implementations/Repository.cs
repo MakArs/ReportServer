@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Gerakul.FastSql;
 using ReportService.Interfaces;
@@ -18,68 +19,61 @@ namespace ReportService.Implementations
         public int TaskType { get; set; }
     }
 
+    public class DTOInstance
+    {
+        public int Id { get; set; } = 0;
+        public string Data { get; set; } = "";
+        public  string ViewData { get; set; } = "";
+        public int TaskId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; } = 0;
+        public string State { get; set; } = "InProcess";
+        public  int TryNumber { get; set; } = 0;
+    }
+
     public class Repository : IRepository
     {
-        private string connStr = @"Data Source=WS-00005; Initial Catalog=ReportBase; Integrated Security=True";
+        private readonly string _connStr;
 
-        public Repository()
+        public Repository(string connStr)
         {
+            _connStr = connStr;
         }
 
-        public int CreateInstance(int taskId, string json, string html, double duration, string state, int tryNumber)
+        public List<DTOInstance> GetInstances()
         {
-            return SimpleCommand.ExecuteQueryFirstColumn<int>(connStr,
-                 $@"INSERT INTO Instance
-                  (
-                    Data,
-                    ViewData,
-                    TaskID,
-                    StartTime,
-                    Duration,
-                    State,
-                    TryNumber
-                    )  
-                    values ('{json.Replace("'", "''")}',
-                    '{html.Replace("'", "''")}',
-                    {taskId},
-                    getdate(),
-                    {duration},
-                    '{state}',
-                    {tryNumber}); select cast(scope_identity() as int)")
-                    .First();
+            return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr, "select * from Instance").ToList();
         }
 
-        public void UpdateInstance(int instanceId, string json, string html, double duration, string state, int tryNumber)
+        public void UpdateInstance(DTOInstance instance)
         {
-            // TODO:DTO_Instance xx = ....;catch error with updating db(formatting...)
-            SimpleCommand.ExecuteNonQuery(connStr,
-                 $@"Update Instance
-                    set  Data='{json.Replace("'", "''")}',
-                    ViewData='{html.Replace("'", "''")}',
-                    Duration={duration},
-                    State='{state}',
-                    TryNumber={tryNumber}
-                    where id={instanceId}");
+                MappedCommand.Update(_connStr, "Instance", instance, "Id");
+        }
+
+        public int CreateInstance(DTOInstance instance)
+        {
+            var id = MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
+            return (int)id;
         }
 
         public List<DTOTask> GetTasks()
         {
-            return SimpleCommand.ExecuteQuery<DTOTask>(connStr, @"select * from task").ToList(); ;
+            return SimpleCommand.ExecuteQuery<DTOTask>(_connStr, "select * from task").ToList(); 
         }
 
-        public void UpdateTask(int taskId, DTOTask task)
+        public void UpdateTask( DTOTask task)
         {
-            MappedCommand.Update(connStr, "Task", task, "Id");
+            MappedCommand.Update(_connStr, "Task", task, "Id");
         }
 
         public void DeleteTask(int taskId)
         {
-            SimpleCommand.ExecuteNonQuery(connStr, $@"delete Task where id={taskId}");
+            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={taskId}");
         }
 
         public int CreateTask(DTOTask task)
         {
-            var id = MappedCommand.InsertAndGetId(connStr, "Task", task, "Id");
+            var id = MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
             return (int)id;
         }
 

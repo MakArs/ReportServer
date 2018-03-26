@@ -2,6 +2,7 @@
 using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
+using Nancy.Routing.Trie.Nodes;
 
 namespace ReportService.Implementations
 {
@@ -11,6 +12,7 @@ namespace ReportService.Implementations
         public string[] SendAddresses { get; }
         public string ViewTemplate { get; }
         public string Schedule { get; }
+        public string ConnectionString { get; }
         public string Query { get; }
         public int TryCount { get; }
         public int TimeOut { get; }
@@ -23,7 +25,7 @@ namespace ReportService.Implementations
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository,
             int id, string template, string schedule, string query, string sendAddress, int tryCount,
-            int timeOut, RTaskType taskType)
+            int timeOut, RTaskType taskType, string connStr)
         {
             Type = taskType;
 
@@ -50,15 +52,16 @@ namespace ReportService.Implementations
             _repository = repository;
             TryCount = tryCount;
             TimeOut = timeOut;
+            ConnectionString = connStr;
         }
 
         public void Execute(string address = null)
         {
-            int instanceId = _repository.CreateInstance(Id, "", "", 0, "InProcess", 0);
-            string[] deliveryAddrs = string.IsNullOrEmpty(address) ?
-                SendAddresses
-                : new string[] { address };
-
+            var dtoInstance = new DTOInstance() {StartTime = DateTime.Now, TaskId = Id};
+            dtoInstance.Id = _repository.CreateInstance(dtoInstance);
+            string[] deliveryAddrs = string.IsNullOrEmpty(address)
+                ? SendAddresses
+                : new string[] {address};
             Stopwatch duration = new Stopwatch();
             duration.Start();
             int i = 1;
@@ -70,7 +73,7 @@ namespace ReportService.Implementations
             {
                 try
                 {
-                    jsonReport = _dataEx.Execute(Query, TimeOut);
+                    jsonReport = _dataEx.Execute(this);
                     htmlReport = _viewEx.Execute(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
@@ -81,6 +84,7 @@ namespace ReportService.Implementations
                     jsonReport = ex.Message;
                     htmlReport = ex.Message;
                 }
+
                 i++;
             }
 
@@ -88,7 +92,13 @@ namespace ReportService.Implementations
                 foreach (string addr in deliveryAddrs)
                     _postMaster.Send(htmlReport, addr);
             duration.Stop();
-            _repository.UpdateInstance(instanceId, jsonReport, htmlReport, duration.ElapsedMilliseconds, dataObtained ? "Success" : "Failed", i - 1);
+
+            dtoInstance.Data = jsonReport;
+            dtoInstance.ViewData = htmlReport;
+            dtoInstance.TryNumber = i - 1;
+            dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
+            dtoInstance.State = dataObtained ? "Success" : "Failed";
+            _repository.UpdateInstance(dtoInstance);
         }
-    }//class
+    } //class
 }

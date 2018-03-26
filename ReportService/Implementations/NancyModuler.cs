@@ -8,7 +8,7 @@ namespace ReportService.Implementations
     {
         public ReportStatusModule(ILogic logic)
         {
-            Get["/report"] = parameters => $"{logic.GetTaskView()}";
+            Get["/reports"] = parameters => $"{logic.GetTaskList_HtmlPage()}";
 
             Get["/send"] = parameters =>
             {
@@ -19,11 +19,11 @@ namespace ReportService.Implementations
                 return sentReps != "" ? $"Reports {sentReps} sent!" : "No reports for those ids found...";
             };
 
-            Get["/report/{id:int}"] = parameters =>
+            Get["/reports/{id:int}"] = parameters =>
             {
                 try
                 {
-                    return $"{logic.GetInstancesView(parameters.id)}";
+                    return $"{logic.GetInstanceList_HtmlPage(parameters.id)}";
                 }
                 catch
                 {
@@ -31,7 +31,7 @@ namespace ReportService.Implementations
                 }
             };
 
-            Put["/createdatabase/{ConnectionString}"] = parameters => // todo:methods
+            Post["/createdatabase/{ConnectionString}"] = parameters => // todo:methods
             {
                 try
                 {
@@ -44,16 +44,16 @@ namespace ReportService.Implementations
                 }
             };
 
-            Get["/delete/{id:int}"] = parameters =>
+            Delete["/delete/{id:int}"] = parameters =>
             {
                 try
                 {
                     logic.DeleteTask(parameters.id);
                     return $"deleted task {parameters.id}";
                 }
-                catch
+                catch (Exception e)
                 {
-                    return "no task with this id found...";
+                    return $"Ошибка: {e.Message}";
                 }
             };
 
@@ -61,13 +61,12 @@ namespace ReportService.Implementations
             {
                 try
                 {
-                   // var tsk = ((Logic) logic)._tasks[parameters.id];
-                    //logic.CreateTask(tsk);
+                    logic.CreateTask(((Logic)logic)._tasks[parameters.id]);
                     return $"created copy of task {parameters.id}";
                 }
                 catch(Exception e)
                 {
-                    return "no task with this id found...";
+                    return $"Ошибка: {e.Message}";
                 }
             };
 
@@ -75,12 +74,12 @@ namespace ReportService.Implementations
             {
                 try
                 {
-                    //logic.UpdateTask(parameters.id, ((Logic)logic)._tasks[0]);
+                    logic.UpdateTask( ((Logic)logic)._tasks[0]);
                     return $"updated task {parameters.id}";
                 }
-                catch
+                catch (Exception e)
                 {
-                    return "no task with this id found...";
+                    return $"Ошибка: {e.Message}";
                 }
             };
 

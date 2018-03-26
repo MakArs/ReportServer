@@ -1,7 +1,9 @@
-﻿namespace ReportService.Interfaces
+﻿using ReportService.Implementations;
+
+namespace ReportService.Interfaces
 {
     public interface IDataExecutor
     {
-        string Execute(string query, int timeOut);
+        string Execute(RTask task);
     }
 }
