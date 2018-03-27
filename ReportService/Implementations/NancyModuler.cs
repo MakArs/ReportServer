@@ -1,7 +1,5 @@
 ﻿using System;
-using AutoMapper;
 using Nancy;
-using Nancy.Extensions;
 using Nancy.ModelBinding;
 using ReportService.Interfaces;
 
