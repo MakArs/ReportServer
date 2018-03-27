@@ -13,7 +13,7 @@ namespace ReportService.Implementations
         public string ConnectionString { get; set; }
         public string ViewTemplate { get; set; }
         public string Query { get; set; }
-        public string SendAddress { get; set; }
+        public string SendAddresses { get; set; }
         public int TryCount { get; set; }
         public int QueryTimeOut { get; set; } //seconds
         public int TaskType { get; set; }
@@ -98,7 +98,7 @@ namespace ReportService.Implementations
                 ConnectionString nvarchar(255) null,
                 ViewTemplate nvarchar(MAX) not null,
                 Query nvarchar(MAX) not null,
-                SendAddress varchar(4000) not null,
+                SendAddresses varchar(4000) not null,
                 TryCount TINYINT not null,
                 QueryTimeOut TINYINT not null,
                 TaskType TINYINT not null 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace ReportService.Implementations
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
 
-        public List<RTask> _tasks { get; set; }
+public List<RTask> _tasks { get; set; }
 
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
 
@@ -29,6 +28,8 @@ namespace ReportService.Implementations
             _tasks = new List<RTask>();
             _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
+            Mapper.Initialize(cfg => cfg.CreateMap<ApiTask, DTOTask>());
+            //.ForMember("Name", opt => opt.MapFrom(c => c.FirstName + " " + c.LastName))
         }
 
         private void UpdateTaskList()
@@ -44,7 +45,7 @@ namespace ReportService.Implementations
                         new NamedParameter("template", dtoTask.ViewTemplate),
                         new NamedParameter("schedule", dtoTask.Schedule),
                         new NamedParameter("query", dtoTask.Query),
-                        new NamedParameter("sendAddress", dtoTask.SendAddress),
+                        new NamedParameter("sendAddress", dtoTask.SendAddresses),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", dtoTask.QueryTimeOut),
                         new NamedParameter("taskType", (RTaskType) dtoTask.TaskType),
@@ -137,7 +138,6 @@ namespace ReportService.Implementations
 
         public void UpdateTask(ApiTask task)
         {
-            Mapper.Initialize(conf => conf.CreateMap<ApiTask, DTOTask>());
             var dtoTask=Mapper.Map<ApiTask, DTOTask>(task);
             _repository.UpdateTask(dtoTask);
             UpdateTaskList();
@@ -153,30 +153,7 @@ namespace ReportService.Implementations
 
         public int CreateTask(ApiTask task)
         {
-            //var dtoTask = new DTOTask()
-            //{
-            //    Id = task.Id,
-            //    Schedule = task.Schedule,
-            //    ConnectionString = task.ConnectionString,
-            //    ViewTemplate = task.ViewTemplate,
-            //    Query = task.Query,
-            //    SendAddress = String.Join(";", task.SendAddress),
-            //    TryCount = task.TryCount,
-            //    QueryTimeOut = task.TimeOut,
-            //    TaskType = (int) task.TaskType
-            //};
-            try
-            {
-                Mapper.Initialize(cfg => cfg.CreateMap<ApiTask, DTOTask>()
-                    .ForMember("SendAddress",opt=>opt.MapFrom(c=>c.SendAddresses)));
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
             var dtoTask = Mapper.Map<ApiTask, DTOTask>(task);
-            _repository.UpdateTask(dtoTask);
             var newTaskId = _repository.CreateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Создана задача {newTaskId}");

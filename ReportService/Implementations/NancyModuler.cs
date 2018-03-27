@@ -47,7 +47,7 @@ namespace ReportService.Implementations
                 }
             };
 
-            Post["/createdatabase/{ConnectionString}"] = parameters => // todo:methods
+            Post["/databases"] = parameters => // todo:methods
             {
                 try
                 {
@@ -60,7 +60,7 @@ namespace ReportService.Implementations
                 }
             };
 
-            Delete["/delete/{id:int}"] = parameters =>
+            Delete["/reports/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -73,23 +73,13 @@ namespace ReportService.Implementations
                 }
             };
 
-            Post["/create"] = parameters =>
+            Post["/reports"] = parameters =>
             {
-                //var text = Context.Request.Body.AsString();
-                //Mapper.Initialize(conf => conf.CreateMap<Request, ApiTask > ());
-                //ApiTask newTask = new ApiTask();
                 try
                 {
                     var newTask = this.Bind<ApiTask>();
-                try
-                {
-                    var id=logic.CreateTask(newTask);
+                    var id = logic.CreateTask(newTask);
                     return $"created task {id}";
-                }
-                catch (Exception e)
-                {
-                    return $"Ошибка: {e.Message}";
-                }
                 }
                 catch (Exception e)
                 {
@@ -98,12 +88,13 @@ namespace ReportService.Implementations
                 }
             };
 
-            Put["/update"] = parameters =>
+            Put["/reports"] = parameters =>
             {
                 try
                 {
-                    logic.UpdateTask(new ApiTask());
-                    return $"updated task {parameters.id}";
+                    var existingTask = this.Bind<ApiTask>();
+                    logic.UpdateTask(existingTask);
+                    return $"updated task {existingTask.Id}";
                 }
                 catch (Exception e)
                 {
