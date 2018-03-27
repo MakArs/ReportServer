@@ -5,7 +5,7 @@ namespace ReportService.Interfaces
 {
     public interface IRepository
     {
-        List<DTOInstance> GetInstances();
+        List<DTOInstance> GetInstances(int taskId);
         void UpdateInstance(DTOInstance instance);
         int CreateInstance(DTOInstance instance);
         List<DTOTask> GetTasks();

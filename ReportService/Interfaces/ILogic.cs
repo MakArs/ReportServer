@@ -13,8 +13,8 @@ namespace ReportService.Interfaces
         void Start();
         void Stop();
 
-        void UpdateTask(RTask task);
+        void UpdateTask(ApiTask task);
         void DeleteTask(int taskId);
-        int CreateTask(RTask task);
+        int CreateTask(ApiTask task);
     }
 }

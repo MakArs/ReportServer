@@ -36,6 +36,7 @@ namespace ReportService
             existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
+            existingContainer.RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
             existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer.RegisterSingleton<ILogic, Logic>();
             existingContainer.RegisterImplementation<IRTask, RTask>();

@@ -1,12 +1,28 @@
 ﻿using System;
+using AutoMapper;
 using Nancy;
+using Nancy.Extensions;
+using Nancy.ModelBinding;
 using ReportService.Interfaces;
 
 namespace ReportService.Implementations
 {
-    public class ReportStatusModule : NancyModule
+    public class ApiTask
     {
-        public ReportStatusModule(ILogic logic)
+        public int Id { get; set; }
+        public string Schedule { get; set; }
+        public string ConnectionString { get; set; }
+        public string ViewTemplate { get; set; }
+        public string Query { get; set; }
+        public string SendAddresses { get; set; }
+        public int TryCount { get; set; }
+        public int QueryTimeOut { get; set; }
+        public int TaskType { get; set; }
+    }
+
+    public class ReportsModule : NancyModule
+    {
+        public ReportsModule(ILogic logic)
         {
             Get["/reports"] = parameters => $"{logic.GetTaskList_HtmlPage()}";
 
@@ -57,24 +73,36 @@ namespace ReportService.Implementations
                 }
             };
 
-            Get["/create/{id:int}"] = parameters =>
+            Post["/create"] = parameters =>
             {
+                //var text = Context.Request.Body.AsString();
+                //Mapper.Initialize(conf => conf.CreateMap<Request, ApiTask > ());
+                //ApiTask newTask = new ApiTask();
                 try
                 {
-                    logic.CreateTask(((Logic)logic)._tasks[parameters.id]);
-                    return $"created copy of task {parameters.id}";
+                    var newTask = this.Bind<ApiTask>();
+                try
+                {
+                    var id=logic.CreateTask(newTask);
+                    return $"created task {id}";
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     return $"Ошибка: {e.Message}";
                 }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
             };
 
-            Get["/update/{id:int}"] = parameters =>
+            Put["/update"] = parameters =>
             {
                 try
                 {
-                    logic.UpdateTask( ((Logic)logic)._tasks[0]);
+                    logic.UpdateTask(new ApiTask());
                     return $"updated task {parameters.id}";
                 }
                 catch (Exception e)

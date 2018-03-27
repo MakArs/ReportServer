@@ -2,7 +2,6 @@
 using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
-using Nancy.Routing.Trie.Nodes;
 
 namespace ReportService.Implementations
 {

@@ -2,7 +2,7 @@
 
 namespace ReportService.View
 {
-    public class TaskListViewExecutor : ViewExecutor, IViewExecutor
+    public class InstanceListViewExecutor : ViewExecutor, IViewExecutor
     {
         public override string Execute(string viewTemplate, string json)
         {
@@ -28,7 +28,7 @@ namespace ReportService.View
     </style>
 </head>
 <body>
-    <h3 align=""center"">Текущий список задач</h3>
+    <h3 align=""center"">История выполнения</h3>
     <table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)
@@ -50,4 +50,3 @@ namespace ReportService.View
 </html>";
     }//class
 }
-

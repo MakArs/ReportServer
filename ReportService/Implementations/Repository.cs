@@ -10,7 +10,7 @@ namespace ReportService.Implementations
     {
         public int Id { get; set; }
         public string Schedule { get; set; }
-        public  string ConnectionString { get; set; }
+        public string ConnectionString { get; set; }
         public string ViewTemplate { get; set; }
         public string Query { get; set; }
         public string SendAddress { get; set; }
@@ -23,12 +23,12 @@ namespace ReportService.Implementations
     {
         public int Id { get; set; } = 0;
         public string Data { get; set; } = "";
-        public  string ViewData { get; set; } = "";
+        public string ViewData { get; set; } = "";
         public int TaskId { get; set; }
         public DateTime StartTime { get; set; }
         public int Duration { get; set; } = 0;
         public string State { get; set; } = "InProcess";
-        public  int TryNumber { get; set; } = 0;
+        public int TryNumber { get; set; } = 0;
     }
 
     public class Repository : IRepository
@@ -40,28 +40,29 @@ namespace ReportService.Implementations
             _connStr = connStr;
         }
 
-        public List<DTOInstance> GetInstances()
+        public List<DTOInstance> GetInstances(int taskId)
         {
-            return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr, "select * from Instance").ToList();
+            return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr, $"select * from Instance where taskid={taskId}")
+                .ToList();
         }
 
         public void UpdateInstance(DTOInstance instance)
         {
-                MappedCommand.Update(_connStr, "Instance", instance, "Id");
+            MappedCommand.Update(_connStr, "Instance", instance, "Id");
         }
 
         public int CreateInstance(DTOInstance instance)
         {
             var id = MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
-            return (int)id;
+            return (int) id;
         }
 
         public List<DTOTask> GetTasks()
         {
-            return SimpleCommand.ExecuteQuery<DTOTask>(_connStr, "select * from task").ToList(); 
+            return SimpleCommand.ExecuteQuery<DTOTask>(_connStr, "select * from task").ToList();
         }
 
-        public void UpdateTask( DTOTask task)
+        public void UpdateTask(DTOTask task)
         {
             MappedCommand.Update(_connStr, "Task", task, "Id");
         }
@@ -74,12 +75,12 @@ namespace ReportService.Implementations
         public int CreateTask(DTOTask task)
         {
             var id = MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
-            return (int)id;
+            return (int) id;
         }
 
         public void CreateBase(string baseConnStr)
         {
-                SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Instance
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Instance
                 (
                 Id int primary key Identity,
                 Data nvarchar(MAX) not null,
@@ -91,7 +92,7 @@ namespace ReportService.Implementations
                 TryNumber int not null
                 )");
 
-                SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Task
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Task
                 (Id int primary key Identity,
                 Schedule nvarchar(255) not null,
                 ConnectionString nvarchar(255) null,
@@ -103,5 +104,5 @@ namespace ReportService.Implementations
                 TaskType TINYINT not null 
                 )");
         }
-    }//class
+    } //class
 }

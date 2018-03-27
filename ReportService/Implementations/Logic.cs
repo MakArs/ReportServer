@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using AutoMapper;
 using Monik.Client;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
@@ -45,12 +47,12 @@ namespace ReportService.Implementations
                         new NamedParameter("sendAddress", dtoTask.SendAddress),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", dtoTask.QueryTimeOut),
-                        new NamedParameter("taskType", (RTaskType)dtoTask.TaskType),
+                        new NamedParameter("taskType", (RTaskType) dtoTask.TaskType),
                         new NamedParameter("connStr", dtoTask.ConnectionString));
 
-                    _tasks.Add((RTask)task);
+                    _tasks.Add((RTask) task);
                 }
-            }//lock
+            } //lock
         }
 
         public string ForceExecute(int taskId, string mail)
@@ -63,7 +65,7 @@ namespace ReportService.Implementations
             foreach (var task in tasks)
                 if (task.Id == taskId)
                 {
-                    _monik.ApplicationInfo($"Отсылка отчёта { task.Id} на адрес {mail} (ручной запуск)");
+                    _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
 
                     executed += $"#{task.Id} ";
                     Task.Factory.StartNew(() => task.Execute(mail));
@@ -96,7 +98,7 @@ namespace ReportService.Implementations
                         _ => _monik.ApplicationInfo($"Отчёт {task.Id} успешно отослан на адрес {mail}"));
                 }
 
-            }//for
+            } //for
         }
 
         public string GetTaskList_HtmlPage()
@@ -105,16 +107,16 @@ namespace ReportService.Implementations
             IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
             lock (this)
                 tasks = _tasks.ToList();
-            var t = JsonConvert.SerializeObject(tasks);
-            return tableView.Execute("",t);
+            var jsonTasks = JsonConvert.SerializeObject(tasks);
+            return tableView.Execute("", jsonTasks);
         }
 
         public string GetInstanceList_HtmlPage(int taskId)
         {
-            //IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tableviewex");
-            //IDataExecutor dataEx = _autofac.ResolveNamed<IDataExecutor>("commondataex");
-            //return tableView.Execute("", dataEx.ExecuteNoTask($"select * from instance where taskid={taskId}", 5));
-            return "";
+            List<DTOInstance> instances = _repository.GetInstances(taskId);
+            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("instancelistviewex");
+            var jsonInstances = JsonConvert.SerializeObject(instances);
+            return tableView.Execute("", jsonInstances);
         }
 
         public void CreateBase(string connStr)
@@ -133,49 +135,52 @@ namespace ReportService.Implementations
             _checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public void UpdateTask(RTask task)
+        public void UpdateTask(ApiTask task)
         {
-                var dtoTask = new DTOTask()
-                {
-                    Id= task.Id,
-                    Schedule = task.Schedule,
-                    ConnectionString = "",
-                    ViewTemplate = task.ViewTemplate,
-                    Query = task.Query,
-                    SendAddress = String.Join(";", task.SendAddresses),
-                    TryCount = task.TryCount,
-                    QueryTimeOut = task.TimeOut,
-                    TaskType = (int) task.Type
-                };
-
-                _repository.UpdateTask(dtoTask);
-                UpdateTaskList();
+            Mapper.Initialize(conf => conf.CreateMap<ApiTask, DTOTask>());
+            var dtoTask=Mapper.Map<ApiTask, DTOTask>(task);
+            _repository.UpdateTask(dtoTask);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }
 
         public void DeleteTask(int taskId)
         {
             _repository.DeleteTask(taskId);
             UpdateTaskList();
+            _monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
-        public int CreateTask(RTask task)
+        public int CreateTask(ApiTask task)
         {
-            var dtoTask = new DTOTask()
+            //var dtoTask = new DTOTask()
+            //{
+            //    Id = task.Id,
+            //    Schedule = task.Schedule,
+            //    ConnectionString = task.ConnectionString,
+            //    ViewTemplate = task.ViewTemplate,
+            //    Query = task.Query,
+            //    SendAddress = String.Join(";", task.SendAddress),
+            //    TryCount = task.TryCount,
+            //    QueryTimeOut = task.TimeOut,
+            //    TaskType = (int) task.TaskType
+            //};
+            try
             {
-                Id = task.Id,
-                Schedule = task.Schedule,
-                ConnectionString = "",
-                ViewTemplate = task.ViewTemplate,
-                Query = task.Query,
-                SendAddress = String.Join(";", task.SendAddresses),
-                TryCount = task.TryCount,
-                QueryTimeOut = task.TimeOut,
-                TaskType = (int)task.Type
-            };
-
-            var newTaskId= _repository.CreateTask(dtoTask);
+                Mapper.Initialize(cfg => cfg.CreateMap<ApiTask, DTOTask>()
+                    .ForMember("SendAddress",opt=>opt.MapFrom(c=>c.SendAddresses)));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            var dtoTask = Mapper.Map<ApiTask, DTOTask>(task);
+            _repository.UpdateTask(dtoTask);
+            var newTaskId = _repository.CreateTask(dtoTask);
             UpdateTaskList();
+            _monik.ApplicationInfo($"Создана задача {newTaskId}");
             return newTaskId;
         }
-    }//class
+    } //class
 }

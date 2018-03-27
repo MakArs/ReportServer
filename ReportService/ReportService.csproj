@@ -54,6 +54,9 @@
     <Reference Include="Autofac, Version=4.6.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <HintPath>..\packages\Autofac.4.6.2\lib\net45\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="AutoMapper, Version=6.2.2.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
+    </Reference>
     <Reference Include="Gerakul.FastSql, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Gerakul.FastSql.1.0.2\lib\net46\Gerakul.FastSql.dll</HintPath>
     </Reference>
@@ -76,7 +79,7 @@
       <HintPath>..\packages\Nancy.Hosting.Self.1.4.1\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="RazorEngine, Version=3.10.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
       <HintPath>..\packages\RazorEngine.3.10.0\lib\net45\RazorEngine.dll</HintPath>
@@ -130,9 +133,10 @@
     <Compile Include="Implementations\Repository.cs" />
     <Compile Include="Implementations\DataExecutor.cs" />
     <Compile Include="Implementations\Logic.cs" />
+    <Compile Include="View\InstanceListViewExecutor.cs" />
     <Compile Include="View\TaskListViewExecutor.cs" />
     <Compile Include="View\ViewExecutor.cs" />
-    <Compile Include="PluginFolder\DailyDataEx.cs" />
+    <Compile Include="PluginFolder\DailyReport.cs" />
     <Compile Include="PluginFolder\WeeklyReport.cs" />
     <Compile Include="PluginFolder\PrivateBootsTrap.cs" />
     <Compile Include="Program.cs" />
