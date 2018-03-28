@@ -4,7 +4,7 @@ using Monik.Client;
 using Nancy.Hosting.Self;
 using ReportService.Interfaces;
 
-namespace ReportService.Implementations
+namespace ReportService.Nancy
 {
     public class HostHolder : IHostHolder
     {

@@ -1,10 +1,10 @@
-﻿using Autofac;
-using ReportService.Interfaces;
-using System;
+﻿using System;
 using System.Diagnostics;
+using Autofac;
 using Monik.Client;
+using ReportService.Interfaces;
 
-namespace ReportService.Implementations
+namespace ReportService.Core
 {
     public class RTask : IRTask
     {

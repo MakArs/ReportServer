@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Gerakul.FastSql;
 using ReportService.Interfaces;
 
-namespace ReportService.Implementations
+namespace ReportService.Core
 {
 
     public class Repository : IRepository

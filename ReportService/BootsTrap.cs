@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
+using ReportService.Core;
 using ReportService.Implementations;
 using ReportService.Interfaces;
 using ReportService.Nancy;

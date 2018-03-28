@@ -2,62 +2,14 @@
 using Nancy;
 using Nancy.ModelBinding;
 using ReportService.Interfaces;
-using ReportService.Nancy;
 
-namespace ReportService.Implementations
+namespace ReportService.Nancy
 {
-
-    public class ReportsModule : NancyBaseModule
+    public class DataBaseModule : NancyBaseModule
     {
-        public ReportsModule(ILogic logic)
+        public DataBaseModule(ILogic logic)
         {
-            Get["/reports.html"] = parameters =>
-            {
-                try
-                {
-                    var response = (Response) $"{logic.GetTaskList_HtmlPage()}";
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
-            Get["/reports-{id:int}.html"] = parameters =>
-            {
-                try
-                {
-                    var response = (Response) $"{logic.GetInstanceList_HtmlPage(parameters.id)}";
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
-            Get["/send"] = parameters =>
-            {
-                int id = Request.Query.id;
-                string mail = Request.Query.address;
-                try
-                {
-                    string sentReps = logic.ForceExecute(id, mail);
-                    var response = sentReps != ""
-                        ? (Response) $"Reports {sentReps} sent!"
-                        : "No reports with this id found...";
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
+            ModulePath = "/api/v1";
             Post["/databases"] = parameters =>
             {
                 try
@@ -74,7 +26,14 @@ namespace ReportService.Implementations
                     return response;
                 }
             };
+        }
+    } //class
 
+    public class ReportsModule : NancyBaseModule
+    {
+        public ReportsModule(ILogic logic)
+        {
+            ModulePath = "/api/v1";
             Delete["/reports/{id:int}"] = parameters =>
             {
                 try
@@ -124,4 +83,13 @@ namespace ReportService.Implementations
 
         }
     } //class
+
+    public class InstancesModule : NancyBaseModule
+    {
+        public InstancesModule(ILogic logic)
+        {
+            ModulePath = "/api/v1";
+        }
+    } //class
 }
+

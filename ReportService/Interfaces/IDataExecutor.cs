@@ -1,4 +1,4 @@
-﻿using ReportService.Implementations;
+﻿using ReportService.Core;
 
 namespace ReportService.Interfaces
 {

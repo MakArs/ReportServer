@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using Gerakul.FastSql;
 using Newtonsoft.Json;
+using ReportService.Implementations;
 using ReportService.Interfaces;
 
-namespace ReportService.Implementations
+namespace ReportService.Core
 {
     public class DataExecutor : IDataExecutor
     {

@@ -120,7 +120,7 @@
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Nancy\HostHolder.cs" />
     <Compile Include="Nancy\NancyBaseModule.cs" />
-    <Compile Include="Nancy\NancyModuler.cs" />
+    <Compile Include="Nancy\NancyApiModules.cs" />
     <Compile Include="Core\PostMaster.cs" />
     <Compile Include="Core\RTask.cs" />
     <Compile Include="Core\Scheduler.cs" />
@@ -134,6 +134,7 @@
     <Compile Include="Core\Repository.cs" />
     <Compile Include="Core\DataExecutor.cs" />
     <Compile Include="Core\Logic.cs" />
+    <Compile Include="Nancy\NancySiteModule.cs" />
     <Compile Include="View\InstanceListViewExecutor.cs" />
     <Compile Include="View\TaskListViewExecutor.cs" />
     <Compile Include="View\ViewExecutor.cs" />

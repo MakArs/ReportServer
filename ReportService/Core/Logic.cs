@@ -7,10 +7,11 @@ using Autofac;
 using AutoMapper;
 using Monik.Client;
 using Newtonsoft.Json;
+using ReportService.Implementations;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 
-namespace ReportService.Implementations
+namespace ReportService.Core
 {
     public class Logic : ILogic
     {
