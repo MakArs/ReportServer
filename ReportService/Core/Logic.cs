@@ -8,6 +8,7 @@ using AutoMapper;
 using Monik.Client;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
+using ReportService.Nancy;
 
 namespace ReportService.Implementations
 {

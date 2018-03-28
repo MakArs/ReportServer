@@ -6,30 +6,6 @@ using ReportService.Interfaces;
 
 namespace ReportService.Implementations
 {
-    public class DTOTask
-    {
-        public int Id { get; set; }
-        public string Schedule { get; set; }
-        public string ConnectionString { get; set; }
-        public string ViewTemplate { get; set; }
-        public string Query { get; set; }
-        public string SendAddresses { get; set; }
-        public int TryCount { get; set; }
-        public int QueryTimeOut { get; set; } //seconds
-        public int TaskType { get; set; }
-    }
-
-    public class DTOInstance
-    {
-        public int Id { get; set; } = 0;
-        public string Data { get; set; } = "";
-        public string ViewData { get; set; } = "";
-        public int TaskId { get; set; }
-        public DateTime StartTime { get; set; }
-        public int Duration { get; set; } = 0;
-        public string State { get; set; } = "InProcess";
-        public int TryNumber { get; set; } = 0;
-    }
 
     public class Repository : IRepository
     {
@@ -44,6 +20,7 @@ namespace ReportService.Implementations
         {
             return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr, $"select * from Instance where taskid={taskId}")
                 .ToList();
+
         }
 
         public void UpdateInstance(DTOInstance instance)

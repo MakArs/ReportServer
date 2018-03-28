@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System.Collections.Generic;
+using System.Configuration;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -7,6 +8,7 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Implementations;
 using ReportService.Interfaces;
+using ReportService.Nancy;
 using ReportService.View;
 
 public interface IPrivateBootstrapper
@@ -81,8 +83,6 @@ namespace ReportService
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
             existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
-            //existingContainer.Update(builder => builder.Register(ctx => ctx.Resolve<MapperConfiguration>().CreateMapper()).As<IMapper>());
-
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)

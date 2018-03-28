@@ -1,5 +1,6 @@
 ﻿
 using ReportService.Implementations;
+using ReportService.Nancy;
 
 namespace ReportService.Interfaces
 {

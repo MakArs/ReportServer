@@ -59,7 +59,13 @@ namespace ReportService.Implementations
 
         public void Execute(string address = null)
         {
-            var dtoInstance = new DTOInstance() {StartTime = DateTime.Now, TaskId = Id};
+            var dtoInstance = new DTOInstance()
+            {
+                StartTime = DateTime.Now,
+                TaskId = Id,
+                State = (int) InstanceState.InProcess
+            };
+
             dtoInstance.Id = _repository.CreateInstance(dtoInstance);
             string[] deliveryAddrs = string.IsNullOrEmpty(address)
                 ? SendAddresses
@@ -111,7 +117,7 @@ namespace ReportService.Implementations
             dtoInstance.ViewData = htmlReport;
             dtoInstance.TryNumber = i - 1;
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
-            dtoInstance.State = dataObtained ? "Success" : "Failed";
+            dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
             _repository.UpdateInstance(dtoInstance);
         }
     } //class

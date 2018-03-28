@@ -118,11 +118,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BootsTrap.cs" />
-    <Compile Include="Implementations\HostHolder.cs" />
-    <Compile Include="Implementations\NancyModuler.cs" />
-    <Compile Include="Implementations\PostMaster.cs" />
-    <Compile Include="Implementations\RTask.cs" />
-    <Compile Include="Implementations\Scheduler.cs" />
+    <Compile Include="Nancy\HostHolder.cs" />
+    <Compile Include="Nancy\NancyBaseModule.cs" />
+    <Compile Include="Nancy\NancyModuler.cs" />
+    <Compile Include="Core\PostMaster.cs" />
+    <Compile Include="Core\RTask.cs" />
+    <Compile Include="Core\Scheduler.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Interfaces\IDataExecutor.cs" />
     <Compile Include="Interfaces\IHostHolder.cs" />
@@ -130,9 +131,9 @@
     <Compile Include="Interfaces\IPostMaster.cs" />
     <Compile Include="Interfaces\IRTask.cs" />
     <Compile Include="Interfaces\IViewExecutor.cs" />
-    <Compile Include="Implementations\Repository.cs" />
-    <Compile Include="Implementations\DataExecutor.cs" />
-    <Compile Include="Implementations\Logic.cs" />
+    <Compile Include="Core\Repository.cs" />
+    <Compile Include="Core\DataExecutor.cs" />
+    <Compile Include="Core\Logic.cs" />
     <Compile Include="View\InstanceListViewExecutor.cs" />
     <Compile Include="View\TaskListViewExecutor.cs" />
     <Compile Include="View\ViewExecutor.cs" />
@@ -161,5 +162,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
