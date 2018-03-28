@@ -22,27 +22,37 @@ namespace ReportService.Implementations
     {
         public ReportsModule(ILogic logic)
         {
-            Get["/reports"] = parameters => $"{logic.GetTaskList_HtmlPage()}";
-
-            Get["/send"] = parameters =>
+            Get["/reports"] = parameters =>
             {
-                int id = Request.Query.id;
-                string mail = Request.Query.address;
-
-                string sentReps = logic.ForceExecute(id, mail);
-                return sentReps != "" ? $"Reports {sentReps} sent!" : "No reports for those ids found...";
+                var response = (Response) $"{logic.GetTaskList_HtmlPage()}";
+                response.StatusCode = HttpStatusCode.OK;
+                return response;
             };
 
             Get["/reports/{id:int}"] = parameters =>
             {
                 try
                 {
-                    return $"{logic.GetInstanceList_HtmlPage(parameters.id)}";
+                    var response = (Response) $"{logic.GetInstanceList_HtmlPage(parameters.id)}";
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
                 }
                 catch
                 {
-                    return "no report with this id found...";
+                    return HttpStatusCode.NoContent;
                 }
+            };
+
+            Get["/send"] = parameters =>
+            {
+                int id = Request.Query.id;
+                string mail = Request.Query.address;
+                string sentReps = logic.ForceExecute(id, mail);
+                var response = sentReps != ""
+                    ? (Response) $"Reports {sentReps} sent!"
+                    : (Response) "No reports for those ids found...";
+                response.StatusCode = sentReps != "" ? HttpStatusCode.OK : HttpStatusCode.NoContent;
+                return response;
             };
 
             Post["/databases"] = parameters => // todo:methods

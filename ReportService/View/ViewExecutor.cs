@@ -36,9 +36,9 @@ namespace ReportService.View
                 content.Add(prop);
             }
 
-            var model = new { Headers = headers, Content = content, Date = date };
+            var model = new {Headers = headers, Content = content, Date = date};
 
             return Engine.Razor.Run("somekey", null, model);
         }
-    }//class
+    } //class
 }

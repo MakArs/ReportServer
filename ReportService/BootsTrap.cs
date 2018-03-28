@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using Autofac;
+using AutoMapper;
 using Monik.Client;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -36,15 +37,17 @@ namespace ReportService
             existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
-            existingContainer.RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
+            existingContainer
+                .RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
             existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer.RegisterSingleton<ILogic, Logic>();
             existingContainer.RegisterImplementation<IRTask, RTask>();
 
-            var repository=new Repository(ConfigurationManager.AppSettings["DBConnStr"]);
+            var repository = new Repository(ConfigurationManager.AppSettings["DBConnStr"]);
             existingContainer.RegisterInstance<IRepository, Repository>(repository);
-            
+
             // Configure Monik
+
 
             var logSender = new AzureSender(
                 ConfigurationManager.AppSettings["monikendpoint"]
@@ -69,6 +72,17 @@ namespace ReportService
             IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
             if (privboots != null)
                 privboots.PrivateConfigureApplicationContainer(existingContainer);
+
+            //mapper instance
+            var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
+            //{
+            //    cfg.AddProfile(typeof(AutoMapperProfile));
+            //}
+            existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
+            var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
+            existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
+            //existingContainer.Update(builder => builder.Register(ctx => ctx.Resolve<MapperConfiguration>().CreateMapper()).As<IMapper>());
+
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
@@ -100,11 +114,21 @@ namespace ReportService
                 .As<TInterface>());
         }
 
-        public static void RegisterInstance<TInterface, TImplementation>(this ILifetimeScope container, TImplementation aInstance)
+        public static void RegisterInstance<TInterface, TImplementation>(this ILifetimeScope container,
+            TImplementation aInstance)
         {
             container.Update(builder => builder
                 .Register(x => aInstance)
                 .As<TInterface>());
+        }
+
+        public static void RegisterSingleInstance<TInterface, TImplementation>(this ILifetimeScope container,
+            TImplementation aInstance)
+        {
+            container.Update(builder => builder
+                .Register(x => aInstance)
+                .As<TInterface>()
+                .SingleInstance());
         }
 
         public static void RegisterNamedSingleton<TInterface, TImplementation>(this ILifetimeScope container,
@@ -122,6 +146,15 @@ namespace ReportService
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
                 .Named<TInterface>(name));
+        }
+    }
+
+    public class MapperProfile : Profile
+    {
+        public MapperProfile()
+        {
+            CreateMap<ApiTask, DTOTask>();
+            //.ForMember("Name", opt => opt.MapFrom(c => c.FirstName + " " + c.LastName))
         }
     }
 }

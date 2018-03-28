@@ -16,29 +16,29 @@ namespace ReportService.Implementations
         private readonly ILifetimeScope _autofac;
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
-
-public List<RTask> _tasks { get; set; }
-
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
+        private readonly List<RTask> _tasks;
+        private readonly IMapper _mapper;
 
-        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik)
+        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper)
         {
             _autofac = autofac;
             _repository = repository;
             _tasks = new List<RTask>();
             _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
-            Mapper.Initialize(cfg => cfg.CreateMap<ApiTask, DTOTask>());
-            //.ForMember("Name", opt => opt.MapFrom(c => c.FirstName + " " + c.LastName))
+            _mapper = mapper;
         }
 
         private void UpdateTaskList()
         {
+            var taskLst = _repository.GetTasks();
+
             lock (this)
             {
                 _tasks.Clear();
 
-                foreach (var dtoTask in _repository.GetTasks())
+                foreach (var dtoTask in taskLst)
                 {
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
@@ -92,13 +92,7 @@ public List<RTask> _tasks { get; set; }
                 string[] schedDays = task.Schedule.Split(' ');
 
                 if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
-                foreach (var mail in task.SendAddresses)
-                {
-                    _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} по расписанию");
-                    Task.Factory.StartNew(() => task.Execute()).ContinueWith(
-                        _ => _monik.ApplicationInfo($"Отчёт {task.Id} успешно отослан на адрес {mail}"));
-                }
-
+                Task.Factory.StartNew(() => task.Execute());
             } //for
         }
 
@@ -138,7 +132,7 @@ public List<RTask> _tasks { get; set; }
 
         public void UpdateTask(ApiTask task)
         {
-            var dtoTask=Mapper.Map<ApiTask, DTOTask>(task);
+            var dtoTask = _mapper.Map<ApiTask, DTOTask>(task);
             _repository.UpdateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Обновлена задача {task.Id}");
@@ -153,7 +147,7 @@ public List<RTask> _tasks { get; set; }
 
         public int CreateTask(ApiTask task)
         {
-            var dtoTask = Mapper.Map<ApiTask, DTOTask>(task);
+            var dtoTask = _mapper.Map<ApiTask, DTOTask>(task);
             var newTaskId = _repository.CreateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Создана задача {newTaskId}");

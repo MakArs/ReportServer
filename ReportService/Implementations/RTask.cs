@@ -2,6 +2,7 @@
 using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
+using Monik.Client;
 
 namespace ReportService.Implementations
 {
@@ -21,8 +22,9 @@ namespace ReportService.Implementations
         private readonly IViewExecutor _viewEx;
         private readonly IPostMaster _postMaster;
         private readonly IRepository _repository;
+        private readonly IClientControl _monik;
 
-        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository,
+        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
             int id, string template, string schedule, string query, string sendAddress, int tryCount,
             int timeOut, RTaskType taskType, string connStr)
         {
@@ -52,6 +54,7 @@ namespace ReportService.Implementations
             TryCount = tryCount;
             TimeOut = timeOut;
             ConnectionString = connStr;
+            _monik = monik;
         }
 
         public void Execute(string address = null)
@@ -89,7 +92,19 @@ namespace ReportService.Implementations
 
             if (dataObtained)
                 foreach (string addr in deliveryAddrs)
-                    _postMaster.Send(htmlReport, addr);
+                {
+                    _monik.ApplicationInfo($"Отсылка отчёта {Id} на адрес {addr} по расписанию");
+                    try
+                    {
+                        _postMaster.Send(htmlReport, addr);
+                        _monik.ApplicationInfo($"Отчёт {Id} успешно отослан на адрес {addr}");
+                    }
+                    catch (Exception e)
+                    {
+                        _monik.ApplicationError(e.Message);
+                    }
+                }
+
             duration.Stop();
 
             dtoInstance.Data = jsonReport;
