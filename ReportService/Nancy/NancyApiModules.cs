@@ -10,6 +10,7 @@ namespace ReportService.Nancy
         public DataBaseModule(ILogic logic)
         {
             ModulePath = "/api/v1";
+
             Post["/databases"] = parameters =>
             {
                 try
@@ -34,6 +35,7 @@ namespace ReportService.Nancy
         public ReportsModule(ILogic logic)
         {
             ModulePath = "/api/v1";
+
             Delete["/reports/{id:int}"] = parameters =>
             {
                 try
@@ -89,6 +91,61 @@ namespace ReportService.Nancy
         public InstancesModule(ILogic logic)
         {
             ModulePath = "/api/v1";
+
+            Delete["/Instances/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteInstance(parameters.id);
+                    return HttpStatusCode.OK;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/reports/{reportid:int}/Instances"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response) logic.GetAllInstancesByTaskIdJson(parameters.reportid);
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/Instances"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllInstancesCompactJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/Instances/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetInstanceByIdJson(parameters.id);
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch(Exception e)
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
         }
     } //class
 }

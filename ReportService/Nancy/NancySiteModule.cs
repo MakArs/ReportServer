@@ -8,6 +8,7 @@ namespace ReportService.Nancy
         public SiteModule(ILogic logic)
         {
             ModulePath = "/site";
+
             Get["/reports.html"] = parameters =>
             {
                 try
@@ -55,5 +56,5 @@ namespace ReportService.Nancy
                 }
             };
         }
-    }
+    } //class
 }

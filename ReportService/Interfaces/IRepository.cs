@@ -30,11 +30,25 @@ namespace ReportService.Interfaces
         public int TryNumber { get; set; }
     }
 
+    public class DTOInstanceCompact
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+        public int TryNumber { get; set; }
+    }
+
     public interface IRepository
     {
-        List<DTOInstance> GetInstances(int taskId);
+        List<DTOInstance> GetInstancesByTaskId(int taskId);
+        List<DTOInstanceCompact> GetCompactInstancesByTaskId(int taskId);
+        DTOInstance GetInstanceById(int id);
+        List<DTOInstanceCompact> GetAllCompactInstances();
         void UpdateInstance(DTOInstance instance);
         int CreateInstance(DTOInstance instance);
+        void DeleteInstance(int instanceId);
         List<DTOTask> GetTasks();
         void UpdateTask(DTOTask task);
         void DeleteTask(int taskId);

@@ -15,11 +15,30 @@ namespace ReportService.Core
             _connStr = connStr;
         }
 
-        public List<DTOInstance> GetInstances(int taskId)
+        public List<DTOInstanceCompact> GetCompactInstancesByTaskId(int taskId)
+        {
+            return SimpleCommand.ExecuteQuery<DTOInstanceCompact>(_connStr,
+                    $"select id,taskid,starttime,duration,state,trynumber from Instance where taskid={taskId}")
+                .ToList();
+        }
+
+        public DTOInstance GetInstanceById(int id)
+        {
+            return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr,
+                $"select * from Instance where id={id}").ToList().First();
+        }
+
+        public List<DTOInstanceCompact> GetAllCompactInstances()
+        {
+            return SimpleCommand.ExecuteQuery<DTOInstanceCompact>(_connStr,
+                    "select id,taskid,starttime,duration,state,trynumber from Instance")
+                .ToList();
+        }
+
+        public List<DTOInstance> GetInstancesByTaskId(int taskId)
         {
             return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr, $"select * from Instance where taskid={taskId}")
                 .ToList();
-
         }
 
         public void UpdateInstance(DTOInstance instance)
@@ -31,6 +50,11 @@ namespace ReportService.Core
         {
             var id = MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
             return (int) id;
+        }
+
+        public void DeleteInstance(int instanceId)
+        {
+            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where id={instanceId}");
         }
 
         public List<DTOTask> GetTasks()
@@ -64,7 +88,7 @@ namespace ReportService.Core
                 TaskID int not null,
                 StartTime datetime not null,
                 Duration int not null,
-                State nvarchar(255) not null,
+                State int not null,
                 TryNumber int not null
                 )");
 

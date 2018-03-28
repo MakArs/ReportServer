@@ -14,8 +14,12 @@ namespace ReportService.Interfaces
         void Start();
         void Stop();
 
+        void DeleteInstance(int instanceId);
         void UpdateTask(ApiTask task);
         void DeleteTask(int taskId);
         int CreateTask(ApiTask task);
+        string GetAllInstancesByTaskIdJson(int taskId);
+        string GetAllInstancesCompactJson();
+        string GetInstanceByIdJson(int id);
     }
 }

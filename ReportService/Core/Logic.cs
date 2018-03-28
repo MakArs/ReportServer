@@ -98,24 +98,6 @@ namespace ReportService.Core
             } //for
         }
 
-        public string GetTaskList_HtmlPage()
-        {
-            List<RTask> tasks;
-            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
-            lock (this)
-                tasks = _tasks.ToList();
-            var jsonTasks = JsonConvert.SerializeObject(tasks);
-            return tableView.Execute("", jsonTasks);
-        }
-
-        public string GetInstanceList_HtmlPage(int taskId)
-        {
-            List<DTOInstance> instances = _repository.GetInstances(taskId);
-            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("instancelistviewex");
-            var jsonInstances = JsonConvert.SerializeObject(instances);
-            return tableView.Execute("", jsonInstances);
-        }
-
         public void CreateBase(string connStr)
         {
             _repository.CreateBase(connStr);
@@ -130,6 +112,47 @@ namespace ReportService.Core
         public void Stop()
         {
             _checkScheduleAndExecuteScheduler.OnStop();
+        }
+
+        public string GetTaskList_HtmlPage()
+        {
+            List<RTask> tasks;
+            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+            lock (this)
+                tasks = _tasks.ToList();
+            var jsonTasks = JsonConvert.SerializeObject(tasks);
+            return tableView.Execute("", jsonTasks);
+        }
+
+        public string GetInstanceList_HtmlPage(int taskId)
+        {
+            List<DTOInstance> instances = _repository.GetInstancesByTaskId(taskId);
+            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("instancelistviewex");
+            var jsonInstances = JsonConvert.SerializeObject(instances);
+            return tableView.Execute("", jsonInstances);
+        }
+
+        public void DeleteInstance(int instanceId)
+        {
+            _repository.DeleteInstance(instanceId);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Удалена задача {instanceId}");
+        }
+
+        public string GetAllInstancesByTaskIdJson(int taskId)
+        {
+            List<DTOInstanceCompact> instances = _repository.GetCompactInstancesByTaskId(taskId);
+            return JsonConvert.SerializeObject(instances);
+        }
+
+        public string GetAllInstancesCompactJson()
+        {
+            return JsonConvert.SerializeObject(_repository.GetAllCompactInstances());
+        }
+
+        public string GetInstanceByIdJson(int id)
+        {
+            return JsonConvert.SerializeObject(_repository.GetInstanceById(id));
         }
 
         public void UpdateTask(ApiTask task)
