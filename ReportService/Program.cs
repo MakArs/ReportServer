@@ -19,7 +19,7 @@ namespace ReportService
                 hostConfigurator.RunAsLocalSystem();
                 //System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
                 hostConfigurator.SetDescription("ReportServer service");
-                hostConfigurator.SetDisplayName("ReportServerr");
+                hostConfigurator.SetDisplayName("ReportServer");
                 hostConfigurator.SetServiceName("ReportServer");
             });
         }

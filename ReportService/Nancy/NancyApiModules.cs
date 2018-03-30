@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using Nancy;
 using Nancy.ModelBinding;
 using ReportService.Interfaces;
@@ -15,7 +16,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    logic.CreateBase(parameters.ConnectionString);
+                    logic.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
                     var response = (Response) "DataBase successfully created!";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -35,6 +36,34 @@ namespace ReportService.Nancy
         public ReportsModule(ILogic logic)
         {
             ModulePath = "/api/v1";
+
+            Get["/reports"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response) logic.GetAllReports();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch(Exception e)
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/reports/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response) logic.GetReportById(parameters.id);
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
 
             Delete["/reports/{id:int}"] = parameters =>
             {
@@ -123,7 +152,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllInstancesCompactJson();
+                    var response = (Response) logic.GetAllInstancesCompactJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -137,11 +166,11 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetInstanceByIdJson(parameters.id);
+                    var response = (Response) logic.GetInstanceByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
-                catch(Exception e)
+                catch
                 {
                     return HttpStatusCode.InternalServerError;
                 }

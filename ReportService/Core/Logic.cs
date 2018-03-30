@@ -94,6 +94,7 @@ namespace ReportService.Core
                 string[] schedDays = task.Schedule.Split(' ');
 
                 if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
+                _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
                 Task.Factory.StartNew(() => task.Execute());
             } //for
         }
@@ -153,6 +154,22 @@ namespace ReportService.Core
         public string GetInstanceByIdJson(int id)
         {
             return JsonConvert.SerializeObject(_repository.GetInstanceById(id));
+        }
+
+        public string GetAllReports()
+        {
+            List<RTask> tasks;
+            lock (this)
+                tasks = _tasks.ToList();
+            return JsonConvert.SerializeObject(tasks.Select(t => _mapper.Map<RTask, ApiTaskCompact>(t)));
+        }
+
+        public string GetReportById(int id)
+        {
+            List<RTask> tasks;
+            lock (this)
+                tasks = _tasks.ToList();
+            return JsonConvert.SerializeObject(_mapper.Map<RTask, ApiTask>(tasks.First(t => t.Id == id)));
         }
 
         public void UpdateTask(ApiTask task)

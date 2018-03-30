@@ -297,3 +297,4 @@ __pycache__/
 *.xsd.cs
 ReportService/PluginFolder/
 ReportService/PrivateBootsTrap.cs
+ReportService/Appmsk.config

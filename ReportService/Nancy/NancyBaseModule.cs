@@ -16,6 +16,17 @@ namespace ReportService.Nancy
         public int TaskType { get; set; }
     }
 
+    public class ApiTaskCompact
+    {
+        public int Id { get; set; }
+        public string Schedule { get; set; }
+        public string ConnectionString { get; set; }
+        public string SendAddresses { get; set; }
+        public int TryCount { get; set; }
+        public int QueryTimeOut { get; set; }
+        public int TaskType { get; set; }
+    }
+
     public class NancyBaseModule : NancyModule
     {
         public NancyBaseModule()

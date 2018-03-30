@@ -154,7 +154,10 @@ namespace ReportService
         public MapperProfile()
         {
             CreateMap<ApiTask, DTOTask>();
-            //.ForMember("Name", opt => opt.MapFrom(c => c.FirstName + " " + c.LastName))
+            CreateMap<RTask, ApiTask>()
+                .ForMember("ConnectionString", opt => opt.MapFrom(s => string.Concat(s.SendAddresses)));
+            CreateMap<RTask, ApiTaskCompact>()
+                .ForMember("ConnectionString", opt => opt.MapFrom(s => string.Concat(s.SendAddresses)));
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿
-using ReportService.Implementations;
-using ReportService.Nancy;
+﻿using ReportService.Nancy;
 
 namespace ReportService.Interfaces
 {
@@ -21,5 +19,7 @@ namespace ReportService.Interfaces
         string GetAllInstancesByTaskIdJson(int taskId);
         string GetAllInstancesCompactJson();
         string GetInstanceByIdJson(int id);
+        string GetAllReports();
+        string GetReportById(int id);
     }
 }
