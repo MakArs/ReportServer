@@ -16,10 +16,10 @@ namespace ReportService.Interfaces
         void UpdateTask(ApiTask task);
         void DeleteTask(int taskId);
         int CreateTask(ApiTask task);
-        string GetAllInstancesByTaskIdJson(int taskId);
+        string GetAllInstanceCompactsByTaskIdJson(int taskId);
         string GetAllInstancesCompactJson();
         string GetInstanceByIdJson(int id);
-        string GetAllReports();
+        string GetAllReportCompacts();
         string GetReportById(int id);
     }
 }

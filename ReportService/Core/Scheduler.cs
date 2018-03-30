@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ReportService.Implementations
+namespace ReportService.Core
 {
     public class Scheduler
     {

@@ -11,13 +11,13 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using ReportService.View;
 
-public interface IPrivateBootstrapper
-{
-    void PrivateConfigureApplicationContainer(ILifetimeScope existingContainer);
-}
-
 namespace ReportService
 {
+    public interface IPrivateBootstrapper
+    {
+        void PrivateConfigureApplicationContainer(ILifetimeScope existingContainer);
+    }
+
     public partial class Bootstrapper : AutofacNancyBootstrapper
     {
         public static ILifetimeScope Global;
@@ -39,8 +39,7 @@ namespace ReportService
             existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
-            existingContainer
-                .RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
+            existingContainer.RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
             existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer.RegisterSingleton<ILogic, Logic>();
             existingContainer.RegisterImplementation<IRTask, RTask>();
@@ -49,11 +48,9 @@ namespace ReportService
             existingContainer.RegisterInstance<IRepository, Repository>(repository);
 
             // Configure Monik
-
-
             var logSender = new AzureSender(
-                ConfigurationManager.AppSettings["monikendpoint"]
-                , "incoming");
+                ConfigurationManager.AppSettings["monikendpoint"],
+                "incoming");
 
             existingContainer.RegisterInstance<IClientSender, AzureSender>(logSender);
 
@@ -77,9 +74,8 @@ namespace ReportService
 
             //mapper instance
             var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
-            //{
-            //    cfg.AddProfile(typeof(AutoMapperProfile));
-            //}
+            // Hint: add to ctor if many profiles needed: cfg.AddProfile(typeof(AutoMapperProfile));
+
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
             existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
@@ -155,9 +151,9 @@ namespace ReportService
         {
             CreateMap<ApiTask, DTOTask>();
             CreateMap<RTask, ApiTask>()
-                .ForMember("ConnectionString", opt => opt.MapFrom(s => string.Concat(s.SendAddresses)));
+                .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";", s.SendAddresses)));
             CreateMap<RTask, ApiTaskCompact>()
-                .ForMember("ConnectionString", opt => opt.MapFrom(s => string.Concat(s.SendAddresses)));
+                .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";",s.SendAddresses)));
         }
     }
 }

@@ -18,9 +18,10 @@ namespace ReportService.Core
         private readonly ILifetimeScope _autofac;
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
+        private readonly IMapper _mapper;
+
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
         private readonly List<RTask> _tasks;
-        private readonly IMapper _mapper;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper)
         {
@@ -140,7 +141,7 @@ namespace ReportService.Core
             _monik.ApplicationInfo($"Удалена задача {instanceId}");
         }
 
-        public string GetAllInstancesByTaskIdJson(int taskId)
+        public string GetAllInstanceCompactsByTaskIdJson(int taskId)
         {
             List<DTOInstanceCompact> instances = _repository.GetCompactInstancesByTaskId(taskId);
             return JsonConvert.SerializeObject(instances);
@@ -156,7 +157,7 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(_repository.GetInstanceById(id));
         }
 
-        public string GetAllReports()
+        public string GetAllReportCompacts()
         {
             List<RTask> tasks;
             lock (this)

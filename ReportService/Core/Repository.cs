@@ -5,7 +5,6 @@ using ReportService.Interfaces;
 
 namespace ReportService.Core
 {
-
     public class Repository : IRepository
     {
         private readonly string _connStr;
@@ -91,6 +90,16 @@ namespace ReportService.Core
                 State int not null,
                 TryNumber int not null
                 )");
+
+            // TODO: refactoring
+            // Task table refac
+            // 1. Schedule to external table: Id, Name, Value
+            // 2. SendAddresses to ex table RecepientGroup: Id, Name, Emails
+            // 3. ConnStr, Templ, Query, TaskType => Report table
+            // 4. ConnStr => DataSource table
+            // Instance table refac
+            // 1. Data, ViewData => tables
+            // 2. etc...
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Task
                 (Id int primary key Identity,

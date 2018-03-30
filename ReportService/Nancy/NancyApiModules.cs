@@ -41,11 +41,11 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllReports();
+                    var response = (Response) logic.GetAllReportCompacts();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     return HttpStatusCode.InternalServerError;
                 }
@@ -121,7 +121,7 @@ namespace ReportService.Nancy
         {
             ModulePath = "/api/v1";
 
-            Delete["/Instances/{id:int}"] = parameters =>
+            Delete["/instances/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -134,11 +134,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/reports/{reportid:int}/Instances"] = parameters =>
+            Get["/reports/{reportid:int}/instances"] = parameters =>
             {
                 try
                 {
-                    var response = (Response) logic.GetAllInstancesByTaskIdJson(parameters.reportid);
+                    var response = (Response) logic.GetAllInstanceCompactsByTaskIdJson(parameters.reportid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -148,7 +148,8 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/Instances"] = parameters =>
+            // TODO: filter - top, paginations
+            Get["/instances"] = parameters =>
             {
                 try
                 {
@@ -162,7 +163,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/Instances/{id:int}"] = parameters =>
+            Get["/instances/{id:int}"] = parameters =>
             {
                 try
                 {
