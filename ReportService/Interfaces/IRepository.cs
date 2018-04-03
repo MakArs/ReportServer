@@ -47,7 +47,7 @@ namespace ReportService.Interfaces
 
     public class DtoSchedule
     {
-        public int? Id { get; set; }
+        public int Id { get; set; } = 0;
         public string Name { get; set; } = "";
         public string Schedule { get; set; } = "";
     }

@@ -96,16 +96,22 @@ namespace ReportService.Core
         public void CreateBase(string baseConnStr)
         {
             // TODO: check db exists
-
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Schedule
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                 IF (not EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_NAME = 'Schedule'))
+                create table Schedule
                 (Id int primary key Identity,
                 Name nvarchar(127) not null,
                 Schedule nvarchar(255) not null
                 )");
-
             // TODO: insert default schedules (english)
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"CREATE TABLE Task
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                 IF (not EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_NAME = 'Task'))
+                CREATE TABLE Task
                 (Id int primary key Identity,
                 ScheduleId int null,
                 ConnectionString nvarchar(255) null,
@@ -119,7 +125,11 @@ namespace ReportService.Core
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) REFERENCES Schedule(Id)
                 )");
             
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Instance
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                 IF (not EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_NAME = 'Instance'))
+                create table Instance
                 (
                 Id int primary key Identity,
                 TaskID int not null,
@@ -131,7 +141,11 @@ namespace ReportService.Core
                 REFERENCES Task(Id)
                 )");
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"CREATE TABLE [dbo].[InstanceData](
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                 IF (not EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_NAME = 'InstanceData'))
+                CREATE TABLE InstanceData(
 	            InstanceId int NOT NULL,
 	            Data nvarchar(MAX) not null,
 	            ViewData nvarchar(MAX) not null,

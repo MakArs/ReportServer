@@ -29,7 +29,7 @@ namespace ReportService.Core
             _autofac = autofac;
             _repository = repository;
             _tasks = new List<RTask>();
-            _schedules=new List<RSchedule>();
+            _schedules = new List<RSchedule>();
             _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
         }
@@ -60,7 +60,7 @@ namespace ReportService.Core
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("template", dtoTask.ViewTemplate),
-                        new NamedParameter("schedule", dtoTask.ScheduleId),
+                        new NamedParameter("schedule", _schedules.FirstOrDefault(s=>s.Id== dtoTask.ScheduleId)),
                         new NamedParameter("query", dtoTask.Query),
                         new NamedParameter("sendAddress", dtoTask.SendAddresses),
                         new NamedParameter("tryCount", dtoTask.TryCount),
@@ -104,12 +104,15 @@ namespace ReportService.Core
             var currentDay = time.ToString("ddd").ToLower().Substring(0, 2);
             var currentTime = time.ToString("HHmm");
 
-            foreach (var task in tasks)
+            foreach (var task in tasks.Where(x => x.Schedule != null))
             {
-                string[] schedDays = _schedules.First(s=>s.Id==task.Schedule).Schedule?.Split(' ');
+                string[] schedDays = _schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(' ');
 
-                if (schedDays != null && !schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
+                if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
+                    continue;
+
                 _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
+
                 Task.Factory.StartNew(() => task.Execute());
             } //for
         }
