@@ -2,6 +2,6 @@
 {
     public interface IPostMaster
     {
-        void Send(string report,string address);
+        void Send(string report, string[] addresses);
     }
 }

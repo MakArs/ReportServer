@@ -7,7 +7,6 @@ using Autofac;
 using AutoMapper;
 using Monik.Client;
 using Newtonsoft.Json;
-using ReportService.Implementations;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 
@@ -157,7 +156,7 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(_repository.GetInstanceById(id));
         }
 
-        public string GetAllReportCompacts()
+        public string GetAllTaskCompacts()
         {
             List<RTask> tasks;
             lock (this)
@@ -165,7 +164,7 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(tasks.Select(t => _mapper.Map<RTask, ApiTaskCompact>(t)));
         }
 
-        public string GetReportById(int id)
+        public string GetTaskById(int id)
         {
             List<RTask> tasks;
             lock (this)

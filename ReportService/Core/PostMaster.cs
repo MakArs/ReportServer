@@ -11,7 +11,7 @@ namespace ReportService.Implementations
     {
         private string _filename;
 
-        public void Send(string report, string address)
+        public void Send(string report, string[] addresses)
         {
             _filename = $"Report{DateTime.Now:HHmmss}.html";
 
@@ -33,13 +33,14 @@ namespace ReportService.Implementations
         {
             _monik = monik;
         }
-
-        public void Send(string report, string address)
+        //todo:send to all addresses instead of each
+        public void Send(string report, string[] addresses)
         {
             SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-            msg.To.Add(new MailAddress(address));
+            foreach (var address in addresses)
+                msg.To.Add(new MailAddress(address));
             msg.Subject = "Отчёт";
             msg.IsBodyHtml = true;
             msg.Body = report;
@@ -53,7 +54,7 @@ namespace ReportService.Implementations
             }
             catch (Exception ex)
             {
-                _monik.ApplicationError($"Отчёт не выслан на адрес {address}:" + ex.Message);
+                _monik.ApplicationError($"Отчёт не выслан: " + ex.Message);
             }
             finally
             {

@@ -41,7 +41,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllReportCompacts();
+                    var response = (Response) logic.GetAllTaskCompacts();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -55,7 +55,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetReportById(parameters.id);
+                    var response = (Response) logic.GetTaskById(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

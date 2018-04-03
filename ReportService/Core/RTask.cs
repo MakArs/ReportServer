@@ -97,13 +97,11 @@ namespace ReportService.Core
             }
 
             if (dataObtained)
-                foreach (string addr in deliveryAddrs)
                 {
-                    _monik.ApplicationInfo($"Отсылка отчёта {Id} на адрес {addr} по расписанию");
                     try
                     {
-                        _postMaster.Send(htmlReport, addr);
-                        _monik.ApplicationInfo($"Отчёт {Id} успешно отослан на адрес {addr}");
+                        _postMaster.Send(htmlReport, deliveryAddrs);
+                        _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                     }
                     catch (Exception e)
                     {

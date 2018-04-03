@@ -19,7 +19,7 @@ namespace ReportService.Interfaces
         string GetAllInstanceCompactsByTaskIdJson(int taskId);
         string GetAllInstancesCompactJson();
         string GetInstanceByIdJson(int id);
-        string GetAllReportCompacts();
-        string GetReportById(int id);
+        string GetAllTaskCompacts();
+        string GetTaskById(int id);
     }
 }
