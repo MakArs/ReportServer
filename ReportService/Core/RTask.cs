@@ -12,7 +12,7 @@ namespace ReportService.Core
         public int Id { get; }
         public string[] SendAddresses { get; }
         public string ViewTemplate { get; }
-        public string Schedule { get; }
+        public Schedule Schedule { get; }
         public string ConnectionString { get; }
         public string Query { get; }
         public int TryCount { get; }
@@ -27,7 +27,7 @@ namespace ReportService.Core
         private readonly IMapper _mapper;
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik, IMapper mapper,
-            int id, string template, string schedule, string query, string sendAddress, int tryCount,
+            int id, string template, Schedule schedule, string query, string sendAddress, int tryCount,
             int timeOut, RTaskType taskType, string connStr)
         {
             Type = taskType;

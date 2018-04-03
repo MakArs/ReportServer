@@ -31,14 +31,14 @@ namespace ReportService
             // No registrations should be performed in here, however you may
             // resolve things that are needed during application startup.
             ILogic log = Container.Resolve<ILogic>();
-            //try
-            //{
-            //    log.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-            //}
-            //catch (Exception e)
-            //{
-            //    var c = e.Message;
-            //}
+            try
+            {
+                log.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            }
+            catch (Exception e)
+            {
+                var c = e.Message;
+            }
             log.Start();
         }
 

@@ -87,9 +87,15 @@ namespace ReportService.Core
 
         public void CreateBase(string baseConnStr)
         {
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Schedule
+                (Id int primary key Identity,
+                Name nvarchar(127) null,
+                Schedule nvarchar(255) not null
+                )");
+
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Task
                 (Id int primary key Identity,
-                Schedule nvarchar(255) not null,
+                ScheduleId int not null,
                 ConnectionString nvarchar(255) null,
                 ViewTemplate nvarchar(MAX) not null,
                 Query nvarchar(MAX) not null,
@@ -97,8 +103,10 @@ namespace ReportService.Core
                 TryCount TINYINT not null,
                 QueryTimeOut TINYINT not null,
                 TaskType TINYINT not null 
+                constraint FK_Task_Schedule FOREIGN KEY(ScheduleId)
+                REFERENCES Schedule(Id)
                 )");
-
+            
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Instance
                 (
                 Id int primary key Identity,

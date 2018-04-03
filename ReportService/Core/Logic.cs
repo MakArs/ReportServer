@@ -45,7 +45,7 @@ namespace ReportService.Core
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("template", dtoTask.ViewTemplate),
-                        new NamedParameter("schedule", dtoTask.Schedule),
+                        new NamedParameter("schedule", (Schedule)dtoTask.ScheduleId),
                         new NamedParameter("query", dtoTask.Query),
                         new NamedParameter("sendAddress", dtoTask.SendAddresses),
                         new NamedParameter("tryCount", dtoTask.TryCount),
@@ -91,7 +91,7 @@ namespace ReportService.Core
 
             foreach (var task in tasks)
             {
-                string[] schedDays = task.Schedule.Split(' ');
+                string[] schedDays = task.Schedule.ToString().Split(' ');
 
                 if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
                 _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");

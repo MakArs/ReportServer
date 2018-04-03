@@ -6,7 +6,7 @@ namespace ReportService.Interfaces
     public class DTOTask
     {
         public int Id { get; set; }
-        public string Schedule { get; set; }
+        public int ScheduleId { get; set; }
         public string ConnectionString { get; set; }
         public string ViewTemplate { get; set; }
         public string Query { get; set; }

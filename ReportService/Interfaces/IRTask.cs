@@ -13,6 +13,12 @@
         Failed = 3
     }
 
+    public enum Schedule
+    {
+        motuwethfr2230=1,
+        su2230=2
+    }
+
     public interface IRTask
     {
         void Execute(string address = null);
