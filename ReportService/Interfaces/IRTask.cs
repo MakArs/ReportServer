@@ -13,10 +13,11 @@
         Failed = 3
     }
 
-    public enum Schedule
+    public class RSchedule
     {
-        motuwethfr2230=1,
-        su2230=2
+        public int Id { get; }
+        public string Name { get; set; }
+        public string Schedule { get; set; }
     }
 
     public interface IRTask

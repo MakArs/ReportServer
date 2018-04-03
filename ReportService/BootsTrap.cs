@@ -158,14 +158,15 @@ namespace ReportService
     {
         public MapperProfile()
         {
-            CreateMap<ApiTask, DTOTask>();
+            CreateMap<ApiTask, DtoTask>();
             CreateMap<RTask, ApiTask>()
                 .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";", s.SendAddresses)));
             CreateMap<RTask, ApiTaskCompact>()
                 .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";",s.SendAddresses)));
-            CreateMap<DTOInstance, DTOInstanceCompact>();
-            CreateMap<DTOInstance, DTOInstanceData>()
+            CreateMap<DtoInstance, DtoInstanceCompact>();
+            CreateMap<DtoInstance, DtoInstanceData>()
                 .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
+            CreateMap<DtoSchedule, RSchedule>();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace ReportService.Core
         public int Id { get; }
         public string[] SendAddresses { get; }
         public string ViewTemplate { get; }
-        public Schedule Schedule { get; }
+        public int? Schedule { get; }
         public string ConnectionString { get; }
         public string Query { get; }
         public int TryCount { get; }
@@ -27,7 +27,7 @@ namespace ReportService.Core
         private readonly IMapper _mapper;
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik, IMapper mapper,
-            int id, string template, Schedule schedule, string query, string sendAddress, int tryCount,
+            int id, string template, int schedule, string query, string sendAddress, int tryCount,
             int timeOut, RTaskType taskType, string connStr)
         {
             Type = taskType;
@@ -62,7 +62,7 @@ namespace ReportService.Core
 
         public void Execute(string address = null)
         {
-            var dtoInstance = new DTOInstance()
+            var dtoInstance = new DtoInstance()
             {
                 StartTime = DateTime.Now,
                 TaskId = Id,
@@ -70,8 +70,8 @@ namespace ReportService.Core
             };
 
             dtoInstance.Id = _repository.CreateInstance
-                (_mapper.Map<DTOInstance,DTOInstanceCompact>(dtoInstance),
-                _mapper.Map<DTOInstance, DTOInstanceData>(dtoInstance));
+                (_mapper.Map<DtoInstance,DtoInstanceCompact>(dtoInstance),
+                _mapper.Map<DtoInstance, DtoInstanceData>(dtoInstance));
             string[] deliveryAddrs = string.IsNullOrEmpty(address)
                 ? SendAddresses
                 : new string[] {address};
@@ -121,8 +121,8 @@ namespace ReportService.Core
             dtoInstance.TryNumber = i - 1;
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
-            _repository.UpdateInstance(_mapper.Map<DTOInstance, DTOInstanceCompact>(dtoInstance),
-                _mapper.Map<DTOInstance, DTOInstanceData>(dtoInstance));
+            _repository.UpdateInstance(_mapper.Map<DtoInstance, DtoInstanceCompact>(dtoInstance),
+                _mapper.Map<DtoInstance, DtoInstanceData>(dtoInstance));
         }
     } //class
 }

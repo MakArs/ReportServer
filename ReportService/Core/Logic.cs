@@ -21,21 +21,36 @@ namespace ReportService.Core
 
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
         private readonly List<RTask> _tasks;
+        private readonly List<RSchedule> _schedules;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper)
         {
+            _mapper = mapper;
             _autofac = autofac;
             _repository = repository;
             _tasks = new List<RTask>();
+            _schedules=new List<RSchedule>();
             _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
-            _mapper = mapper;
+        }
+
+        private void UpdateScheduleList()
+        {
+            var schedList = _repository.GetAllSchedules();
+            lock (this)
+            {
+                _schedules.Clear();
+                foreach (var sched in schedList)
+                {
+                    _schedules.Add(_mapper.Map<DtoSchedule, RSchedule>(sched));
+                }
+            }
         }
 
         private void UpdateTaskList()
         {
+            UpdateScheduleList();
             var taskLst = _repository.GetTasks();
-
             lock (this)
             {
                 _tasks.Clear();
@@ -45,7 +60,7 @@ namespace ReportService.Core
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("template", dtoTask.ViewTemplate),
-                        new NamedParameter("schedule", (Schedule)dtoTask.ScheduleId),
+                        new NamedParameter("schedule", dtoTask.ScheduleId),
                         new NamedParameter("query", dtoTask.Query),
                         new NamedParameter("sendAddress", dtoTask.SendAddresses),
                         new NamedParameter("tryCount", dtoTask.TryCount),
@@ -91,9 +106,9 @@ namespace ReportService.Core
 
             foreach (var task in tasks)
             {
-                string[] schedDays = task.Schedule.ToString().Split(' ');
+                string[] schedDays = _schedules.First(s=>s.Id==task.Schedule).Schedule?.Split(' ');
 
-                if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
+                if (schedDays != null && !schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime))) continue;
                 _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
                 Task.Factory.StartNew(() => task.Execute());
             } //for
@@ -127,7 +142,7 @@ namespace ReportService.Core
 
         public string GetInstanceList_HtmlPage(int taskId)
         {
-            List<DTOInstance> instances = _repository.GetInstancesByTaskId(taskId);
+            List<DtoInstance> instances = _repository.GetInstancesByTaskId(taskId);
             IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("instancelistviewex");
             var jsonInstances = JsonConvert.SerializeObject(instances);
             return tableView.Execute("", jsonInstances);
@@ -142,7 +157,7 @@ namespace ReportService.Core
 
         public string GetAllInstanceCompactsByTaskIdJson(int taskId)
         {
-            List<DTOInstanceCompact> instances = _repository.GetCompactInstancesByTaskId(taskId);
+            List<DtoInstanceCompact> instances = _repository.GetCompactInstancesByTaskId(taskId);
             return JsonConvert.SerializeObject(instances);
         }
 
@@ -174,7 +189,7 @@ namespace ReportService.Core
 
         public void UpdateTask(ApiTask task)
         {
-            var dtoTask = _mapper.Map<ApiTask, DTOTask>(task);
+            var dtoTask = _mapper.Map<ApiTask, DtoTask>(task);
             _repository.UpdateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Обновлена задача {task.Id}");
@@ -189,7 +204,7 @@ namespace ReportService.Core
 
         public int CreateTask(ApiTask task)
         {
-            var dtoTask = _mapper.Map<ApiTask, DTOTask>(task);
+            var dtoTask = _mapper.Map<ApiTask, DtoTask>(task);
             var newTaskId = _repository.CreateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Создана задача {newTaskId}");

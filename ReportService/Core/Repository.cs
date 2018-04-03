@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Gerakul.FastSql;
 using ReportService.Interfaces;
@@ -14,47 +15,54 @@ namespace ReportService.Core
             _connStr = connStr;
         }
 
-        public List<DTOInstanceCompact> GetCompactInstancesByTaskId(int taskId)
+        public List<DtoInstanceCompact> GetCompactInstancesByTaskId(int taskId)
         {
-            return SimpleCommand.ExecuteQuery<DTOInstanceCompact>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoInstanceCompact>(_connStr,
                     $"select * from Instance where taskid={taskId}")
                 .ToList();
         }
 
-        public DTOInstance GetInstanceById(int id)
+        public DtoInstance GetInstanceById(int id)
         {
-            return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
                     $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
                 from Instance i join instancedata idat on id=instanceid where id={id}")
                 .ToList().First();
         }
 
-        public List<DTOInstanceCompact> GetAllCompactInstances()
+        public List<DtoInstanceCompact> GetAllCompactInstances()
         {
-            return SimpleCommand.ExecuteQuery<DTOInstanceCompact>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoInstanceCompact>(_connStr,
                     "select * from Instance")
                 .ToList();
         }
 
-        public List<DTOInstance> GetInstancesByTaskId(int taskId)
+        public List<DtoSchedule> GetAllSchedules()
         {
-            return SimpleCommand.ExecuteQuery<DTOInstance>(_connStr,
+                return SimpleCommand.ExecuteQuery<DtoSchedule>(_connStr,
+                        "select * from Schedule")
+                    .ToList();
+        }
+
+        public List<DtoInstance> GetInstancesByTaskId(int taskId)
+        {
+            return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
                     $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
                 from Instance i join instancedata idat on id=instanceid where taskid={taskId}")
                 .ToList();
         }
 
-        public void UpdateInstance(DTOInstanceCompact instance, DTOInstanceData data)
+        public void UpdateInstance(DtoInstanceCompact instance, DtoInstanceData data)
         {
             MappedCommand.Update(_connStr, "Instance", instance, "Id");
             MappedCommand.Update(_connStr, "InstanceData", data, "InstanceId");
         }
 
-        public int CreateInstance(DTOInstanceCompact instance, DTOInstanceData data)
+        public int CreateInstance(DtoInstanceCompact instance, DtoInstanceData data)
         {
             var id = MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
             data.InstanceId = (int) id;
-            MappedCommand.Insert(_connStr, "InstanceData", data);
+                MappedCommand.Insert(_connStr, "InstanceData", data);
             return (int) id;
         }
 
@@ -64,12 +72,12 @@ namespace ReportService.Core
             SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where id={instanceId}");
         }
 
-        public List<DTOTask> GetTasks()
+        public List<DtoTask> GetTasks()
         {
-            return SimpleCommand.ExecuteQuery<DTOTask>(_connStr, "select * from task").ToList();
+            return SimpleCommand.ExecuteQuery<DtoTask>(_connStr, "select * from task").ToList();
         }
 
-        public void UpdateTask(DTOTask task)
+        public void UpdateTask(DtoTask task)
         {
             MappedCommand.Update(_connStr, "Task", task, "Id");
         }
@@ -79,7 +87,7 @@ namespace ReportService.Core
             SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={taskId}");
         }
 
-        public int CreateTask(DTOTask task)
+        public int CreateTask(DtoTask task)
         {
             var id = MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
             return (int) id;
@@ -87,24 +95,28 @@ namespace ReportService.Core
 
         public void CreateBase(string baseConnStr)
         {
+            // TODO: check db exists
+
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Schedule
                 (Id int primary key Identity,
-                Name nvarchar(127) null,
+                Name nvarchar(127) not null,
                 Schedule nvarchar(255) not null
                 )");
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Task
+            // TODO: insert default schedules (english)
+
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"CREATE TABLE Task
                 (Id int primary key Identity,
-                ScheduleId int not null,
+                ScheduleId int null,
                 ConnectionString nvarchar(255) null,
                 ViewTemplate nvarchar(MAX) not null,
                 Query nvarchar(MAX) not null,
                 SendAddresses varchar(4000) not null,
                 TryCount TINYINT not null,
                 QueryTimeOut TINYINT not null,
-                TaskType TINYINT not null 
-                constraint FK_Task_Schedule FOREIGN KEY(ScheduleId)
-                REFERENCES Schedule(Id)
+                TaskType TINYINT not null
+
+                CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) REFERENCES Schedule(Id)
                 )");
             
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"create table Instance

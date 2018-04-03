@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
-    public class DTOTask
+    public class DtoTask
     {
         public int Id { get; set; }
-        public int ScheduleId { get; set; }
+        public int? ScheduleId { get; set; }
         public string ConnectionString { get; set; }
         public string ViewTemplate { get; set; }
         public string Query { get; set; }
@@ -16,7 +16,7 @@ namespace ReportService.Interfaces
         public int TaskType { get; set; }
     }
 
-    public class DTOInstance
+    public class DtoInstance
     {
         public int Id { get; set; }
         public string Data { get; set; } = "";
@@ -28,7 +28,7 @@ namespace ReportService.Interfaces
         public int TryNumber { get; set; }
     }
 
-    public class DTOInstanceCompact
+    public class DtoInstanceCompact
     {
         public int Id { get; set; }
         public int TaskId { get; set; }
@@ -38,26 +38,34 @@ namespace ReportService.Interfaces
         public int TryNumber { get; set; }
     }
 
-    public class DTOInstanceData
+    public class DtoInstanceData
     {
         public int InstanceId { get; set; }
-        public string Data { get; set; } = "";
-        public string ViewData { get; set; } = "";
+        public string Data { get; set; }
+        public string ViewData { get; set; }
+    }
+
+    public class DtoSchedule
+    {
+        public int? Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Schedule { get; set; } = "";
     }
 
     public interface IRepository
     {
-        List<DTOInstance> GetInstancesByTaskId(int taskId);
-        List<DTOInstanceCompact> GetCompactInstancesByTaskId(int taskId);
-        DTOInstance GetInstanceById(int id);
-        List<DTOInstanceCompact> GetAllCompactInstances();
-        void UpdateInstance(DTOInstanceCompact instance, DTOInstanceData data);
-        int CreateInstance(DTOInstanceCompact instance, DTOInstanceData data);
+        List<DtoInstance> GetInstancesByTaskId(int taskId);
+        List<DtoInstanceCompact> GetCompactInstancesByTaskId(int taskId);
+        DtoInstance GetInstanceById(int id);
+        List<DtoInstanceCompact> GetAllCompactInstances();
+        List<DtoSchedule> GetAllSchedules();
+        void UpdateInstance(DtoInstanceCompact instance, DtoInstanceData data);
+        int CreateInstance(DtoInstanceCompact instance, DtoInstanceData data);
         void DeleteInstance(int instanceId);
-        List<DTOTask> GetTasks();
-        void UpdateTask(DTOTask task);
+        List<DtoTask> GetTasks();
+        void UpdateTask(DtoTask task);
         void DeleteTask(int taskId);
-        int CreateTask(DTOTask task);
+        int CreateTask(DtoTask task);
         void CreateBase(string baseConnStr);
     }
 }
