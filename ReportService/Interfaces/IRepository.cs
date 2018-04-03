@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
-using ReportService.Interfaces;
 
 namespace ReportService.Interfaces
 {
@@ -40,14 +38,21 @@ namespace ReportService.Interfaces
         public int TryNumber { get; set; }
     }
 
+    public class DTOInstanceData
+    {
+        public int InstanceId { get; set; }
+        public string Data { get; set; } = "";
+        public string ViewData { get; set; } = "";
+    }
+
     public interface IRepository
     {
         List<DTOInstance> GetInstancesByTaskId(int taskId);
         List<DTOInstanceCompact> GetCompactInstancesByTaskId(int taskId);
         DTOInstance GetInstanceById(int id);
         List<DTOInstanceCompact> GetAllCompactInstances();
-        void UpdateInstance(DTOInstance instance);
-        int CreateInstance(DTOInstance instance);
+        void UpdateInstance(DTOInstanceCompact instance, DTOInstanceData data);
+        int CreateInstance(DTOInstanceCompact instance, DTOInstanceData data);
         void DeleteInstance(int instanceId);
         List<DTOTask> GetTasks();
         void UpdateTask(DTOTask task);

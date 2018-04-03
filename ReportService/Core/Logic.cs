@@ -137,7 +137,7 @@ namespace ReportService.Core
         {
             _repository.DeleteInstance(instanceId);
             UpdateTaskList();
-            _monik.ApplicationInfo($"Удалена задача {instanceId}");
+            _monik.ApplicationInfo($"Удалена запись {instanceId}");
         }
 
         public string GetAllInstanceCompactsByTaskIdJson(int taskId)

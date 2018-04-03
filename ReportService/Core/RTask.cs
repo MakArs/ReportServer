@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Autofac;
+using AutoMapper;
 using Monik.Client;
 using ReportService.Interfaces;
 
@@ -23,8 +24,9 @@ namespace ReportService.Core
         private readonly IPostMaster _postMaster;
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
+        private readonly IMapper _mapper;
 
-        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
+        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik, IMapper mapper,
             int id, string template, string schedule, string query, string sendAddress, int tryCount,
             int timeOut, RTaskType taskType, string connStr)
         {
@@ -55,6 +57,7 @@ namespace ReportService.Core
             TimeOut = timeOut;
             ConnectionString = connStr;
             _monik = monik;
+            _mapper = mapper;
         }
 
         public void Execute(string address = null)
@@ -66,7 +69,9 @@ namespace ReportService.Core
                 State = (int) InstanceState.InProcess
             };
 
-            dtoInstance.Id = _repository.CreateInstance(dtoInstance);
+            dtoInstance.Id = _repository.CreateInstance
+                (_mapper.Map<DTOInstance,DTOInstanceCompact>(dtoInstance),
+                _mapper.Map<DTOInstance, DTOInstanceData>(dtoInstance));
             string[] deliveryAddrs = string.IsNullOrEmpty(address)
                 ? SendAddresses
                 : new string[] {address};
@@ -116,7 +121,8 @@ namespace ReportService.Core
             dtoInstance.TryNumber = i - 1;
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
-            _repository.UpdateInstance(dtoInstance);
+            _repository.UpdateInstance(_mapper.Map<DTOInstance, DTOInstanceCompact>(dtoInstance),
+                _mapper.Map<DTOInstance, DTOInstanceData>(dtoInstance));
         }
     } //class
 }

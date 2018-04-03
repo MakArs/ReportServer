@@ -33,7 +33,6 @@ namespace ReportService.Implementations
         {
             _monik = monik;
         }
-        //todo:send to all addresses instead of each
         public void Send(string report, string[] addresses)
         {
             SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);

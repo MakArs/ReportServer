@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -30,6 +31,14 @@ namespace ReportService
             // No registrations should be performed in here, however you may
             // resolve things that are needed during application startup.
             ILogic log = Container.Resolve<ILogic>();
+            //try
+            //{
+            //    log.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            //}
+            //catch (Exception e)
+            //{
+            //    var c = e.Message;
+            //}
             log.Start();
         }
 
@@ -154,6 +163,9 @@ namespace ReportService
                 .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";", s.SendAddresses)));
             CreateMap<RTask, ApiTaskCompact>()
                 .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";",s.SendAddresses)));
+            CreateMap<DTOInstance, DTOInstanceCompact>();
+            CreateMap<DTOInstance, DTOInstanceData>()
+                .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
         }
     }
 }
