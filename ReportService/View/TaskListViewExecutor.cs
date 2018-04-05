@@ -1,4 +1,6 @@
-﻿using ReportService.Interfaces;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+using ReportService.Interfaces;
 
 namespace ReportService.View
 {
@@ -41,7 +43,7 @@ namespace ReportService.View
         <tr>
             @foreach(var prop in @props)
             {
-             <td> @prop </td>
+             <td> @prop</td>
             }
         </tr>
         }

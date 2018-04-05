@@ -41,7 +41,8 @@ namespace ReportService
             existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
             existingContainer.RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
-            existingContainer.RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
+            existingContainer
+                .RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
             existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer.RegisterSingleton<ILogic, Logic>();
             existingContainer.RegisterImplementation<IRTask, RTask>();
@@ -153,9 +154,11 @@ namespace ReportService
         {
             CreateMap<ApiTask, DtoTask>();
             CreateMap<RTask, ApiTask>()
-                .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";", s.SendAddresses)));
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id));
             CreateMap<RTask, ApiTaskCompact>()
-                .ForMember("SendAddresses", opt => opt.MapFrom(s => string.Join(";",s.SendAddresses)));
+                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
             CreateMap<DtoInstance, DtoInstanceCompact>();
             CreateMap<DtoInstance, DtoInstanceData>()
                 .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));

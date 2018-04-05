@@ -74,7 +74,8 @@ namespace ReportService.Core
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("template", dtoTask.ViewTemplate),
-                        new NamedParameter("schedule", _schedules.FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
+                        new NamedParameter("schedule", _schedules
+                            .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                         new NamedParameter("query", dtoTask.Query),
                         new NamedParameter("sendAddress", _recepientGroups
                             .FirstOrDefault(r => r.Id == dtoTask.RecepientGroupId)),
@@ -163,7 +164,21 @@ namespace ReportService.Core
             IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
             lock (this)
                 tasks = _tasks.ToList();
-            var jsonTasks = JsonConvert.SerializeObject(tasks);
+
+            var tasksView = tasks.Select(t => new
+                {
+                    t.Id,
+                    SendAddresses = t.SendAddresses?.Addresses,
+                    t.ViewTemplate,
+                    Schedule = t.Schedule?.Name,
+                    t.ConnectionString,
+                    t.Query,
+                    t.TryCount,
+                    t.TimeOut,
+                    t.Type
+                })
+                .ToList();
+            var jsonTasks = JsonConvert.SerializeObject(tasksView);
             return tableView.Execute("", jsonTasks);
         }
 

@@ -42,10 +42,11 @@ namespace ReportService.Nancy
                 try
                 {
                     var response = (Response) logic.GetAllTaskCompacts();
+
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
-                catch(Exception)
+                catch 
                 {
                     return HttpStatusCode.InternalServerError;
                 }
