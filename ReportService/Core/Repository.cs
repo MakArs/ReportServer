@@ -39,9 +39,16 @@ namespace ReportService.Core
 
         public List<DtoSchedule> GetAllSchedules()
         {
-                return SimpleCommand.ExecuteQuery<DtoSchedule>(_connStr,
-                        "select * from Schedule")
-                    .ToList();
+            return SimpleCommand.ExecuteQuery<DtoSchedule>(_connStr,
+                    "select * from Schedule")
+                .ToList();
+        }
+
+        public List<DtoRecepientGroup> GetAllRecepientGroups()
+        {
+            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(_connStr,
+                    "select * from RecepientGroup")
+                .ToList();
         }
 
         public List<DtoInstance> GetInstancesByTaskId(int taskId)
@@ -62,7 +69,7 @@ namespace ReportService.Core
         {
             var id = MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
             data.InstanceId = (int) id;
-                MappedCommand.Insert(_connStr, "InstanceData", data);
+            MappedCommand.Insert(_connStr, "InstanceData", data);
             return (int) id;
         }
 
@@ -95,68 +102,78 @@ namespace ReportService.Core
 
         public void CreateBase(string baseConnStr)
         {
-            // TODO: check db exists
+            // TODO: check db exists ~find way to cut redundant code 
+
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
-                 IF (not EXISTS (SELECT * 
-                 FROM INFORMATION_SCHEMA.TABLES 
-                 WHERE TABLE_NAME = 'Schedule'))
-                create table Schedule
-                (Id int primary key Identity,
-                Name nvarchar(127) not null,
-                Schedule nvarchar(255) not null
+                IF OBJECT_ID('RecepientGroup') IS NULL
+                CREATE TABLE RecepientGroup
+                (Id INT PRIMARY KEY IDENTITY,
+                Name NVARCHAR(127) NOT NULL,
+                Addresses NVARCHAR(4000) NOT NULL
+                ); ");
+
+            var existScheduleTable = Convert.ToInt64(SimpleCommand
+                .ExecuteQueryFirstColumn<object>(baseConnStr, $@"
+               SELECT ISNULL(OBJECT_ID('Schedule'),0)")
+                .First());
+            if (existScheduleTable == 0)
+            {
+                var schedules = new[]
+                {
+                    new DtoSchedule() {Name = "workDaysEvening", Schedule = "motuwethfr2230"},
+                    new DtoSchedule() {Name = "sundayEvening", Schedule = "su2230"}
+                };
+                SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                CREATE TABLE Schedule
+                (Id INT PRIMARY KEY IDENTITY,
+                Name NVARCHAR(127) NOT NULL,
+                Schedule NVARCHAR(255) NOT NULL
                 )");
-            // TODO: insert default schedules (english)
+                schedules.WriteToServer(baseConnStr, "Schedule");
+            }
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
-                 IF (not EXISTS (SELECT * 
-                 FROM INFORMATION_SCHEMA.TABLES 
-                 WHERE TABLE_NAME = 'Task'))
+                IF OBJECT_ID('Task') IS NULL
                 CREATE TABLE Task
-                (Id int primary key Identity,
-                ScheduleId int null,
-                ConnectionString nvarchar(255) null,
-                ViewTemplate nvarchar(MAX) not null,
-                Query nvarchar(MAX) not null,
-                SendAddresses varchar(4000) not null,
-                TryCount TINYINT not null,
-                QueryTimeOut TINYINT not null,
-                TaskType TINYINT not null
-
+                (Id INT PRIMARY KEY IDENTITY,
+                ScheduleId INT NULL,
+                ConnectionString NVARCHAR(255) NULL,
+                ViewTemplate NVARCHAR(MAX) NOT NULL,
+                Query NVARCHAR(MAX) NOT NULL,
+                RecepientGroupId INT NULL,
+                TryCount TINYINT NOT NULL,
+                QueryTimeOut TINYINT NOT NULL,
+                TaskType TINYINT NOT NULL
+                CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) REFERENCES RecepientGroup(Id),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) REFERENCES Schedule(Id)
                 )");
-            
+
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
-                 IF (not EXISTS (SELECT * 
-                 FROM INFORMATION_SCHEMA.TABLES 
-                 WHERE TABLE_NAME = 'Instance'))
-                create table Instance
+                IF OBJECT_ID('Instance') IS NULL
+                CREATE TABLE Instance
                 (
-                Id int primary key Identity,
-                TaskID int not null,
-                StartTime datetime not null,
-                Duration int not null,
-                State int not null,
-                TryNumber int not null,
-                constraint FK_Instance_Task FOREIGN KEY(TaskID)
+                Id INT PRIMARY KEY IDENTITY,
+                TaskID INT NOT NULL,
+                StartTime DATETIME NOT NULL,
+                Duration INT NOT NULL,
+                State INT NOT NULL,
+                TryNumber INT NOT NULL,
+                CONSTRAINT FK_Instance_Task FOREIGN KEY(TaskID)
                 REFERENCES Task(Id)
                 )");
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
-                 IF (not EXISTS (SELECT * 
-                 FROM INFORMATION_SCHEMA.TABLES 
-                 WHERE TABLE_NAME = 'InstanceData'))
+                IF object_id('InstanceData') IS NULL
                 CREATE TABLE InstanceData(
-	            InstanceId int NOT NULL,
-	            Data nvarchar(MAX) not null,
-	            ViewData nvarchar(MAX) not null,
-                constraint FK_InstanceData_Data FOREIGN KEY(InstanceId)
+	            InstanceId INT NOT NULL,
+	            Data NVARCHAR(MAX) NOT NULL,
+	            ViewData NVARCHAR(MAX) NOT NULL,
+                CONSTRAINT FK_InstanceData_Data FOREIGN KEY(InstanceId)
                 REFERENCES Instance(Id)
                 )");
 
             // TODO: refactoring
             // Task table refac
-            // 1. Schedule to external table: Id, Name, Value
-            // 2. SendAddresses to ex table RecepientGroup: Id, Name, Emails
             // 3. ConnStr, Templ, Query, TaskType => Report table
             // 4. ConnStr => DataSource table
         }

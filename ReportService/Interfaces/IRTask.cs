@@ -20,6 +20,18 @@
         public string Schedule { get; set; }
     }
 
+    public class RRecepientGroup
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Addresses { get; set; }
+
+        public string[] GetAddresses()
+        {
+            return Addresses.Split(';');
+        }
+    }
+
     public interface IRTask
     {
         void Execute(string address = null);

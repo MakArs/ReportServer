@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.Remoting.Messaging;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -10,7 +11,7 @@ namespace ReportService.Core
     public class RTask : IRTask
     {
         public int Id { get; }
-        public string[] SendAddresses { get; }
+        public RRecepientGroup SendAddresses { get; }
         public string ViewTemplate { get; }
         public RSchedule Schedule { get; }
         public string ConnectionString { get; }
@@ -26,8 +27,9 @@ namespace ReportService.Core
         private readonly IClientControl _monik;
         private readonly IMapper _mapper;
 
-        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik, IMapper mapper,
-            int id, string template, RSchedule schedule, string query, string sendAddress, int tryCount,
+        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
+            IMapper mapper,
+            int id, string template, RSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
             int timeOut, RTaskType taskType, string connStr)
         {
             Type = taskType;
@@ -50,7 +52,7 @@ namespace ReportService.Core
             Id = id;
             Query = query;
             ViewTemplate = template;
-            SendAddresses = sendAddress.Split(';');
+            SendAddresses = sendAddress;
             Schedule = schedule;
             _repository = repository;
             TryCount = tryCount;
@@ -70,11 +72,26 @@ namespace ReportService.Core
             };
 
             dtoInstance.Id = _repository.CreateInstance
-                (_mapper.Map<DtoInstance,DtoInstanceCompact>(dtoInstance),
+            (_mapper.Map<DtoInstance, DtoInstanceCompact>(dtoInstance),
                 _mapper.Map<DtoInstance, DtoInstanceData>(dtoInstance));
-            string[] deliveryAddrs = string.IsNullOrEmpty(address)
-                ? SendAddresses
-                : new string[] {address};
+
+            string[] deliveryAddrs;
+            if (!string.IsNullOrEmpty(address))
+                deliveryAddrs = new string[] {address};
+            else
+            {
+                try
+                {
+                    var addrArray = SendAddresses.GetAddresses();
+                    deliveryAddrs = addrArray;
+                }
+                catch
+                {
+                    _monik.ApplicationWarning($"Нет списка получателей для отчёта {Id}");
+                    return;
+                }
+            }
+
             Stopwatch duration = new Stopwatch();
             duration.Start();
             int i = 1;
@@ -102,17 +119,17 @@ namespace ReportService.Core
             }
 
             if (dataObtained)
+            {
+                try
                 {
-                    try
-                    {
-                        _postMaster.Send(htmlReport, deliveryAddrs);
-                        _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
-                    }
-                    catch (Exception e)
-                    {
-                        _monik.ApplicationError(e.Message);
-                    }
+                    _postMaster.Send(htmlReport, deliveryAddrs);
+                    _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }
+                catch (Exception e)
+                {
+                    _monik.ApplicationError(e.Message);
+                }
+            }
 
             duration.Stop();
 

@@ -22,6 +22,7 @@ namespace ReportService.Core
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
         private readonly List<RTask> _tasks;
         private readonly List<RSchedule> _schedules;
+        private readonly List<RRecepientGroup> _recepientGroups;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper)
         {
@@ -30,6 +31,7 @@ namespace ReportService.Core
             _repository = repository;
             _tasks = new List<RTask>();
             _schedules = new List<RSchedule>();
+            _recepientGroups = new List<RRecepientGroup>();
             _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
         }
@@ -47,9 +49,21 @@ namespace ReportService.Core
             }
         }
 
+        private void UpdateRecepientGroupsList()
+        {
+            var recepList = _repository.GetAllRecepientGroups();
+            lock (this)
+            {
+                _recepientGroups.Clear();
+                foreach (var sched in recepList)
+                {
+                    _recepientGroups.Add(_mapper.Map<DtoRecepientGroup, RRecepientGroup>(sched));
+                }
+            }
+        }
+
         private void UpdateTaskList()
         {
-            UpdateScheduleList();
             var taskLst = _repository.GetTasks();
             lock (this)
             {
@@ -60,9 +74,10 @@ namespace ReportService.Core
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("template", dtoTask.ViewTemplate),
-                        new NamedParameter("schedule", _schedules.FirstOrDefault(s=>s.Id== dtoTask.ScheduleId)),
+                        new NamedParameter("schedule", _schedules.FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                         new NamedParameter("query", dtoTask.Query),
-                        new NamedParameter("sendAddress", dtoTask.SendAddresses),
+                        new NamedParameter("sendAddress", _recepientGroups
+                            .FirstOrDefault(r => r.Id == dtoTask.RecepientGroupId)),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", dtoTask.QueryTimeOut),
                         new NamedParameter("taskType", (RTaskType) dtoTask.TaskType),
@@ -119,11 +134,20 @@ namespace ReportService.Core
 
         public void CreateBase(string connStr)
         {
-            _repository.CreateBase(connStr);
+            try
+            {
+                _repository.CreateBase(connStr);
+            }
+            catch (Exception e)
+            {
+                _monik.ApplicationError(e.Message);
+            }
         }
 
         public void Start()
         {
+            UpdateScheduleList();
+            UpdateRecepientGroupsList();
             UpdateTaskList();
             _checkScheduleAndExecuteScheduler.OnStart();
         }
