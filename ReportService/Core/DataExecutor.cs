@@ -18,7 +18,7 @@ namespace ReportService.Core
 
             SqlScope.UsingConnection(task.ConnectionString, scope =>
             {
-                using (var reader = scope.CreateSimple(new QueryOptions(task.TimeOut), $"{task.Query}").ExecuteReader())
+                using (var reader = scope.CreateSimple(new QueryOptions(task.QueryTimeOut), $"{task.Query}").ExecuteReader())
                 {
                     while (reader.Read())
                     {

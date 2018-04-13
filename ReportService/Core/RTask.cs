@@ -17,7 +17,7 @@ namespace ReportService.Core
         public string ConnectionString { get; }
         public string Query { get; }
         public int TryCount { get; }
-        public int TimeOut { get; }
+        public int QueryTimeOut { get; }
         public RTaskType Type { get; }
 
         private readonly IDataExecutor _dataEx;
@@ -56,7 +56,7 @@ namespace ReportService.Core
             Schedule = schedule;
             _repository = repository;
             TryCount = tryCount;
-            TimeOut = timeOut;
+            QueryTimeOut = timeOut;
             ConnectionString = connStr;
             _monik = monik;
             _mapper = mapper;
@@ -140,6 +140,32 @@ namespace ReportService.Core
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
             _repository.UpdateInstance(_mapper.Map<DtoInstance, DtoInstanceCompact>(dtoInstance),
                 _mapper.Map<DtoInstance, DtoInstanceData>(dtoInstance));
+        }
+
+        public string GetCurrentView()
+        {
+            int i = 1;
+            bool dataObtained = false;
+            string htmlReport = "";
+
+            while (!dataObtained && i <= TryCount)
+            {
+                try
+                {
+                    var jsonReport = _dataEx.Execute(this);
+                    htmlReport = _viewEx.Execute(ViewTemplate, jsonReport);
+                    dataObtained = true;
+                    i++;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    htmlReport = ex.Message;
+                }
+
+                i++;
+            }
+            return htmlReport;
         }
     } //class
 }

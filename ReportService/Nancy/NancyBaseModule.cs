@@ -41,6 +41,28 @@ namespace ReportService.Nancy
         public string Addresses { get; set; }
     }
 
+    public class ApiInstance
+    {
+        public int Id { get; set; }
+        public string Data { get; set; } = "";
+        public string ViewData { get; set; } = "";
+        public int TaskId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+        public int TryNumber { get; set; }
+    }
+
+    public class ApiInstanceCompact
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+        public int TryNumber { get; set; }
+    }
+
     public class NancyBaseModule : NancyModule
     {
         public NancyBaseModule()

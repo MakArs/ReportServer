@@ -146,7 +146,7 @@ namespace ReportService
                 .RegisterType<TImplementation>()
                 .Named<TInterface>(name));
         }
-    }
+    } //extensions
 
     public class MapperProfile : Profile
     {
@@ -155,15 +155,19 @@ namespace ReportService
             CreateMap<ApiTask, DtoTask>();
             CreateMap<RTask, ApiTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id));
+                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+                .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
             CreateMap<RTask, ApiTaskCompact>()
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+                .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
             CreateMap<DtoInstance, DtoInstanceCompact>();
             CreateMap<DtoInstance, DtoInstanceData>()
                 .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
             CreateMap<DtoSchedule, RSchedule>();
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
+            CreateMap<DtoInstance, ApiInstance>();
+            CreateMap<DtoInstanceCompact, ApiInstanceCompact>();
         }
     }
 }

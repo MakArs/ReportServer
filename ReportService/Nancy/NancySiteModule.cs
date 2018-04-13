@@ -45,9 +45,7 @@ namespace ReportService.Nancy
                 try
                 {
                     string sentReps = logic.ForceExecute(id, mail);
-                    var response = sentReps != ""
-                        ? (Response) $"Reports {sentReps} sent!"
-                        : "No reports with this id found...";
+                    var response = (Response)sentReps;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

@@ -35,5 +35,6 @@
     public interface IRTask
     {
         void Execute(string address = null);
+        string GetCurrentView();
     }
 }

@@ -44,7 +44,7 @@ namespace ReportService.Core
                 _schedules.Clear();
                 foreach (var sched in schedList)
                 {
-                    _schedules.Add(_mapper.Map<DtoSchedule, RSchedule>(sched));
+                    _schedules.Add(_mapper.Map<RSchedule>(sched));
                 }
             }
         }
@@ -57,7 +57,7 @@ namespace ReportService.Core
                 _recepientGroups.Clear();
                 foreach (var sched in recepList)
                 {
-                    _recepientGroups.Add(_mapper.Map<DtoRecepientGroup, RRecepientGroup>(sched));
+                    _recepientGroups.Add(_mapper.Map<RRecepientGroup>(sched));
                 }
             }
         }
@@ -92,21 +92,16 @@ namespace ReportService.Core
         public string ForceExecute(int taskId, string mail)
         {
             List<RTask> tasks;
-            string executed = "";
             lock (this)
                 tasks = _tasks.ToList();
 
-            foreach (var task in tasks)
-                if (task.Id == taskId)
-                {
-                    _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
+            var task = tasks.FirstOrDefault(t => t.Id == taskId);
 
-                    executed += $"#{task.Id} ";
-                    Task.Factory.StartNew(() => task.Execute(mail));
-                    return executed;
-                }
+            if (task == null) return "No tasks with such Id found..";
+            _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
 
-            return executed;
+            Task.Factory.StartNew(() => task.Execute(mail));
+            return $"Report {taskId} sent!";
         }
 
         private void CheckScheduleAndExecute()
@@ -174,7 +169,7 @@ namespace ReportService.Core
                     t.ConnectionString,
                     t.Query,
                     t.TryCount,
-                    t.TimeOut,
+                    TimeOut = t.QueryTimeOut,
                     t.Type
                 })
                 .ToList();
@@ -200,38 +195,66 @@ namespace ReportService.Core
         public string GetAllInstanceCompactsByTaskIdJson(int taskId)
         {
             List<DtoInstanceCompact> instances = _repository.GetCompactInstancesByTaskId(taskId);
-            return JsonConvert.SerializeObject(instances);
+            return JsonConvert.SerializeObject(instances
+                .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
         }
 
         public string GetAllInstancesCompactJson()
         {
-            return JsonConvert.SerializeObject(_repository.GetAllCompactInstances());
+            return JsonConvert.SerializeObject(_repository.GetAllCompactInstances()
+                .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
         }
 
         public string GetInstanceByIdJson(int id)
         {
-            return JsonConvert.SerializeObject(_repository.GetInstanceById(id));
+            return JsonConvert.SerializeObject(_mapper.Map<ApiInstance>(_repository.GetInstanceById(id)));
         }
 
-        public string GetAllTaskCompacts()
+        public string GetAllTaskCompactsJson()
         {
             List<RTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
-            return JsonConvert.SerializeObject(tasks.Select(t => _mapper.Map<RTask, ApiTaskCompact>(t)));
+            var tr= JsonConvert.SerializeObject(tasks
+                .Select(t => _mapper.Map<ApiTaskCompact>(t)));
+            return tr;
         }
 
-        public string GetTaskById(int id)
+        public string GetTaskByIdJson(int id)
         {
             List<RTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
-            return JsonConvert.SerializeObject(_mapper.Map<RTask, ApiTask>(tasks.First(t => t.Id == id)));
+            return JsonConvert.SerializeObject(_mapper.Map<ApiTask>(tasks.First(t => t.Id == id)));
+        }
+
+        public string GetAllSchedulesJson()
+        {
+            return JsonConvert.SerializeObject(_repository.GetAllSchedules()
+                .Select(s=> _mapper.Map<ApiSchedule>(s))); 
+        }
+
+        public string GetAllRecepientGroupsJson()
+        {
+            return JsonConvert.SerializeObject(_repository.GetAllRecepientGroups()
+                .Select(s => _mapper.Map<ApiRecepientGroup>(s)));
+        }
+
+        public string GetCurrentViewByTaskId(int taskId)
+        {
+            List<RTask> tasks;
+            lock (this)
+                tasks = _tasks.ToList();
+
+            var task = tasks.FirstOrDefault(t => t.Id == taskId);
+
+            if (task == null) return "No tasks with such Id found..";
+            return task.GetCurrentView();
         }
 
         public void UpdateTask(ApiTask task)
         {
-            var dtoTask = _mapper.Map<ApiTask, DtoTask>(task);
+            var dtoTask = _mapper.Map<DtoTask>(task);
             _repository.UpdateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Обновлена задача {task.Id}");
@@ -246,7 +269,7 @@ namespace ReportService.Core
 
         public int CreateTask(ApiTask task)
         {
-            var dtoTask = _mapper.Map<ApiTask, DtoTask>(task);
+            var dtoTask = _mapper.Map<DtoTask>(task);
             var newTaskId = _repository.CreateTask(dtoTask);
             UpdateTaskList();
             _monik.ApplicationInfo($"Создана задача {newTaskId}");

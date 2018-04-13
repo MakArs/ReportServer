@@ -41,12 +41,12 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllTaskCompacts();
+                    var response = (Response) logic.GetAllTaskCompactsJson();
 
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
-                catch 
+                catch
                 {
                     return HttpStatusCode.InternalServerError;
                 }
@@ -56,7 +56,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetTaskById(parameters.id);
+                    var response = (Response) logic.GetTaskByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -85,7 +85,7 @@ namespace ReportService.Nancy
                 {
                     var newTask = this.Bind<ApiTask>();
                     var id = logic.CreateTask(newTask);
-                    var response = (Response) $"created task {id}";
+                    var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -149,6 +149,20 @@ namespace ReportService.Nancy
                 }
             };
 
+            Get["/reports/{reportid:int}/currentviews"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetCurrentViewByTaskId(parameters.reportid);
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
             // TODO: filter - top, paginations
             Get["/instances"] = parameters =>
             {
@@ -177,6 +191,52 @@ namespace ReportService.Nancy
                     return HttpStatusCode.InternalServerError;
                 }
             };
+        }
+    } //class
+
+    public class ScheduleModule : NancyBaseModule
+    {
+        public ScheduleModule(ILogic logic)
+        {
+            ModulePath = "/api/v1";
+
+            Get["/schedules"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response) logic.GetAllSchedulesJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+        }
+    } //class
+
+    public class RecepientGroupsModule : NancyBaseModule
+    {
+        public RecepientGroupsModule(ILogic logic)
+        {
+            ModulePath = "/api/v1";
+
+            Get["/recepientgroups"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllRecepientGroupsJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
         }
     } //class
 }

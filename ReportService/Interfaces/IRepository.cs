@@ -67,13 +67,14 @@ namespace ReportService.Interfaces
         List<DtoInstanceCompact> GetAllCompactInstances();
         List<DtoSchedule> GetAllSchedules();
         List<DtoRecepientGroup> GetAllRecepientGroups();
-        void UpdateInstance(DtoInstanceCompact instance, DtoInstanceData data);
-        int CreateInstance(DtoInstanceCompact instance, DtoInstanceData data);
-        void DeleteInstance(int instanceId);
         List<DtoTask> GetTasks();
-        void UpdateTask(DtoTask task);
-        void DeleteTask(int taskId);
-        int CreateTask(DtoTask task);
+
         void CreateBase(string baseConnStr);
+        int CreateTask(DtoTask task);
+        int CreateInstance(DtoInstanceCompact instance, DtoInstanceData data);
+        void UpdateTask(DtoTask task);
+        void UpdateInstance(DtoInstanceCompact instance, DtoInstanceData data);
+        void DeleteTask(int taskId);
+        void DeleteInstance(int instanceId);
     }
 }
