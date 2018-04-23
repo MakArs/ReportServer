@@ -152,7 +152,8 @@ namespace ReportService
     {
         public MapperProfile()
         {
-            CreateMap<ApiTask, DtoTask>();
+            CreateMap<ApiTask, DtoTask>()
+                .ForMember("ConnectionString", opt=>opt.MapFrom(s=>s.ConnectionString == ""?null:s.ConnectionString));
             CreateMap<RTask, ApiTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))

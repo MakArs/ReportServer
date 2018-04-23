@@ -91,6 +91,8 @@ namespace ReportService.Core
 
         public void DeleteTask(int taskId)
         {
+            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid in (select id from instance where TaskID={taskId})");
+            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where TaskID={taskId}");
             SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={taskId}");
         }
 
