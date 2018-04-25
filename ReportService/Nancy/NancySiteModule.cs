@@ -28,7 +28,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) $"{logic.GetInstanceList_HtmlPage(parameters.id)}";
+                    var response = (Response) $"{logic.GetFullInstanceList_HtmlPage(parameters.id)}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

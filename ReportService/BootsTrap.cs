@@ -32,6 +32,7 @@ namespace ReportService
             // resolve things that are needed during application startup.
             ILogic log = Container.Resolve<ILogic>();
             log.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            var t = log.GetFullInstanceByIdJson(17);
             log.Start();
         }
 
@@ -152,23 +153,26 @@ namespace ReportService
     {
         public MapperProfile()
         {
-            CreateMap<ApiTask, DtoTask>()
-                .ForMember("ConnectionString", opt=>opt.MapFrom(s=>s.ConnectionString == ""?null:s.ConnectionString));
-            CreateMap<RTask, ApiTask>()
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-                .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
-            CreateMap<RTask, ApiTaskCompact>()
-                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
-            CreateMap<DtoInstance, DtoInstanceCompact>();
-            CreateMap<DtoInstance, DtoInstanceData>()
-                .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
             CreateMap<DtoSchedule, RSchedule>();
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
-            CreateMap<DtoInstance, ApiInstance>();
-            CreateMap<DtoInstanceCompact, ApiInstanceCompact>();
+
+            //CreateMap<ApiTask, DtoTask>()
+            //   .ForMember("ConnectionString", opt=>opt.MapFrom(s=>s.ConnectionString == ""?null:s.ConnectionString));
+            //CreateMap<RTask, ApiTask>()
+            //    .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+            //    .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+            //    .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
+            //CreateMap<RTask, ApiTaskCompact>()
+            //    .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+            //    .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+            //    .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
+
+            CreateMap<DtoReport, RReport>();
+            CreateMap<DtoFullInstance, DtoInstance>();
+            CreateMap<DtoFullInstance, DtoInstanceData>()
+                .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
+            CreateMap<DtoFullInstance, ApiInstance>();
+            CreateMap<DtoInstance, ApiInstanceCompact>();
         }
     }
 }

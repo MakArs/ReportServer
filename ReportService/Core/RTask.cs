@@ -18,7 +18,7 @@ namespace ReportService.Core
         public string Query { get; }
         public int TryCount { get; }
         public int QueryTimeOut { get; }
-        public RTaskType Type { get; }
+        public RReportType Type { get; }
 
         private readonly IDataExecutor _dataEx;
         private readonly IViewExecutor _viewEx;
@@ -30,17 +30,17 @@ namespace ReportService.Core
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
             IMapper mapper,
             int id, string template, RSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
-            int timeOut, RTaskType taskType, string connStr)
+            int timeOut, RReportType reportType, string connStr)
         {
-            Type = taskType;
+            Type = reportType;
 
             switch (Type)
             {
-                case RTaskType.Common:
+                case RReportType.Common:
                     _dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
                     _viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
                     break;
-                case RTaskType.Custom:
+                case RReportType.Custom:
                     _dataEx = autofac.ResolveNamed<IDataExecutor>(query);
                     _viewEx = autofac.ResolveNamed<IViewExecutor>(template);
                     break;
@@ -64,16 +64,19 @@ namespace ReportService.Core
 
         public void Execute(string address = null)
         {
-            var dtoInstance = new DtoInstance()
+            var dtoInstance = new DtoFullInstance()
             {
                 StartTime = DateTime.Now,
                 TaskId = Id,
                 State = (int) InstanceState.InProcess
             };
 
-            dtoInstance.Id = _repository.CreateInstance
-            (_mapper.Map<DtoInstance, DtoInstanceCompact>(dtoInstance),
-                _mapper.Map<DtoInstance, DtoInstanceData>(dtoInstance));
+            dtoInstance.Id =
+                _repository.CreateEntity(_mapper.Map<DtoInstance>(dtoInstance));
+
+            _repository.CreateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
+            //(_mapper.Map<DtoFullInstance, DtoInstance>(dtoInstance),
+            //    _mapper.Map<DtoFullInstance, DtoInstanceData>(dtoInstance));
 
             string[] deliveryAddrs;
             if (!string.IsNullOrEmpty(address))
@@ -138,8 +141,9 @@ namespace ReportService.Core
             dtoInstance.TryNumber = i - 1;
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
-            _repository.UpdateInstance(_mapper.Map<DtoInstance, DtoInstanceCompact>(dtoInstance),
-                _mapper.Map<DtoInstance, DtoInstanceData>(dtoInstance));
+            _repository.UpdateEntity(_mapper.Map<DtoInstance>(dtoInstance));
+            _repository.UpdateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
+            
         }
 
         public string GetCurrentView()

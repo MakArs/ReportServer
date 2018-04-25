@@ -13,27 +13,12 @@ namespace ReportService.Core
         public Repository(string connStr)
         {
             _connStr = connStr;
-        }
+        } //ctor
 
-        public List<DtoInstanceCompact> GetCompactInstancesByTaskId(int taskId)
+        public List<DtoRecepientGroup> GetAllRecepientGroups()
         {
-            return SimpleCommand.ExecuteQuery<DtoInstanceCompact>(_connStr,
-                    $"select * from Instance where taskid={taskId}")
-                .ToList();
-        }
-
-        public DtoInstance GetInstanceById(int id)
-        {
-            return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
-                    $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
-                from Instance i join instancedata idat on id=instanceid where id={id}")
-                .ToList().First();
-        }
-
-        public List<DtoInstanceCompact> GetAllCompactInstances()
-        {
-            return SimpleCommand.ExecuteQuery<DtoInstanceCompact>(_connStr,
-                    "select * from Instance")
+            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(_connStr,
+                    "select * from RecepientGroup")
                 .ToList();
         }
 
@@ -44,34 +29,117 @@ namespace ReportService.Core
                 .ToList();
         }
 
-        public List<DtoRecepientGroup> GetAllRecepientGroups()
+        public List<DtoReport> GetAllReports()
         {
-            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(_connStr,
-                    "select * from RecepientGroup")
+            return SimpleCommand.ExecuteQuery<DtoReport>(_connStr,
+                    "select * from Report")
+                .ToList();
+        }
+
+        public List<DtoTask> GetAllTasks()
+        {
+            return SimpleCommand.ExecuteQuery<DtoTask>(_connStr, "select * from task").ToList();
+        }
+
+        public List<DtoInstance> GetAllInstances()
+        {
+            return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
+                    "select * from Instance")
                 .ToList();
         }
 
         public List<DtoInstance> GetInstancesByTaskId(int taskId)
         {
             return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
-                    $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
-                from Instance i join instancedata idat on id=instanceid where taskid={taskId}")
+                    $"select * from Instance where taskid={taskId}")
                 .ToList();
         }
 
-        public void UpdateInstance(DtoInstanceCompact instance, DtoInstanceData data)
+        public List<DtoFullInstance> GetFullInstancesByTaskId(int taskId)
         {
-            MappedCommand.Update(_connStr, "Instance", instance, "Id");
-            MappedCommand.Update(_connStr, "InstanceData", data, "InstanceId");
+            return SimpleCommand.ExecuteQuery<DtoFullInstance>(_connStr,
+                    $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
+                from Instance i join instancedata idat on id=instanceid where taskid={taskId} order by id")
+                .ToList();
         }
 
-        public int CreateInstance(DtoInstanceCompact instance, DtoInstanceData data)
+        public DtoFullInstance GetFullInstanceById(int id)
         {
-            var id = MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
-            data.InstanceId = (int) id;
-            MappedCommand.Insert(_connStr, "InstanceData", data);
-            return (int) id;
+            return SimpleCommand.ExecuteQuery<DtoFullInstance>(_connStr,
+                    $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
+                from Instance i join instancedata idat on id=instanceid where id={id}")
+                .ToList().First();
         }
+
+        public int CreateEntity<T>(T entity)
+        {
+            switch (entity)
+            {
+                case DtoRecepientGroup recepgroup:
+                    return (int) MappedCommand.InsertAndGetId(_connStr, "RecepientGroup", recepgroup, "Id");
+
+                case DtoSchedule sched:
+                    return (int) MappedCommand.InsertAndGetId(_connStr, "Schedule", sched, "Id");
+
+                case DtoReport rep:
+                    return (int) MappedCommand.InsertAndGetId(_connStr, "Report", rep, "Id");
+
+                case DtoTask task:
+                    return (int) MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
+
+                case DtoInstance instance:
+                    return (int) MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
+
+                case DtoInstanceData instanceData:
+                {
+                    MappedCommand.Insert(_connStr, "InstanceData", instanceData);
+                    return 0;
+                }
+                default:
+                    return 0;
+            }
+        }
+
+        public void UpdateEntity<T>(T entity)
+        {
+            switch (entity)
+            {
+                case DtoRecepientGroup recepgroup:
+                    MappedCommand.Update(_connStr, "RecepientGroup", recepgroup, "Id");
+                    break;
+
+                case DtoSchedule sched:
+                    MappedCommand.Update(_connStr, "RecepientGroup", sched, "Id");
+                    break;
+
+                case DtoReport rep:
+                    MappedCommand.Update(_connStr, "Report", rep, "Id");
+                    break;
+
+                case DtoTask task:
+                    MappedCommand.Update(_connStr, "Task", task, "Id");
+                    break;
+
+                case DtoInstance instance:
+                    MappedCommand.Update(_connStr, "Instance", instance, "Id");
+                    break;
+
+                case DtoInstanceData instanceData:
+                    MappedCommand.Update(_connStr, "InstanceData", instanceData, "InstanceId");
+                    break;
+            }
+        }
+        
+        public void DeleteRecepientGroup(int groupId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteSchedule(int scheduleId)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public void DeleteInstance(int instanceId)
         {
@@ -79,15 +147,6 @@ namespace ReportService.Core
             SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where id={instanceId}");
         }
 
-        public List<DtoTask> GetTasks()
-        {
-            return SimpleCommand.ExecuteQuery<DtoTask>(_connStr, "select * from task").ToList();
-        }
-
-        public void UpdateTask(DtoTask task)
-        {
-            MappedCommand.Update(_connStr, "Task", task, "Id");
-        }
 
         public void DeleteTask(int taskId)
         {
@@ -96,16 +155,12 @@ namespace ReportService.Core
             SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={taskId}");
         }
 
-        public int CreateTask(DtoTask task)
-        {
-            var id = MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
-            return (int) id;
-        }
-
         public void CreateBase(string baseConnStr)
         {
             // TODO: check db exists ~find way to cut redundant code 
-
+            // TODO: refactoring
+            // Task table refac (new base-creating uses)
+            // 4. ConnStr => DataSource table
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
                 IF OBJECT_ID('RecepientGroup') IS NULL
                 CREATE TABLE RecepientGroup
@@ -135,19 +190,31 @@ namespace ReportService.Core
             }
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
-                IF OBJECT_ID('Task') IS NULL
-                CREATE TABLE Task
+                IF OBJECT_ID('Report') IS NULL
+                CREATE TABLE Report
                 (Id INT PRIMARY KEY IDENTITY,
-                ScheduleId INT NULL,
+                Name NVARCHAR(127) NULL,
                 ConnectionString NVARCHAR(255) NULL,
                 ViewTemplate NVARCHAR(MAX) NOT NULL,
                 Query NVARCHAR(MAX) NOT NULL,
+                ReportType TINYINT NOT NULL,
+                QueryTimeOut SMALLINT NOT NULL
+                ); ");
+
+            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                IF OBJECT_ID('Task') IS NULL
+                CREATE TABLE Task
+                (Id INT PRIMARY KEY IDENTITY,
+                ReportId INT NOT NULL,
+                ScheduleId INT NULL,
                 RecepientGroupId INT NULL,
                 TryCount TINYINT NOT NULL,
-                QueryTimeOut TINYINT NOT NULL,
-                TaskType TINYINT NOT NULL
-                CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) REFERENCES RecepientGroup(Id),
-                CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) REFERENCES Schedule(Id)
+                CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) 
+                REFERENCES RecepientGroup(Id),
+                CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
+                REFERENCES Schedule(Id),
+                CONSTRAINT FK_Task_Report FOREIGN KEY(ReportId) 
+                REFERENCES Report(Id)
                 )");
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
@@ -168,16 +235,11 @@ namespace ReportService.Core
                 IF object_id('InstanceData') IS NULL
                 CREATE TABLE InstanceData(
 	            InstanceId INT NOT NULL,
-	            Data NVARCHAR(MAX) NOT NULL,
-	            ViewData NVARCHAR(MAX) NOT NULL,
+	            Data NVARCHAR(MAX) NULL,
+	            ViewData NVARCHAR(MAX) NULL,
                 CONSTRAINT FK_InstanceData_Data FOREIGN KEY(InstanceId)
                 REFERENCES Instance(Id)
                 )");
-
-            // TODO: refactoring
-            // Task table refac
-            // 3. ConnStr, Templ, Query, TaskType => Report table
-            // 4. ConnStr => DataSource table
         }
     } //class
 }

@@ -139,7 +139,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllInstanceCompactsByTaskIdJson(parameters.reportid);
+                    var response = (Response) logic.GetAllInstancesByTaskIdJson(parameters.reportid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -168,7 +168,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllInstancesCompactJson();
+                    var response = (Response) logic.GetAllInstancesJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -182,7 +182,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetInstanceByIdJson(parameters.id);
+                    var response = (Response) logic.GetFullInstanceByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
