@@ -1,18 +1,13 @@
 ﻿using System.Collections.Generic;
 using Gerakul.FastSql;
 using Newtonsoft.Json;
-using ReportService.Implementations;
 using ReportService.Interfaces;
 
 namespace ReportService.Core
 {
     public class DataExecutor : IDataExecutor
     {
-        public DataExecutor()
-        {
-        }
-
-        public string Execute(RTask task)
+       public string Execute(RTask task)
         {
             var queryResult = new List<Dictionary<string, object>>();
 

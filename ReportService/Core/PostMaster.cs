@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Net.Mail;
-using ReportService.Interfaces;
-using System.Configuration;
 using Monik.Client;
+using ReportService.Interfaces;
 
-namespace ReportService.Implementations
+namespace ReportService.Core
 {
     internal class PostMasterTest : IPostMaster
     {

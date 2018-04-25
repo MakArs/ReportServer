@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace ReportService.Core
             _reports=new List<RReport>();
             _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
-        }
+        }//ctor
 
         private void UpdateRecepientGroupsList()
         {
@@ -98,26 +99,12 @@ namespace ReportService.Core
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", report.QueryTimeOut),
                         new NamedParameter("reportType", (RReportType)report.ReportType),
-                        new NamedParameter("connStr", report.ConnectionString));
+                        new NamedParameter("connStr", report.ConnectionString),
+                        new NamedParameter("reportId", report.Id));
 
                     _tasks.Add((RTask)task);
                 }
             } //lock
-        }
-
-        public string ForceExecute(int taskId, string mail)
-        {
-            List<RTask> tasks;
-            lock (this)
-                tasks = _tasks.ToList();
-
-            var task = tasks.FirstOrDefault(t => t.Id == taskId);
-
-            if (task == null) return "No tasks with such Id found..";
-            _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
-
-            Task.Factory.StartNew(() => task.Execute(mail));
-            return $"Report {taskId} sent!";
         }
 
         private void CheckScheduleAndExecute()
@@ -144,7 +131,7 @@ namespace ReportService.Core
             } //for
         }
 
-        public void CreateBase(string connStr)
+        private void CreateBase(string connStr)
         {
             try
             {
@@ -158,6 +145,7 @@ namespace ReportService.Core
 
         public void Start()
         {
+            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
             UpdateScheduleList();
             UpdateRecepientGroupsList();
             UpdateReportsList();
@@ -169,6 +157,22 @@ namespace ReportService.Core
         {
             _checkScheduleAndExecuteScheduler.OnStop();
         }
+
+        public string ForceExecute(int taskId, string mail)
+        {
+            List<RTask> tasks;
+            lock (this)
+                tasks = _tasks.ToList();
+
+            var task = tasks.FirstOrDefault(t => t.Id == taskId);
+
+            if (task == null) return "No tasks with such Id found..";
+            _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
+
+            Task.Factory.StartNew(() => task.Execute(mail));
+            return $"Report {taskId} sent!";
+        }
+
 
         public string GetTaskList_HtmlPage()
         {
@@ -202,63 +206,87 @@ namespace ReportService.Core
             return tableView.Execute("", jsonInstances);
         }
 
-        public void DeleteInstance(int instanceId)
-        {
-            _repository.DeleteInstance(instanceId);
+        public string GetAllTasksJson()
+        { //todo:test
+            List<RTask> tasks;
+            lock (this)
+                tasks = _tasks.ToList();
+            var tr= JsonConvert.SerializeObject(tasks
+                .Select(t => _mapper.Map<ApiTask>(t)));
+            return tr;
+        }
+
+        public string GetFullTaskByIdJson(int id)
+        {//todo:test
+            List<RTask> tasks;
+            lock (this)
+                tasks = _tasks.ToList();
+            return JsonConvert.SerializeObject(_mapper.Map<ApiFullTask>(tasks.First(t => t.Id == id)));
+        }
+
+        public void DeleteTask(int taskId)
+        {//todo:test
+            _repository.DeleteTask(taskId);
             UpdateTaskList();
-            _monik.ApplicationInfo($"Удалена запись {instanceId}");
+            _monik.ApplicationInfo($"Удалена задача {taskId}");
+        }
+
+        public int CreateTask(ApiFullTask task)
+        {//todo:test
+            var dtoTask = _mapper.Map<DtoTask>(task);
+            var newTaskId = _repository.CreateEntity(dtoTask);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Создана задача {newTaskId}");
+            return newTaskId;
+        }
+
+        public void UpdateTask(ApiFullTask task)
+        {//todo:test
+            var dtoTask = _mapper.Map<DtoTask>(task);
+            _repository.UpdateEntity(dtoTask);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Обновлена задача {task.Id}");
+        }
+
+        public string GetAllInstancesJson()
+        {//todo:test
+            return JsonConvert.SerializeObject(_repository.GetAllInstances()
+                .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
         }
 
         public string GetAllInstancesByTaskIdJson(int taskId)
-        {
+        {//todo:test
             List<DtoInstance> instances = _repository.GetInstancesByTaskId(taskId);
             return JsonConvert.SerializeObject(instances
                 .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
         }
 
-        public string GetAllInstancesJson()
-        {
-            return JsonConvert.SerializeObject(_repository.GetAllInstances()
-                .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
-        }
-
         public string GetFullInstanceByIdJson(int id)
-        {
+        {//todo:test
             return JsonConvert.SerializeObject(_mapper.Map<ApiInstance>(_repository.GetFullInstanceById(id)));
         }
 
-        public string GetAllTaskCompactsJson()
-        {
-            List<RTask> tasks;
-            lock (this)
-                tasks = _tasks.ToList();
-            var tr= JsonConvert.SerializeObject(tasks
-                .Select(t => _mapper.Map<ApiTaskCompact>(t)));
-            return tr;
-        }
-
-        public string GetTaskByIdJson(int id)
-        {
-            List<RTask> tasks;
-            lock (this)
-                tasks = _tasks.ToList();
-            return JsonConvert.SerializeObject(_mapper.Map<ApiTask>(tasks.First(t => t.Id == id)));
+        public void DeleteInstance(int instanceId)
+        {//todo:test
+            _repository.DeleteInstance(instanceId);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Удалена запись {instanceId}");
         }
 
         public string GetAllSchedulesJson()
-        {
+        {//todo:test
             return JsonConvert.SerializeObject(_repository.GetAllSchedules()
                 .Select(s=> _mapper.Map<ApiSchedule>(s))); 
         }
 
         public string GetAllRecepientGroupsJson()
-        {
+        {//todo:test
             return JsonConvert.SerializeObject(_repository.GetAllRecepientGroups()
                 .Select(s => _mapper.Map<ApiRecepientGroup>(s)));
         }
 
         public string GetCurrentViewByTaskId(int taskId)
-        {
+        {//todo:test
             List<RTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
@@ -269,28 +297,5 @@ namespace ReportService.Core
             return task.GetCurrentView();
         }
 
-        public void UpdateTask(ApiTask task)
-        {
-            var dtoTask = _mapper.Map<DtoTask>(task);
-            _repository.UpdateTask(dtoTask);
-            UpdateTaskList();
-            _monik.ApplicationInfo($"Обновлена задача {task.Id}");
-        }
-
-        public void DeleteTask(int taskId)
-        {
-            _repository.DeleteTask(taskId);
-            UpdateTaskList();
-            _monik.ApplicationInfo($"Удалена задача {taskId}");
-        }
-
-        public int CreateTask(ApiTask task)
-        {
-            var dtoTask = _mapper.Map<DtoTask>(task);
-            var newTaskId = _repository.CreateEntity(dtoTask);
-            UpdateTaskList();
-            _monik.ApplicationInfo($"Создана задача {newTaskId}");
-            return newTaskId;
-        }
     } //class
 }

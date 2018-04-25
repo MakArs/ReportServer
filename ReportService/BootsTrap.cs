@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -7,7 +6,6 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Core;
-using ReportService.Implementations;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using ReportService.View;
@@ -31,8 +29,6 @@ namespace ReportService
             // No registrations should be performed in here, however you may
             // resolve things that are needed during application startup.
             ILogic log = Container.Resolve<ILogic>();
-            log.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-            var t = log.GetFullInstanceByIdJson(17);
             log.Start();
         }
 
@@ -156,16 +152,15 @@ namespace ReportService
             CreateMap<DtoSchedule, RSchedule>();
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
 
-            //CreateMap<ApiTask, DtoTask>()
-            //   .ForMember("ConnectionString", opt=>opt.MapFrom(s=>s.ConnectionString == ""?null:s.ConnectionString));
-            //CreateMap<RTask, ApiTask>()
-            //    .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-            //    .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-            //    .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
-            //CreateMap<RTask, ApiTaskCompact>()
-            //    .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-            //    .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-            //    .ForMember("TaskType", opt => opt.MapFrom(s => (int)s.Type));
+            CreateMap<ApiFullTask, DtoTask>();
+             // .ForMember("ConnectionString", opt => opt.MapFrom(s => s.ConnectionString == "" ? null : s.ConnectionString));
+            CreateMap<RTask, ApiFullTask>()
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+                .ForMember("ReportType", opt => opt.MapFrom(s => (int)s.Type));
+            CreateMap<RTask, ApiTask>()
+                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
 
             CreateMap<DtoReport, RReport>();
             CreateMap<DtoFullInstance, DtoInstance>();

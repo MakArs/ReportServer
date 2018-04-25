@@ -1,36 +1,9 @@
-﻿using System;
-using System.Configuration;
-using Nancy;
+﻿using Nancy;
 using Nancy.ModelBinding;
 using ReportService.Interfaces;
 
 namespace ReportService.Nancy
 {
-    public class DataBaseModule : NancyBaseModule
-    {
-        public DataBaseModule(ILogic logic)
-        {
-            ModulePath = "/api/v1";
-
-            Post["/databases"] = parameters =>
-            {
-                try
-                {
-                    logic.CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-                    var response = (Response) "DataBase successfully created!";
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch (Exception e)
-                {
-                    var response = (Response) $"DataBase was not created...{e.Message}";
-                    response.StatusCode = HttpStatusCode.InternalServerError;
-                    return response;
-                }
-            };
-        }
-    } //class
-
     public class ReportsModule : NancyBaseModule
     {
         public ReportsModule(ILogic logic)
@@ -41,7 +14,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllTaskCompactsJson();
+                    var response = (Response) logic.GetAllTasksJson();
 
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -56,7 +29,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetTaskByIdJson(parameters.id);
+                    var response = (Response) logic.GetFullTaskByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -83,7 +56,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var newTask = this.Bind<ApiTask>();
+                    var newTask = this.Bind<ApiFullTask>();
                     var id = logic.CreateTask(newTask);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
@@ -99,7 +72,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingTask = this.Bind<ApiTask>();
+                    var existingTask = this.Bind<ApiFullTask>();
 
                     if (parameters.id != existingTask.Id)
                         return HttpStatusCode.BadRequest;

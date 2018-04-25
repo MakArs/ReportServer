@@ -3,7 +3,7 @@ using Nancy;
 
 namespace ReportService.Nancy
 {
-    public class ApiTask
+    public class ApiFullTask
     {
         public int Id { get; set; }
         public int ScheduleId { get; set; }
@@ -13,18 +13,16 @@ namespace ReportService.Nancy
         public int RecepientGroupId { get; set; }
         public int TryCount { get; set; }
         public int QueryTimeOut { get; set; }
-        public int TaskType { get; set; }
+        public int ReportType { get; set; }
     }
 
-    public class ApiTaskCompact
+    public class ApiTask
     {
         public int Id { get; set; }
+        public int ReportId { get; set; }
         public int ScheduleId { get; set; }
-        public string ConnectionString { get; set; }
         public int RecepientGroupId { get; set; }
         public int TryCount { get; set; }
-        public int QueryTimeOut { get; set; }
-        public int TaskType { get; set; }
     }
 
     public class ApiSchedule

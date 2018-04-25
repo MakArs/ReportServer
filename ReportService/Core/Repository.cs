@@ -75,16 +75,16 @@ namespace ReportService.Core
         {
             switch (entity)
             {
-                case DtoRecepientGroup recepgroup:
+                case DtoRecepientGroup recepgroup: //todo:test
                     return (int) MappedCommand.InsertAndGetId(_connStr, "RecepientGroup", recepgroup, "Id");
 
-                case DtoSchedule sched:
+                case DtoSchedule sched: //todo:test
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Schedule", sched, "Id");
 
-                case DtoReport rep:
+                case DtoReport rep: //todo:test
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Report", rep, "Id");
 
-                case DtoTask task:
+                case DtoTask task: //todo:test
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
 
                 case DtoInstance instance:
@@ -104,19 +104,19 @@ namespace ReportService.Core
         {
             switch (entity)
             {
-                case DtoRecepientGroup recepgroup:
+                case DtoRecepientGroup recepgroup: //todo:test
                     MappedCommand.Update(_connStr, "RecepientGroup", recepgroup, "Id");
                     break;
 
-                case DtoSchedule sched:
+                case DtoSchedule sched: //todo:test
                     MappedCommand.Update(_connStr, "RecepientGroup", sched, "Id");
                     break;
 
-                case DtoReport rep:
+                case DtoReport rep: //todo:test
                     MappedCommand.Update(_connStr, "Report", rep, "Id");
                     break;
 
-                case DtoTask task:
+                case DtoTask task: //todo:test
                     MappedCommand.Update(_connStr, "Task", task, "Id");
                     break;
 
@@ -131,12 +131,12 @@ namespace ReportService.Core
         }
         
         public void DeleteRecepientGroup(int groupId)
-        {
+        { //todo:method
             throw new NotImplementedException();
         }
 
         public void DeleteSchedule(int scheduleId)
-        {
+        {//todo:method
             throw new NotImplementedException();
         }
 
@@ -161,7 +161,7 @@ namespace ReportService.Core
             // TODO: refactoring
             // Task table refac (new base-creating uses)
             // 4. ConnStr => DataSource table
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('RecepientGroup') IS NULL
                 CREATE TABLE RecepientGroup
                 (Id INT PRIMARY KEY IDENTITY,
@@ -170,7 +170,7 @@ namespace ReportService.Core
                 ); ");
 
             var existScheduleTable = Convert.ToInt64(SimpleCommand
-                .ExecuteQueryFirstColumn<object>(baseConnStr, $@"
+                .ExecuteQueryFirstColumn<object>(baseConnStr, @"
                SELECT ISNULL(OBJECT_ID('Schedule'),0)")
                 .First());
             if (existScheduleTable == 0)
@@ -180,7 +180,7 @@ namespace ReportService.Core
                     new DtoSchedule() {Name = "workDaysEvening", Schedule = "motuwethfr2230"},
                     new DtoSchedule() {Name = "sundayEvening", Schedule = "su2230"}
                 };
-                SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+                SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 CREATE TABLE Schedule
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
@@ -189,7 +189,7 @@ namespace ReportService.Core
                 schedules.WriteToServer(baseConnStr, "Schedule");
             }
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('Report') IS NULL
                 CREATE TABLE Report
                 (Id INT PRIMARY KEY IDENTITY,
@@ -201,7 +201,7 @@ namespace ReportService.Core
                 QueryTimeOut SMALLINT NOT NULL
                 ); ");
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('Task') IS NULL
                 CREATE TABLE Task
                 (Id INT PRIMARY KEY IDENTITY,
@@ -217,7 +217,7 @@ namespace ReportService.Core
                 REFERENCES Report(Id)
                 )");
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('Instance') IS NULL
                 CREATE TABLE Instance
                 (
@@ -231,7 +231,7 @@ namespace ReportService.Core
                 REFERENCES Task(Id)
                 )");
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, $@"
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF object_id('InstanceData') IS NULL
                 CREATE TABLE InstanceData(
 	            InstanceId INT NOT NULL,

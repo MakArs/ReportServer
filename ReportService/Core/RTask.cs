@@ -19,6 +19,7 @@ namespace ReportService.Core
         public int TryCount { get; }
         public int QueryTimeOut { get; }
         public RReportType Type { get; }
+        public int ReportId { get; }
 
         private readonly IDataExecutor _dataEx;
         private readonly IViewExecutor _viewEx;
@@ -30,7 +31,7 @@ namespace ReportService.Core
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
             IMapper mapper,
             int id, string template, RSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
-            int timeOut, RReportType reportType, string connStr)
+            int timeOut, RReportType reportType, string connStr,int reportId)
         {
             Type = reportType;
 
@@ -52,6 +53,7 @@ namespace ReportService.Core
             Id = id;
             Query = query;
             ViewTemplate = template;
+            ReportId = reportId;
             SendAddresses = sendAddress;
             Schedule = schedule;
             _repository = repository;
