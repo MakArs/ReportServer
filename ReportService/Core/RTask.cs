@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.Remoting.Messaging;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -13,7 +12,7 @@ namespace ReportService.Core
         public int Id { get; }
         public RRecepientGroup SendAddresses { get; }
         public string ViewTemplate { get; }
-        public RSchedule Schedule { get; }
+        public DtoSchedule Schedule { get; }
         public string ConnectionString { get; }
         public string Query { get; }
         public int TryCount { get; }
@@ -30,7 +29,7 @@ namespace ReportService.Core
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
             IMapper mapper,
-            int id, string template, RSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
+            int id, string template, DtoSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
             int timeOut, RReportType reportType, string connStr,int reportId)
         {
             Type = reportType;

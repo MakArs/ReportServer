@@ -149,25 +149,24 @@ namespace ReportService
     {
         public MapperProfile()
         {
-            CreateMap<DtoSchedule, RSchedule>();
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
-
-            CreateMap<ApiFullTask, DtoTask>();
-             // .ForMember("ConnectionString", opt => opt.MapFrom(s => s.ConnectionString == "" ? null : s.ConnectionString));
             CreateMap<RTask, ApiFullTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
                 .ForMember("ReportType", opt => opt.MapFrom(s => (int)s.Type));
+            
+            CreateMap<ApiFullTask, DtoTask>();
+            CreateMap<ApiFullTask, DtoReport>();
+
+             // .ForMember("ConnectionString", opt => opt.MapFrom(s => s.ConnectionString == "" ? null : s.ConnectionString));
             CreateMap<RTask, ApiTask>()
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+                .ForMember("ReportType", opt => opt.MapFrom(s => (int)s.Type));
 
-            CreateMap<DtoReport, RReport>();
             CreateMap<DtoFullInstance, DtoInstance>();
             CreateMap<DtoFullInstance, DtoInstanceData>()
                 .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
-            CreateMap<DtoFullInstance, ApiInstance>();
-            CreateMap<DtoInstance, ApiInstanceCompact>();
         }
     }
 }

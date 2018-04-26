@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,9 +21,9 @@ namespace ReportService.Core
 
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
         private readonly List<RTask> _tasks;
-        private readonly List<RSchedule> _schedules;
+        private readonly List<DtoSchedule> _schedules;
         private readonly List<RRecepientGroup> _recepientGroups;
-        private readonly List<RReport> _reports;
+        private readonly List<DtoReport> _reports;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper)
         {
@@ -32,10 +31,10 @@ namespace ReportService.Core
             _autofac = autofac;
             _repository = repository;
             _tasks = new List<RTask>();
-            _schedules = new List<RSchedule>();
+            _schedules = new List<DtoSchedule>();
             _recepientGroups = new List<RRecepientGroup>();
-            _reports=new List<RReport>();
-            _checkScheduleAndExecuteScheduler = new Scheduler() {Period = 60, TaskMethod = CheckScheduleAndExecute};
+            _reports=new List<DtoReport>();
+            _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _monik = monik;
         }//ctor
 
@@ -59,9 +58,7 @@ namespace ReportService.Core
             {
                 _schedules.Clear();
                 foreach (var sched in schedList)
-                {
-                    _schedules.Add(_mapper.Map<RSchedule>(sched));
-                }
+                    _schedules.Add(sched);
             }
         }
 
@@ -72,9 +69,7 @@ namespace ReportService.Core
             {
                 _reports.Clear();
                 foreach (var rep in repList)
-                {
-                    _reports.Add(_mapper.Map<RReport>(rep));
-                }
+                    _reports.Add(rep);
             }
         }
 
@@ -233,37 +228,59 @@ namespace ReportService.Core
 
         public int CreateTask(ApiFullTask task)
         {//todo:test
-            var dtoTask = _mapper.Map<DtoTask>(task);
-            var newTaskId = _repository.CreateEntity(dtoTask);
-            UpdateTaskList();
-            _monik.ApplicationInfo($"Создана задача {newTaskId}");
-            return newTaskId;
+            if (task.ReportId>0)
+            {
+                var dtoTask = _mapper.Map<DtoTask>(task);
+                var newTaskId = _repository.CreateEntity(dtoTask);
+                UpdateTaskList();
+                _monik.ApplicationInfo($"Создана задача {newTaskId}");
+                return newTaskId;
+            }
+            else
+            {
+                task.ReportId = _repository.CreateEntity(_mapper.Map<DtoReport>(task));
+                var dtoTask = _mapper.Map<DtoTask>(task);
+                var newTaskId = _repository.CreateEntity(dtoTask);
+                UpdateReportsList();
+                UpdateTaskList();
+                _monik.ApplicationInfo($"Создана задача {newTaskId}");
+                return newTaskId;
+            }
         }
 
         public void UpdateTask(ApiFullTask task)
         {//todo:test
-            var dtoTask = _mapper.Map<DtoTask>(task);
-            _repository.UpdateEntity(dtoTask);
-            UpdateTaskList();
-            _monik.ApplicationInfo($"Обновлена задача {task.Id}");
+            if (task.ReportId > 0)
+            {
+                var dtoTask = _mapper.Map<DtoTask>(task);
+                _repository.UpdateEntity(dtoTask);
+                UpdateTaskList();
+                _monik.ApplicationInfo($"Обновлена задача {task.Id}");
+            }
+            else
+            {
+                task.ReportId = _repository.CreateEntity(_mapper.Map<DtoReport>(task));
+                var dtoTask = _mapper.Map<DtoTask>(task);
+                _repository.UpdateEntity(dtoTask);
+                UpdateReportsList();
+                UpdateTaskList();
+                _monik.ApplicationInfo($"Обновлена задача {task.Id}");
+            }
         }
 
         public string GetAllInstancesJson()
         {//todo:test
-            return JsonConvert.SerializeObject(_repository.GetAllInstances()
-                .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
+            return JsonConvert.SerializeObject(_repository.GetAllInstances());
         }
 
         public string GetAllInstancesByTaskIdJson(int taskId)
         {//todo:test
-            List<DtoInstance> instances = _repository.GetInstancesByTaskId(taskId);
-            return JsonConvert.SerializeObject(instances
-                .Select(t => _mapper.Map<ApiInstanceCompact>(t)));
+            return JsonConvert.SerializeObject(_repository.GetInstancesByTaskId(taskId));
         }
 
         public string GetFullInstanceByIdJson(int id)
         {//todo:test
-            return JsonConvert.SerializeObject(_mapper.Map<ApiInstance>(_repository.GetFullInstanceById(id)));
+            return JsonConvert.SerializeObject(_repository.GetFullInstanceById(id));
         }
 
         public void DeleteInstance(int instanceId)
@@ -275,14 +292,12 @@ namespace ReportService.Core
 
         public string GetAllSchedulesJson()
         {//todo:test
-            return JsonConvert.SerializeObject(_repository.GetAllSchedules()
-                .Select(s=> _mapper.Map<ApiSchedule>(s))); 
+            return JsonConvert.SerializeObject(_repository.GetAllSchedules()); 
         }
 
         public string GetAllRecepientGroupsJson()
         {//todo:test
-            return JsonConvert.SerializeObject(_repository.GetAllRecepientGroups()
-                .Select(s => _mapper.Map<ApiRecepientGroup>(s)));
+            return JsonConvert.SerializeObject(_repository.GetAllRecepientGroups());
         }
 
         public string GetCurrentViewByTaskId(int taskId)
