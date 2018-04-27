@@ -10,7 +10,7 @@ namespace ReportService.Nancy
         {
             ModulePath = "/site";
 
-            Get["/reports.html"] = parameters =>
+            Get["/tasks.html"] = parameters =>
             {
                 try
                 {
@@ -24,7 +24,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/reports-{id:int}.html"] = parameters =>
+            Get["/tasks-{id:int}.html"] = parameters =>
             {
                 try
                 {

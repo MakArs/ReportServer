@@ -4,13 +4,13 @@ using ReportService.Interfaces;
 
 namespace ReportService.Nancy
 {
-    public class ReportsModule : NancyBaseModule
+    public class TasksModule : NancyBaseModule
     {
-        public ReportsModule(ILogic logic)
+        public TasksModule(ILogic logic)
         {
             ModulePath = "/api/v1";
 
-            Get["/reports"] = parameters =>
+            Get["/tasks"] = parameters =>
             {
                 try
                 {
@@ -25,7 +25,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/reports/{id:int}"] = parameters =>
+            Get["/tasks/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -39,7 +39,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Delete["/reports/{id:int}"] = parameters =>
+            Delete["/tasks/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -52,7 +52,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Post["/reports"] = parameters =>
+            Post["/tasks"] = parameters =>
             {
                 try
                 {
@@ -68,7 +68,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Put["/reports/{id:int}"] = parameters =>
+            Put["/tasks/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -108,11 +108,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/reports/{reportid:int}/instances"] = parameters =>
+            Get["/tasks/{taskid:int}/instances"] = parameters =>
             {
                 try
                 {
-                    var response = (Response) logic.GetAllInstancesByTaskIdJson(parameters.reportid);
+                    var response = (Response) logic.GetAllInstancesByTaskIdJson(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -122,11 +122,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/reports/{reportid:int}/currentviews"] = parameters =>
+            Get["/tasks/{taskid:int}/currentviews"] = parameters =>
             {
                 try
                 {
-                    var response = (Response)logic.GetCurrentViewByTaskId(parameters.reportid);
+                    var response = (Response)logic.GetCurrentViewByTaskId(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -201,6 +201,29 @@ namespace ReportService.Nancy
                 try
                 {
                     var response = (Response)logic.GetAllRecepientGroupsJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+        }
+    } //class
+
+    public class ReportsModule : NancyBaseModule
+    {
+        public ReportsModule(ILogic logic)
+        {
+            ModulePath = "/api/v1";
+
+            Get["/reports"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllReportsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

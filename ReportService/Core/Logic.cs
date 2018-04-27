@@ -202,7 +202,7 @@ namespace ReportService.Core
         }
 
         public string GetAllTasksJson()
-        { //todo:test
+        {
             List<RTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
@@ -212,7 +212,7 @@ namespace ReportService.Core
         }
 
         public string GetFullTaskByIdJson(int id)
-        {//todo:test
+        {
             List<RTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
@@ -220,14 +220,14 @@ namespace ReportService.Core
         }
 
         public void DeleteTask(int taskId)
-        {//todo:test
+        {
             _repository.DeleteTask(taskId);
             UpdateTaskList();
             _monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
         public int CreateTask(ApiFullTask task)
-        {//todo:test
+        {//todo:remake desktop
             if (task.ReportId>0)
             {
                 var dtoTask = _mapper.Map<DtoTask>(task);
@@ -249,7 +249,7 @@ namespace ReportService.Core
         }
 
         public void UpdateTask(ApiFullTask task)
-        {//todo:test
+        {
             if (task.ReportId > 0)
             {
                 var dtoTask = _mapper.Map<DtoTask>(task);
@@ -269,39 +269,44 @@ namespace ReportService.Core
         }
 
         public string GetAllInstancesJson()
-        {//todo:test
+        {
             return JsonConvert.SerializeObject(_repository.GetAllInstances());
         }
 
         public string GetAllInstancesByTaskIdJson(int taskId)
-        {//todo:test
+        {
             return JsonConvert.SerializeObject(_repository.GetInstancesByTaskId(taskId));
         }
 
         public string GetFullInstanceByIdJson(int id)
-        {//todo:test
+        {
             return JsonConvert.SerializeObject(_repository.GetFullInstanceById(id));
         }
 
         public void DeleteInstance(int instanceId)
-        {//todo:test
+        {
             _repository.DeleteInstance(instanceId);
             UpdateTaskList();
             _monik.ApplicationInfo($"Удалена запись {instanceId}");
         }
 
         public string GetAllSchedulesJson()
-        {//todo:test
-            return JsonConvert.SerializeObject(_repository.GetAllSchedules()); 
+        {
+            return JsonConvert.SerializeObject(_schedules); 
         }
 
         public string GetAllRecepientGroupsJson()
-        {//todo:test
+        {
             return JsonConvert.SerializeObject(_repository.GetAllRecepientGroups());
         }
 
+        public string GetAllReportsJson()
+        {
+            return JsonConvert.SerializeObject(_reports);
+        }
+
         public string GetCurrentViewByTaskId(int taskId)
-        {//todo:test
+        {
             List<RTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();

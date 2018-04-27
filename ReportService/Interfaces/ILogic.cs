@@ -24,6 +24,7 @@ namespace ReportService.Interfaces
 
         string GetAllSchedulesJson();
         string GetAllRecepientGroupsJson();
+        string GetAllReportsJson();
 
         string GetCurrentViewByTaskId(int id);
     }
