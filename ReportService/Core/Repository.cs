@@ -209,6 +209,8 @@ namespace ReportService.Core
                 ScheduleId INT NULL,
                 RecepientGroupId INT NULL,
                 TryCount TINYINT NOT NULL,
+                HasHtmlBody BIT NOT NULL,
+                HasJsonAttachment BIT NOT NULL,
                 CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) 
                 REFERENCES RecepientGroup(Id),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 

@@ -35,6 +35,8 @@ namespace ReportService.Interfaces
         public int? ScheduleId { get; set; }
         public int? RecepientGroupId { get; set; }
         public int TryCount { get; set; }
+        public bool HasHtmlBody { get; set; }
+        public bool HasJsonAttachment { get; set; }
     }
 
     public class DtoFullInstance

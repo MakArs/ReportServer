@@ -19,6 +19,8 @@ namespace ReportService.Core
         public int QueryTimeOut { get; }
         public RReportType Type { get; }
         public int ReportId { get; }
+        public bool HasHtmlBody { get; }
+        public bool HasJsonAttachment { get; }
 
         private readonly IDataExecutor _dataEx;
         private readonly IViewExecutor _viewEx;
@@ -30,7 +32,7 @@ namespace ReportService.Core
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
             IMapper mapper,
             int id, string template, DtoSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
-            int timeOut, RReportType reportType, string connStr,int reportId)
+            int timeOut, RReportType reportType, string connStr,int reportId,bool htmlBody,bool jsonAttach)
         {
             Type = reportType;
 
@@ -59,6 +61,8 @@ namespace ReportService.Core
             TryCount = tryCount;
             QueryTimeOut = timeOut;
             ConnectionString = connStr;
+            HasHtmlBody = htmlBody;
+            HasJsonAttachment = jsonAttach;
             _monik = monik;
             _mapper = mapper;
         }
@@ -126,7 +130,8 @@ namespace ReportService.Core
             {
                 try
                 {
-                    _postMaster.Send(htmlReport, deliveryAddrs);
+                    _postMaster.Send(deliveryAddrs, htmlReport= HasHtmlBody ? htmlReport : null,
+                       jsonReport = HasJsonAttachment ? jsonReport : null);
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)

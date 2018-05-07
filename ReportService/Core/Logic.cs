@@ -95,7 +95,9 @@ namespace ReportService.Core
                         new NamedParameter("timeOut", report.QueryTimeOut),
                         new NamedParameter("reportType", (RReportType)report.ReportType),
                         new NamedParameter("connStr", report.ConnectionString),
-                        new NamedParameter("reportId", report.Id));
+                        new NamedParameter("reportId", report.Id),
+                        new NamedParameter("htmlBody", dtoTask.HasHtmlBody),
+                        new NamedParameter("jsonAttach", dtoTask.HasJsonAttachment));
 
                     _tasks.Add((RTask)task);
                 }

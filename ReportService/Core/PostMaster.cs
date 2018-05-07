@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.IO;
 using System.Net.Mail;
+using System.Net.Mime;
 using Monik.Client;
 using ReportService.Interfaces;
 
@@ -11,13 +12,14 @@ namespace ReportService.Core
     {
         private string _filename;
 
-        public void Send(string report, string[] addresses)
+        public void Send(string[] addresses, string htmlReport = null, string jsonReport = null)
         {
             _filename = $"Report{DateTime.Now:HHmmss}.html";
 
             using (FileStream fs = new FileStream($@"C:\ArsMak\job\{_filename}", FileMode.CreateNew))
             {
-                byte[] array = System.Text.Encoding.Default.GetBytes(report);
+                byte[] array =
+                    System.Text.Encoding.Default.GetBytes(string.IsNullOrEmpty(htmlReport) ? "" : htmlReport);
                 fs.Write(array, 0, array.Length);
             }
 
@@ -33,7 +35,7 @@ namespace ReportService.Core
         {
             _monik = monik;
         }
-        public void Send(string report, string[] addresses)
+        public void Send(string[] addresses, string htmlReport = null, string jsonReport = null)
         {
             SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg = new MailMessage();
@@ -41,8 +43,18 @@ namespace ReportService.Core
             foreach (var address in addresses)
                 msg.To.Add(new MailAddress(address));
             msg.Subject = "Отчёт";
-            msg.IsBodyHtml = true;
-            msg.Body = report;
+
+            if (!string.IsNullOrEmpty(htmlReport))
+            {
+                msg.IsBodyHtml = true;
+                msg.Body = htmlReport;
+            }
+
+            if (!string.IsNullOrEmpty(jsonReport))
+            {
+                ContentType cont = new ContentType {MediaType = MediaTypeNames.Text.Plain};
+                msg.Attachments.Add(Attachment.CreateAttachmentFromString(jsonReport, cont));
+            } 
 
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
