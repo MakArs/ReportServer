@@ -8,9 +8,9 @@ namespace ReportService.Nancy
     {
         public TasksModule(ILogic logic)
         {
-            ModulePath = "/api/v1";
+            ModulePath = "/api/v1/tasks";
 
-            Get["/tasks"] = parameters =>
+            Get[""] = parameters =>
             {
                 try
                 {
@@ -25,7 +25,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/tasks/{id:int}"] = parameters =>
+            Get["/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -39,7 +39,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Delete["/tasks/{id:int}"] = parameters =>
+            Delete["/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -52,7 +52,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Post["/tasks"] = parameters =>
+            Post[""] = parameters =>
             {
                 try
                 {
@@ -68,7 +68,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Put["/tasks/{id:int}"] = parameters =>
+            Put["/{id:int}"] = parameters =>
             {
                 try
                 {
@@ -217,9 +217,9 @@ namespace ReportService.Nancy
     {
         public ReportsModule(ILogic logic)
         {
-            ModulePath = "/api/v1";
+            ModulePath = "/api/v1/reports";
 
-            Get["/reports"] = parameters =>
+            Get[""] = parameters =>
             {
                 try
                 {
@@ -233,6 +233,39 @@ namespace ReportService.Nancy
                 }
             };
 
+            Post[""] = parameters =>
+            {
+                try
+                {
+                    var newReport = this.Bind<DtoReport>();
+                    var id = logic.CreateReport(newReport);
+                    var response = (Response)$"{id}";
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Put["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var existingReport = this.Bind<DtoReport>();
+
+                    if (parameters.id != existingReport.Id)
+                        return HttpStatusCode.BadRequest;
+
+                    logic.UpdateReport(existingReport);
+                    return HttpStatusCode.OK;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
         }
     } //class
 }

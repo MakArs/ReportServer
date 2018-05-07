@@ -81,10 +81,10 @@ namespace ReportService.Core
                 case DtoSchedule sched: //todo:test
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Schedule", sched, "Id");
 
-                case DtoReport rep: //todo:test
+                case DtoReport rep:
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Report", rep, "Id");
 
-                case DtoTask task: //todo:test
+                case DtoTask task: 
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
 
                 case DtoInstance instance:
@@ -112,11 +112,11 @@ namespace ReportService.Core
                     MappedCommand.Update(_connStr, "RecepientGroup", sched, "Id");
                     break;
 
-                case DtoReport rep: //todo:test
+                case DtoReport rep:
                     MappedCommand.Update(_connStr, "Report", rep, "Id");
                     break;
 
-                case DtoTask task: //todo:test
+                case DtoTask task: 
                     MappedCommand.Update(_connStr, "Task", task, "Id");
                     break;
 
@@ -129,31 +129,31 @@ namespace ReportService.Core
                     break;
             }
         }
-        
-        public void DeleteRecepientGroup(int groupId)
-        { //todo:method
-            throw new NotImplementedException();
-        }
 
-        public void DeleteSchedule(int scheduleId)
-        {//todo:method
-            throw new NotImplementedException();
-        }
-
-
-        public void DeleteInstance(int instanceId)
+        public void DeleteEntity<T>(int id)
         {
-            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid={instanceId}");
-            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where id={instanceId}");
+            var type = typeof(T);
+            switch (true)
+            {
+                case bool _ when type == typeof(DtoRecepientGroup): //todo:method
+                    break;
+
+                case bool _ when type == typeof(DtoSchedule)://todo:method
+                    break;
+
+                case bool _ when type == typeof(DtoInstance):
+                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid={id}");
+                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where id={id}");
+                    break;
+
+                case bool _ when type == typeof(DtoTask):
+                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid in (select id from instance where TaskID={id})");
+                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where TaskID={id}");
+                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={id}");
+                    break;
+            }
         }
 
-
-        public void DeleteTask(int taskId)
-        {
-            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid in (select id from instance where TaskID={taskId})");
-            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where TaskID={taskId}");
-            SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={taskId}");
-        }
 
         public void CreateBase(string baseConnStr)
         {
@@ -193,7 +193,7 @@ namespace ReportService.Core
                 IF OBJECT_ID('Report') IS NULL
                 CREATE TABLE Report
                 (Id INT PRIMARY KEY IDENTITY,
-                Name NVARCHAR(127) NULL,
+                Name NVARCHAR(127) NOT NULL,
                 ConnectionString NVARCHAR(255) NULL,
                 ViewTemplate NVARCHAR(MAX) NOT NULL,
                 Query NVARCHAR(MAX) NOT NULL,

@@ -17,10 +17,14 @@ namespace ReportService.Interfaces
         int CreateTask(ApiFullTask task);
         void UpdateTask(ApiFullTask task);
 
+
         string GetAllInstancesJson();
         string GetAllInstancesByTaskIdJson(int taskId);
         string GetFullInstanceByIdJson(int id);
         void DeleteInstance(int instanceId);
+
+        int CreateReport(DtoReport report);
+        void UpdateReport(DtoReport report);
 
         string GetAllSchedulesJson();
         string GetAllRecepientGroupsJson();

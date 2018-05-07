@@ -80,11 +80,7 @@ namespace ReportService.Interfaces
 
         int CreateEntity<T>(T entity);
         void UpdateEntity<T>(T entity);
-
-        void DeleteRecepientGroup(int groupId);
-        void DeleteSchedule(int scheduleId);
-        void DeleteTask(int taskId);
-        void DeleteInstance(int instanceId);
+        void DeleteEntity<T>(int id);
 
         void CreateBase(string baseConnStr);
     }

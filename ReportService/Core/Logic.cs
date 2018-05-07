@@ -221,51 +221,26 @@ namespace ReportService.Core
 
         public void DeleteTask(int taskId)
         {
-            _repository.DeleteTask(taskId);
+            _repository.DeleteEntity<DtoTask>(taskId);
             UpdateTaskList();
             _monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
         public int CreateTask(ApiFullTask task)
-        {//todo:remake desktop
-            if (task.ReportId>0)
-            {
+        {
                 var dtoTask = _mapper.Map<DtoTask>(task);
                 var newTaskId = _repository.CreateEntity(dtoTask);
                 UpdateTaskList();
                 _monik.ApplicationInfo($"Создана задача {newTaskId}");
                 return newTaskId;
-            }
-            else
-            {
-                task.ReportId = _repository.CreateEntity(_mapper.Map<DtoReport>(task));
-                var dtoTask = _mapper.Map<DtoTask>(task);
-                var newTaskId = _repository.CreateEntity(dtoTask);
-                UpdateReportsList();
-                UpdateTaskList();
-                _monik.ApplicationInfo($"Создана задача {newTaskId}");
-                return newTaskId;
-            }
         }
 
         public void UpdateTask(ApiFullTask task)
         {
-            if (task.ReportId > 0)
-            {
-                var dtoTask = _mapper.Map<DtoTask>(task);
-                _repository.UpdateEntity(dtoTask);
-                UpdateTaskList();
-                _monik.ApplicationInfo($"Обновлена задача {task.Id}");
-            }
-            else
-            {
-                task.ReportId = _repository.CreateEntity(_mapper.Map<DtoReport>(task));
-                var dtoTask = _mapper.Map<DtoTask>(task);
-                _repository.UpdateEntity(dtoTask);
-                UpdateReportsList();
-                UpdateTaskList();
-                _monik.ApplicationInfo($"Обновлена задача {task.Id}");
-            }
+            var dtoTask = _mapper.Map<DtoTask>(task);
+            _repository.UpdateEntity(dtoTask);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }
 
         public string GetAllInstancesJson()
@@ -285,9 +260,25 @@ namespace ReportService.Core
 
         public void DeleteInstance(int instanceId)
         {
-            _repository.DeleteInstance(instanceId);
+            _repository.DeleteEntity<DtoInstance>(instanceId);
             UpdateTaskList();
             _monik.ApplicationInfo($"Удалена запись {instanceId}");
+        }
+
+        public int CreateReport(DtoReport report)
+        {
+            var reportId = _repository.CreateEntity(report);
+            UpdateReportsList();
+            _monik.ApplicationInfo($"Добавлен отчёт {reportId}");
+            return reportId;
+        }
+
+        public void UpdateReport(DtoReport report)
+        {
+            _repository.UpdateEntity(report);
+            UpdateReportsList();
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Обновлён отчёт {report.Id}");
         }
 
         public string GetAllSchedulesJson()
