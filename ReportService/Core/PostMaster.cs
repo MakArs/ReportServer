@@ -35,8 +35,12 @@ namespace ReportService.Core
         {
             _monik = monik;
         }
+
         public void Send(string[] addresses, string htmlReport = null, string jsonReport = null)
         {
+            string filename = "";
+            bool hasHtml = !string.IsNullOrEmpty(htmlReport);
+            bool hasJson = !string.IsNullOrEmpty(jsonReport);
             SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
@@ -44,17 +48,24 @@ namespace ReportService.Core
                 msg.To.Add(new MailAddress(address));
             msg.Subject = "Отчёт";
 
-            if (!string.IsNullOrEmpty(htmlReport))
+            if (hasHtml)
             {
                 msg.IsBodyHtml = true;
                 msg.Body = htmlReport;
             }
 
-            if (!string.IsNullOrEmpty(jsonReport))
+            if (hasJson)
             {
-                ContentType cont = new ContentType {MediaType = MediaTypeNames.Text.Plain};
-                msg.Attachments.Add(Attachment.CreateAttachmentFromString(jsonReport, cont));
-            } 
+                Random rand = new Random();
+                filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{rand.Next(32767)}.json";
+                using (FileStream fstr = new FileStream(filename, FileMode.Create))
+                {
+                    byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(jsonReport);
+                    fstr.Write(bytePage, 0, bytePage.Length);
+                }
+
+                msg.Attachments.Add(new Attachment(filename));
+            }
 
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
@@ -71,6 +82,9 @@ namespace ReportService.Core
             {
                 msg.Dispose();
             }
+
+            if (hasJson)
+                File.Delete(filename);
         }
     }
 }
