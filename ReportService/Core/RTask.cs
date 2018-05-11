@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using Autofac;
 using AutoMapper;
+using LZ4;
 using Monik.Client;
 using ReportService.Interfaces;
+using SevenZip;
 
 namespace ReportService.Core
 {
@@ -28,9 +32,10 @@ namespace ReportService.Core
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
         private readonly IMapper _mapper;
+        private readonly SevenZipCompressor _compressor;
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
-            IMapper mapper,
+            IMapper mapper, SevenZipCompressor compressor,
             int id, string template, DtoSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
             int timeOut, RReportType reportType, string connStr,int reportId,bool htmlBody,bool jsonAttach)
         {
@@ -50,6 +55,7 @@ namespace ReportService.Core
                     throw new NotImplementedException();
             }
 
+            _compressor = compressor;
             _postMaster = postMaster;
             Id = id;
             Query = query;
@@ -80,8 +86,6 @@ namespace ReportService.Core
                 _repository.CreateEntity(_mapper.Map<DtoInstance>(dtoInstance));
 
             _repository.CreateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
-            //(_mapper.Map<DtoFullInstance, DtoInstance>(dtoInstance),
-            //    _mapper.Map<DtoFullInstance, DtoInstanceData>(dtoInstance));
 
             string[] deliveryAddrs;
             if (!string.IsNullOrEmpty(address))
@@ -130,8 +134,8 @@ namespace ReportService.Core
             {
                 try
                 {
-                    _postMaster.Send(deliveryAddrs, htmlReport= HasHtmlBody ? htmlReport : null,
-                       jsonReport = HasJsonAttachment ? jsonReport : null);
+                    _postMaster.Send(deliveryAddrs, HasHtmlBody ? htmlReport : null,
+                       HasJsonAttachment ? jsonReport : null);
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)
@@ -147,8 +151,25 @@ namespace ReportService.Core
             dtoInstance.TryNumber = i - 1;
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
+
+            string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{DateTime.Now:HHmmss}";
+            using (FileStream fs = new FileStream($@"{filename}.html", FileMode.CreateNew))
+            {
+                byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(htmlReport);
+                fs.Write(bytePage, 0, bytePage.Length);
+            }
+            using (FileStream fs = new FileStream($@"{filename}.json", FileMode.CreateNew))
+            {
+                byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(jsonReport);
+                fs.Write(bytePage, 0, bytePage.Length);
+            }
+            _compressor.CompressFiles("sometest.7z", $@"{filename}.html", $@"{filename}.json");
+            File.Delete($@"{filename}.html");
+            File.Delete($@"{filename}.json");
+
             _repository.UpdateEntity(_mapper.Map<DtoInstance>(dtoInstance));
             _repository.UpdateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
+
             
         }
 

@@ -1,4 +1,7 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
+using System.IO;
+using System.Reflection;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -9,6 +12,7 @@ using ReportService.Core;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using ReportService.View;
+using SevenZip;
 
 namespace ReportService
 {
@@ -79,6 +83,11 @@ namespace ReportService
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
             existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
+
+            var compressor = new SevenZipCompressor { CompressionMode = CompressionMode.Create , ArchiveFormat = OutArchiveFormat.SevenZip};
+            var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
+            SevenZipBase.SetLibraryPath(path);
+            existingContainer.RegisterSingleInstance<SevenZipCompressor,SevenZipCompressor>(compressor);
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
