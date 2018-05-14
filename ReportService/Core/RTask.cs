@@ -152,7 +152,7 @@ namespace ReportService.Core
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
-            string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{DateTime.Now:HHmmss}";
+            string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{Id}-{DateTime.Now:HHmmss}";
             using (FileStream fs = new FileStream($@"{filename}.html", FileMode.CreateNew))
             {
                 byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(htmlReport);
@@ -163,7 +163,7 @@ namespace ReportService.Core
                 byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(jsonReport);
                 fs.Write(bytePage, 0, bytePage.Length);
             }
-            _compressor.CompressFiles("sometest.7z", $@"{filename}.html", $@"{filename}.json");
+            _compressor.CompressFiles($@"{filename}.7z", $@"{filename}.html", $@"{filename}.json");
             File.Delete($@"{filename}.html");
             File.Delete($@"{filename}.json");
 
