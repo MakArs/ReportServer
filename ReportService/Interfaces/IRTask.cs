@@ -1,4 +1,6 @@
-﻿namespace ReportService.Interfaces
+﻿using System;
+
+namespace ReportService.Interfaces
 {
     public enum RReportType : byte
     {
@@ -24,7 +26,26 @@
             return Addresses.Split(';');
         }
     }
-    
+
+    public class RFullInstance
+    {
+        public int Id { get; set; }
+        public string Data { get; set; }
+        public string ViewData { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+        public int TryNumber { get; set; }
+    }
+
+    public class RInstanceData
+    {
+        public int InstanceId { get; set; }
+        public string Data { get; set; }
+        public string ViewData { get; set; }
+    }
+
     public interface IRTask
     {
         void Execute(string address = null);

@@ -42,8 +42,8 @@ namespace ReportService.Interfaces
     public class DtoFullInstance
     {
         public int Id { get; set; }
-        public string Data { get; set; } 
-        public string ViewData { get; set; } 
+        public byte[] Data { get; set; } 
+        public byte[] ViewData { get; set; } 
         public int TaskId { get; set; }
         public DateTime StartTime { get; set; }
         public int Duration { get; set; }
@@ -64,8 +64,8 @@ namespace ReportService.Interfaces
     public class DtoInstanceData
     {
         public int InstanceId { get; set; }
-        public string Data { get; set; }
-        public string ViewData { get; set; }
+        public byte[] Data { get; set; }
+        public byte[]  ViewData { get; set; }
     }
 
 

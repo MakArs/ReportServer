@@ -298,3 +298,4 @@ __pycache__/
 ReportService/PluginFolder/
 ReportService/PrivateBootsTrap.cs
 ReportService/Appmsk.config
+ReportService/Appdev.config

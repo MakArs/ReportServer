@@ -32,10 +32,10 @@ namespace ReportService.Core
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
         private readonly IMapper _mapper;
-        private readonly SevenZipCompressor _compressor;
+        private readonly IArchiver _archiver;
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
-            IMapper mapper, SevenZipCompressor compressor,
+            IMapper mapper, IArchiver archiver,
             int id, string template, DtoSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
             int timeOut, RReportType reportType, string connStr,int reportId,bool htmlBody,bool jsonAttach)
         {
@@ -55,7 +55,7 @@ namespace ReportService.Core
                     throw new NotImplementedException();
             }
 
-            _compressor = compressor;
+            _archiver = archiver;
             _postMaster = postMaster;
             Id = id;
             Query = query;
@@ -134,8 +134,10 @@ namespace ReportService.Core
             {
                 try
                 {
-                    _postMaster.Send(deliveryAddrs, HasHtmlBody ? htmlReport : null,
-                       HasJsonAttachment ? jsonReport : null);
+                    _postMaster.Send(deliveryAddrs,
+                        HasHtmlBody ? htmlReport : null,
+                        HasJsonAttachment ? jsonReport : null);
+
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)
@@ -146,32 +148,17 @@ namespace ReportService.Core
 
             duration.Stop();
 
-            dtoInstance.Data = jsonReport;
-            dtoInstance.ViewData = htmlReport;
+            dtoInstance.Data = _archiver.CompressString(jsonReport);
+            dtoInstance.ViewData = _archiver.CompressString(htmlReport);
             dtoInstance.TryNumber = i - 1;
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
-            string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{Id}-{DateTime.Now:HHmmss}";
-            using (FileStream fs = new FileStream($@"{filename}.html", FileMode.CreateNew))
-            {
-                byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(htmlReport);
-                fs.Write(bytePage, 0, bytePage.Length);
-            }
-            using (FileStream fs = new FileStream($@"{filename}.json", FileMode.CreateNew))
-            {
-                byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(jsonReport);
-                fs.Write(bytePage, 0, bytePage.Length);
-            }
-            _compressor.CompressFiles($@"{filename}.7z", $@"{filename}.html", $@"{filename}.json");
-            File.Delete($@"{filename}.html");
-            File.Delete($@"{filename}.json");
-
+            // string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{Id}-{DateTime.Now:HHmmss}";
+           
             _repository.UpdateEntity(_mapper.Map<DtoInstance>(dtoInstance));
             _repository.UpdateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
-
-            
-        }
+            }
 
         public string GetCurrentView()
         {

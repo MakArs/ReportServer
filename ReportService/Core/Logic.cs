@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -9,6 +11,7 @@ using Monik.Client;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
+using SevenZip;
 
 namespace ReportService.Core
 {
@@ -18,6 +21,7 @@ namespace ReportService.Core
         private readonly IRepository _repository;
         private readonly IClientControl _monik;
         private readonly IMapper _mapper;
+        private readonly IArchiver _archiver;
 
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
         private readonly List<RTask> _tasks;
@@ -25,8 +29,9 @@ namespace ReportService.Core
         private readonly List<RRecepientGroup> _recepientGroups;
         private readonly List<DtoReport> _reports;
 
-        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper)
+        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper,IArchiver archiver)
         {
+            _archiver = archiver;
             _mapper = mapper;
             _autofac = autofac;
             _repository = repository;
@@ -142,7 +147,7 @@ namespace ReportService.Core
 
         public void Start()
         {
-            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+           // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
             UpdateScheduleList();
             UpdateRecepientGroupsList();
             UpdateReportsList();
@@ -197,7 +202,15 @@ namespace ReportService.Core
 
         public string GetFullInstanceList_HtmlPage(int taskId)
         {
-            List<DtoFullInstance> instances = _repository.GetFullInstancesByTaskId(taskId);
+            List<DtoFullInstance> instancesByteData = _repository.GetFullInstancesByTaskId(taskId);
+            var instances = new List<RFullInstance>();
+            foreach (var instance in instancesByteData)
+            {
+                var rinstance = _mapper.Map<RFullInstance>(instance);
+                rinstance.Data = _archiver.ExtractFromBytes(instance.Data);
+                rinstance.ViewData = _archiver.ExtractFromBytes(instance.ViewData);
+                instances.Add(rinstance);
+            }
             IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("instancelistviewex");
             var jsonInstances = JsonConvert.SerializeObject(instances);
             return tableView.Execute("", jsonInstances);
@@ -257,7 +270,11 @@ namespace ReportService.Core
 
         public string GetFullInstanceByIdJson(int id)
         {
-            return JsonConvert.SerializeObject(_repository.GetFullInstanceById(id));
+            var instance = _repository.GetFullInstanceById(id);
+            var rinstance = _mapper.Map<RFullInstance>(instance);
+            rinstance.Data = _archiver.ExtractFromBytes(instance.Data);
+            rinstance.ViewData = _archiver.ExtractFromBytes(instance.ViewData);
+            return JsonConvert.SerializeObject(rinstance);
         }
 
         public void DeleteInstance(int instanceId)

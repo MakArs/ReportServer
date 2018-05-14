@@ -237,8 +237,8 @@ namespace ReportService.Core
                 IF object_id('InstanceData') IS NULL
                 CREATE TABLE InstanceData(
 	            InstanceId INT NOT NULL,
-	            Data NVARCHAR(MAX) NULL,
-	            ViewData NVARCHAR(MAX) NULL,
+	            Data VARBINARY(MAX) NULL,
+	            ViewData VARBINARY(MAX) NULL,
                 CONSTRAINT FK_InstanceData_Data FOREIGN KEY(InstanceId)
                 REFERENCES Instance(Id)
                 )");

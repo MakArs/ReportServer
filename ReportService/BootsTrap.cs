@@ -51,6 +51,11 @@ namespace ReportService
             var repository = new Repository(ConfigurationManager.AppSettings["DBConnStr"]);
             existingContainer.RegisterInstance<IRepository, Repository>(repository);
 
+            // Partial bootstrapper
+            IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
+            if (privboots != null)
+                privboots.PrivateConfigureApplicationContainer(existingContainer);
+
             // Configure Monik
             var logSender = new AzureSender(
                 ConfigurationManager.AppSettings["monikendpoint"],
@@ -71,23 +76,24 @@ namespace ReportService
             existingContainer.Update(builder => builder
                 .Register(c => existingContainer));
 
-            // Partial bootstrapper
-            IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
-            if (privboots != null)
-                privboots.PrivateConfigureApplicationContainer(existingContainer);
-
             //mapper instance
             var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
             // Hint: add to ctor if many profiles needed: cfg.AddProfile(typeof(AutoMapperProfile));
-
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
             existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
 
-            var compressor = new SevenZipCompressor { CompressionMode = CompressionMode.Create , ArchiveFormat = OutArchiveFormat.SevenZip};
-            var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
+            //compressore instance
+            var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
             SevenZipBase.SetLibraryPath(path);
-            existingContainer.RegisterSingleInstance<SevenZipCompressor,SevenZipCompressor>(compressor);
+            var compressor = new SevenZipCompressor
+            {
+                CompressionMode = CompressionMode.Create,
+                ArchiveFormat = OutArchiveFormat.SevenZip
+            };
+            var archiver = new Archiver(compressor);
+            existingContainer.RegisterSingleInstance<IArchiver, Archiver>(archiver);
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
@@ -162,20 +168,23 @@ namespace ReportService
             CreateMap<RTask, ApiFullTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-                .ForMember("ReportType", opt => opt.MapFrom(s => (int)s.Type));
-            
+                .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));
+
             CreateMap<ApiFullTask, DtoTask>();
             CreateMap<ApiFullTask, DtoReport>();
 
-             // .ForMember("ConnectionString", opt => opt.MapFrom(s => s.ConnectionString == "" ? null : s.ConnectionString));
+            // .ForMember("ConnectionString", opt => opt.MapFrom(s => s.ConnectionString == "" ? null : s.ConnectionString));
             CreateMap<RTask, ApiTask>()
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("ReportType", opt => opt.MapFrom(s => (int)s.Type));
+                .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));
 
             CreateMap<DtoFullInstance, DtoInstance>();
             CreateMap<DtoFullInstance, DtoInstanceData>()
                 .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
+            CreateMap<DtoFullInstance, RFullInstance>()
+                .ForMember("Data", opt => opt.Ignore())
+                .ForMember("ViewData", opt => opt.Ignore());
         }
     }
 }
