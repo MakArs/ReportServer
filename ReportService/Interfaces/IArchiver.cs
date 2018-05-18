@@ -3,6 +3,6 @@
     public interface IArchiver
     {
         byte[] CompressString(string data);
-        string ExtractFromBytes(byte[] byteData);
+        string ExtractFromByteArchive(byte[] byteData);
     }
 }

@@ -1,10 +1,6 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
-using ReportService.Interfaces;
-
-namespace ReportService.View
+﻿namespace ReportService.View
 {
-    public class TaskListViewExecutor : ViewExecutor, IViewExecutor
+    public class TaskListViewExecutor : CommonViewExecutor
     {
         public override string Execute(string viewTemplate, string json)
         {

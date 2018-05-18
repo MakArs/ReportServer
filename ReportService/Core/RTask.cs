@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using Autofac;
 using AutoMapper;
-using LZ4;
 using Monik.Client;
 using ReportService.Interfaces;
-using SevenZip;
 
 namespace ReportService.Core
 {
@@ -88,8 +84,9 @@ namespace ReportService.Core
             _repository.CreateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
 
             string[] deliveryAddrs;
+
             if (!string.IsNullOrEmpty(address))
-                deliveryAddrs = new string[] {address};
+                deliveryAddrs = new[] {address};
             else
             {
                 try
@@ -158,7 +155,7 @@ namespace ReportService.Core
            
             _repository.UpdateEntity(_mapper.Map<DtoInstance>(dtoInstance));
             _repository.UpdateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
-            }
+            }//method
 
         public string GetCurrentView()
         {

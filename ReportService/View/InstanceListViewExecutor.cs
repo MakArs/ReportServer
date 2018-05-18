@@ -1,8 +1,6 @@
-﻿using ReportService.Interfaces;
-
-namespace ReportService.View
+﻿namespace ReportService.View
 {
-    public class InstanceListViewExecutor : ViewExecutor, IViewExecutor
+    public class InstanceListViewExecutor : CommonViewExecutor
     {
         public override string Execute(string viewTemplate, string json)
         {

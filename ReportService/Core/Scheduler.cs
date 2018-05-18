@@ -6,10 +6,8 @@ namespace ReportService.Core
 {
     public class Scheduler
     {
-        public Scheduler() { }
-
         public int Period { get; set; } = 60; // in seconds
-        public Action TaskMethod { get; set; } = null; // may be with exceptions
+        public Action TaskMethod { get; set; } // may be with exceptions
 
         private Task _workTask;
         private bool _started = false;

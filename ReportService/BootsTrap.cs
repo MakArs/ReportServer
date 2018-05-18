@@ -23,7 +23,7 @@ namespace ReportService
 
     public partial class Bootstrapper : AutofacNancyBootstrapper
     {
-        public static ILifetimeScope Global;
+        public static ILifetimeScope Global; //mech of work?
 
         public ILifetimeScope Container => ApplicationContainer;
 
@@ -39,29 +39,38 @@ namespace ReportService
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
             // Perform registration that should have an application lifetime
-            existingContainer.RegisterNamedImplementation<IDataExecutor, DataExecutor>("commondataex");
-            existingContainer.RegisterNamedImplementation<IViewExecutor, ViewExecutor>("commonviewex");
-            existingContainer.RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
+            existingContainer
+                .RegisterNamedImplementation<IDataExecutor, CommonDataExecutor>("commondataex");
+            existingContainer
+                .RegisterNamedImplementation<IViewExecutor, CommonViewExecutor>("commonviewex");
+            existingContainer
+                .RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
             existingContainer
                 .RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
-            existingContainer.RegisterSingleton<IPostMaster, PostMasterWork>();
-            existingContainer.RegisterSingleton<ILogic, Logic>();
-            existingContainer.RegisterImplementation<IRTask, RTask>();
+            existingContainer
+                .RegisterSingleton<IPostMaster, PostMasterWork>();
+            existingContainer
+                .RegisterSingleton<ILogic, Logic>();
+            existingContainer
+                .RegisterImplementation<IRTask, RTask>();
 
             var repository = new Repository(ConfigurationManager.AppSettings["DBConnStr"]);
-            existingContainer.RegisterInstance<IRepository, Repository>(repository);
+            existingContainer
+                .RegisterInstance<IRepository, Repository>(repository);
 
             // Partial bootstrapper
             IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
             if (privboots != null)
-                privboots.PrivateConfigureApplicationContainer(existingContainer);
+                privboots
+                    .PrivateConfigureApplicationContainer(existingContainer);
 
             // Configure Monik
             var logSender = new AzureSender(
                 ConfigurationManager.AppSettings["monikendpoint"],
                 "incoming");
 
-            existingContainer.RegisterInstance<IClientSender, AzureSender>(logSender);
+            existingContainer
+                .RegisterInstance<IClientSender, AzureSender>(logSender);
 
             var monikSettings = new ClientSettings()
             {
@@ -69,16 +78,20 @@ namespace ReportService
                 InstanceName = ConfigurationManager.AppSettings["InstanceName"],
                 AutoKeepAliveEnable = true
             };
-            existingContainer.RegisterInstance<IClientSettings, ClientSettings>(monikSettings);
 
-            existingContainer.RegisterSingleton<IClientControl, MonikInstance>();
+            existingContainer
+                .RegisterInstance<IClientSettings, ClientSettings>(monikSettings);
 
-            existingContainer.Update(builder => builder
-                .Register(c => existingContainer));
+            existingContainer
+                .RegisterSingleton<IClientControl, MonikInstance>();
+
+            existingContainer //why?
+                .RegisterInstance<ILifetimeScope,ILifetimeScope>(existingContainer);
+            
 
             //mapper instance
             var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
-            // Hint: add to ctor if many profiles needed: cfg.AddProfile(typeof(AutoMapperProfile));
+            // Hint: add to ctor if many profileSs needed: cfg.AddProfile(typeof(AutoMapperProfile));
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
             existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
@@ -92,8 +105,8 @@ namespace ReportService
                 CompressionMode = CompressionMode.Create,
                 ArchiveFormat = OutArchiveFormat.SevenZip
             };
-            var archiver = new Archiver(compressor);
-            existingContainer.RegisterSingleInstance<IArchiver, Archiver>(archiver);
+            var archiver = new Archiver7Zip(compressor);
+            existingContainer.RegisterSingleInstance<IArchiver, Archiver7Zip>(archiver);
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)

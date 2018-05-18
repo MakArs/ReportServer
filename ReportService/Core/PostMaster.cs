@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.IO;
 using System.Net.Mail;
-using System.Net.Mime;
 using Monik.Client;
 using ReportService.Interfaces;
 
@@ -41,6 +40,7 @@ namespace ReportService.Core
             string filename = "";
             bool hasHtml = !string.IsNullOrEmpty(htmlReport);
             bool hasJson = !string.IsNullOrEmpty(jsonReport);
+
             SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);

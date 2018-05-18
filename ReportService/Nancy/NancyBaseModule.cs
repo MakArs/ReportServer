@@ -33,8 +33,5 @@ namespace ReportService.Nancy
 
     public class NancyBaseModule : NancyModule
     {
-        public NancyBaseModule()
-        {
-        }
     }
 }

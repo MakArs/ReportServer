@@ -128,7 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BootsTrap.cs" />
-    <Compile Include="Core\Archiver.cs" />
+    <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Interfaces\IArchiver.cs" />
     <Compile Include="Nancy\HostHolder.cs" />
     <Compile Include="Nancy\NancyBaseModule.cs" />
@@ -144,12 +144,12 @@
     <Compile Include="Interfaces\IRTask.cs" />
     <Compile Include="Interfaces\IViewExecutor.cs" />
     <Compile Include="Core\Repository.cs" />
-    <Compile Include="Core\DataExecutor.cs" />
+    <Compile Include="Core\CommonDataExecutor.cs" />
     <Compile Include="Core\Logic.cs" />
     <Compile Include="Nancy\NancySiteModule.cs" />
     <Compile Include="View\InstanceListViewExecutor.cs" />
     <Compile Include="View\TaskListViewExecutor.cs" />
-    <Compile Include="View\ViewExecutor.cs" />
+    <Compile Include="View\CommonViewExecutor.cs" />
     <Compile Include="PluginFolder\DailyReport.cs" />
     <Compile Include="PluginFolder\WeeklyReport.cs" />
     <Compile Include="PluginFolder\PrivateBootsTrap.cs" />

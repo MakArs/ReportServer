@@ -8,7 +8,7 @@ using ReportService.Interfaces;
 
 namespace ReportService.View
 {
-    public class ViewExecutor : IViewExecutor
+    public class CommonViewExecutor : IViewExecutor
     {
         public virtual string Execute(string viewTemplate, string json)
         {

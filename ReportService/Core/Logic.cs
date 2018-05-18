@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -11,36 +9,39 @@ using Monik.Client;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
-using SevenZip;
 
 namespace ReportService.Core
 {
     public class Logic : ILogic
     {
         private readonly ILifetimeScope _autofac;
-        private readonly IRepository _repository;
-        private readonly IClientControl _monik;
         private readonly IMapper _mapper;
+        private readonly IClientControl _monik;
         private readonly IArchiver _archiver;
-
+        private readonly IRepository _repository;
         private readonly Scheduler _checkScheduleAndExecuteScheduler;
-        private readonly List<RTask> _tasks;
-        private readonly List<DtoSchedule> _schedules;
+        private readonly IViewExecutor _tableView;
+
         private readonly List<RRecepientGroup> _recepientGroups;
+        private readonly List<DtoSchedule> _schedules;
         private readonly List<DtoReport> _reports;
+        private readonly List<IRTask> _tasks;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper,IArchiver archiver)
         {
-            _archiver = archiver;
-            _mapper = mapper;
             _autofac = autofac;
-            _repository = repository;
-            _tasks = new List<RTask>();
-            _schedules = new List<DtoSchedule>();
-            _recepientGroups = new List<RRecepientGroup>();
-            _reports=new List<DtoReport>();
-            _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
+            _mapper = mapper;
             _monik = monik;
+            _archiver = archiver;
+            _repository = repository;
+
+            _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
+            _tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+
+            _recepientGroups = new List<RRecepientGroup>();
+            _schedules = new List<DtoSchedule>();
+            _reports=new List<DtoReport>();
+            _tasks = new List<IRTask>();
         }//ctor
 
         private void UpdateRecepientGroupsList()
@@ -104,14 +105,14 @@ namespace ReportService.Core
                         new NamedParameter("htmlBody", dtoTask.HasHtmlBody),
                         new NamedParameter("jsonAttach", dtoTask.HasJsonAttachment));
 
-                    _tasks.Add((RTask)task);
+                    _tasks.Add(task);
                 }
             } //lock
         }
 
         private void CheckScheduleAndExecute()
         {
-            List<RTask> tasks;
+            List<IRTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
 
@@ -162,7 +163,7 @@ namespace ReportService.Core
 
         public string ForceExecute(int taskId, string mail)
         {
-            List<RTask> tasks;
+            List<IRTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
 
@@ -178,8 +179,8 @@ namespace ReportService.Core
 
         public string GetTaskList_HtmlPage()
         {
-            List<RTask> tasks;
-            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+            List<IRTask> tasks;
+            
             lock (this)
                 tasks = _tasks.ToList();
 
@@ -197,7 +198,7 @@ namespace ReportService.Core
                 })
                 .ToList();
             var jsonTasks = JsonConvert.SerializeObject(tasksView);
-            return tableView.Execute("", jsonTasks);
+            return _tableView.Execute("", jsonTasks);
         }
 
         public string GetFullInstanceList_HtmlPage(int taskId)
@@ -207,18 +208,18 @@ namespace ReportService.Core
             foreach (var instance in instancesByteData)
             {
                 var rinstance = _mapper.Map<RFullInstance>(instance);
-                rinstance.Data = _archiver.ExtractFromBytes(instance.Data);
-                rinstance.ViewData = _archiver.ExtractFromBytes(instance.ViewData);
+                rinstance.Data = _archiver.ExtractFromByteArchive(instance.Data);
+                rinstance.ViewData = _archiver.ExtractFromByteArchive(instance.ViewData);
                 instances.Add(rinstance);
             }
-            IViewExecutor tableView = _autofac.ResolveNamed<IViewExecutor>("instancelistviewex");
+
             var jsonInstances = JsonConvert.SerializeObject(instances);
-            return tableView.Execute("", jsonInstances);
+            return _tableView.Execute("", jsonInstances);
         }
 
         public string GetAllTasksJson()
         {
-            List<RTask> tasks;
+            List<IRTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
             var tr= JsonConvert.SerializeObject(tasks
@@ -228,7 +229,7 @@ namespace ReportService.Core
 
         public string GetFullTaskByIdJson(int id)
         {
-            List<RTask> tasks;
+            List<IRTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
             return JsonConvert.SerializeObject(_mapper.Map<ApiFullTask>(tasks.First(t => t.Id == id)));
@@ -272,8 +273,8 @@ namespace ReportService.Core
         {
             var instance = _repository.GetFullInstanceById(id);
             var rinstance = _mapper.Map<RFullInstance>(instance);
-            rinstance.Data = _archiver.ExtractFromBytes(instance.Data);
-            rinstance.ViewData = _archiver.ExtractFromBytes(instance.ViewData);
+            rinstance.Data = _archiver.ExtractFromByteArchive(instance.Data);
+            rinstance.ViewData = _archiver.ExtractFromByteArchive(instance.ViewData);
             return JsonConvert.SerializeObject(rinstance);
         }
 
@@ -317,7 +318,7 @@ namespace ReportService.Core
 
         public string GetCurrentViewByTaskId(int taskId)
         {
-            List<RTask> tasks;
+            List<IRTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
 

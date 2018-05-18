@@ -1,15 +1,14 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using ReportService.Interfaces;
 using SevenZip;
 
 namespace ReportService.Core
 {
-    public class Archiver : IArchiver
+    public class Archiver7Zip : IArchiver
     {
         private readonly SevenZipCompressor _compressor;
 
-        public Archiver(SevenZipCompressor compressor)
+        public Archiver7Zip(SevenZipCompressor compressor)
         {
             _compressor = compressor;
         }
@@ -28,7 +27,7 @@ namespace ReportService.Core
             }
         }
 
-        public string ExtractFromBytes(byte[] byteData)
+        public string ExtractFromByteArchive(byte[] byteData)
         {
             using (var compressedStream = new MemoryStream(byteData))
             {

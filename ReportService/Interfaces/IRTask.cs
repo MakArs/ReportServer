@@ -48,6 +48,19 @@ namespace ReportService.Interfaces
 
     public interface IRTask
     {
+        int Id { get; }
+        RRecepientGroup SendAddresses { get; }
+        string ViewTemplate { get; }
+        DtoSchedule Schedule { get; }
+        string ConnectionString { get; }
+        string Query { get; }
+        int TryCount { get; }
+        int QueryTimeOut { get; }
+        RReportType Type { get; }
+        int ReportId { get; }
+        bool HasHtmlBody { get; }
+        bool HasJsonAttachment { get; }
+
         void Execute(string address = null);
         string GetCurrentView();
     }
