@@ -1,4 +1,7 @@
-﻿namespace ReportService.View
+﻿using PagedList;
+using PagedList.Mvc;
+
+namespace ReportService.View
 {
     public class TaskListViewExecutor : CommonViewExecutor
     {
@@ -46,6 +49,6 @@
     </table>
 </body>
 </html>";
-    }//class
+    } //class
 }
 

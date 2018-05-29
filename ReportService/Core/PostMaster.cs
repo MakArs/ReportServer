@@ -38,11 +38,11 @@ namespace ReportService.Core
         public void Send(string[] addresses, string htmlReport = null, string jsonReport = null)
         {
             string filename = "";
-            bool hasHtml = !string.IsNullOrEmpty(htmlReport);
-            bool hasJson = !string.IsNullOrEmpty(jsonReport);
+            bool   hasHtml  = !string.IsNullOrEmpty(htmlReport);
+            bool   hasJson  = !string.IsNullOrEmpty(jsonReport);
 
-            SmtpClient client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
-            MailMessage msg = new MailMessage();
+            SmtpClient  client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
+            MailMessage msg    = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             foreach (var address in addresses)
                 msg.To.Add(new MailAddress(address));
@@ -51,7 +51,7 @@ namespace ReportService.Core
             if (hasHtml)
             {
                 msg.IsBodyHtml = true;
-                msg.Body = htmlReport;
+                msg.Body       = htmlReport;
             }
 
             if (hasJson)
@@ -67,7 +67,7 @@ namespace ReportService.Core
                 msg.Attachments.Add(new Attachment(filename));
             }
 
-            client.EnableSsl = true;
+            client.EnableSsl      = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
             try

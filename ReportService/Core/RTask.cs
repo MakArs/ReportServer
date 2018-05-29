@@ -4,23 +4,25 @@ using Autofac;
 using AutoMapper;
 using Monik.Client;
 using ReportService.Interfaces;
+using Telegram.Bot;
 
 namespace ReportService.Core
 {
     public class RTask : IRTask
     {
-        public int Id { get; }
-        public RRecepientGroup SendAddresses { get; }
-        public string ViewTemplate { get; }
-        public DtoSchedule Schedule { get; }
-        public string ConnectionString { get; }
-        public string Query { get; }
-        public int TryCount { get; }
-        public int QueryTimeOut { get; }
-        public RReportType Type { get; }
-        public int ReportId { get; }
-        public bool HasHtmlBody { get; }
-        public bool HasJsonAttachment { get; }
+        public int             Id                { get; }
+        public RRecepientGroup SendAddresses     { get; }
+        public string          ViewTemplate      { get; }
+        public DtoSchedule     Schedule          { get; }
+        public string          ConnectionString  { get; }
+        public string          Query             { get; }
+        public long            ChatId            { get; }
+        public int             TryCount          { get; }
+        public int             QueryTimeOut      { get; }
+        public RReportType     Type              { get; }
+        public int             ReportId          { get; }
+        public bool            HasHtmlBody       { get; }
+        public bool            HasJsonAttachment { get; }
 
         private readonly IDataExecutor _dataEx;
         private readonly IViewExecutor _viewEx;
@@ -29,11 +31,13 @@ namespace ReportService.Core
         private readonly IClientControl _monik;
         private readonly IMapper _mapper;
         private readonly IArchiver _archiver;
+        private readonly ITelegramBotClient _bot;
 
-        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository, IClientControl monik,
-            IMapper mapper, IArchiver archiver,
-            int id, string template, DtoSchedule schedule, string query, RRecepientGroup sendAddress, int tryCount,
-            int timeOut, RReportType reportType, string connStr,int reportId,bool htmlBody,bool jsonAttach)
+        public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository,
+                     IClientControl monik, IMapper mapper, IArchiver archiver, ITelegramBotClient botClient,
+                     int id, string template, DtoSchedule schedule, string connStr, string query,
+                     long chatId, RRecepientGroup sendAddress, int tryCount, int timeOut,
+                     RReportType reportType, int reportId, bool htmlBody, bool jsonAttach)
         {
             Type = reportType;
 
@@ -51,22 +55,24 @@ namespace ReportService.Core
                     throw new NotImplementedException();
             }
 
-            _archiver = archiver;
-            _postMaster = postMaster;
-            Id = id;
-            Query = query;
-            ViewTemplate = template;
-            ReportId = reportId;
-            SendAddresses = sendAddress;
-            Schedule = schedule;
-            _repository = repository;
-            TryCount = tryCount;
-            QueryTimeOut = timeOut;
-            ConnectionString = connStr;
-            HasHtmlBody = htmlBody;
+            _archiver         = archiver;
+            _postMaster       = postMaster;
+            Id                = id;
+            Query             = query;
+            ChatId            = chatId;
+            ViewTemplate      = template;
+            ReportId          = reportId;
+            SendAddresses     = sendAddress;
+            Schedule          = schedule;
+            _repository       = repository;
+            TryCount          = tryCount;
+            QueryTimeOut      = timeOut;
+            ConnectionString  = connStr;
+            HasHtmlBody       = htmlBody;
             HasJsonAttachment = jsonAttach;
-            _monik = monik;
-            _mapper = mapper;
+            _monik            = monik;
+            _mapper           = mapper;
+            _bot              = botClient;
         }
 
         public void Execute(string address = null)
@@ -74,8 +80,8 @@ namespace ReportService.Core
             var dtoInstance = new DtoFullInstance()
             {
                 StartTime = DateTime.Now,
-                TaskId = Id,
-                State = (int) InstanceState.InProcess
+                TaskId    = Id,
+                State     = (int) InstanceState.InProcess
             };
 
             dtoInstance.Id =
@@ -103,17 +109,17 @@ namespace ReportService.Core
 
             Stopwatch duration = new Stopwatch();
             duration.Start();
-            int i = 1;
-            bool dataObtained = false;
-            string jsonReport = "";
-            string htmlReport = "";
+            int    i            = 1;
+            bool   dataObtained = false;
+            string jsonReport   = "";
+            string htmlReport   = "";
 
             while (!dataObtained && i <= TryCount)
             {
                 try
                 {
-                    jsonReport = _dataEx.Execute(this);
-                    htmlReport = _viewEx.Execute(ViewTemplate, jsonReport);
+                    jsonReport   = _dataEx.Execute(this);
+                    htmlReport   = _viewEx.Execute(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;
@@ -134,7 +140,10 @@ namespace ReportService.Core
                     _postMaster.Send(deliveryAddrs,
                         HasHtmlBody ? htmlReport : null,
                         HasJsonAttachment ? jsonReport : null);
-
+                    if (ChatId!=0)
+                    {
+                        _bot.SendTextMessageAsync(ChatId, htmlReport).Wait();
+                    }
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)
@@ -145,30 +154,30 @@ namespace ReportService.Core
 
             duration.Stop();
 
-            dtoInstance.Data = _archiver.CompressString(jsonReport);
-            dtoInstance.ViewData = _archiver.CompressString(htmlReport);
+            dtoInstance.Data      = _archiver.CompressString(jsonReport);
+            dtoInstance.ViewData  = _archiver.CompressString(htmlReport);
             dtoInstance.TryNumber = i - 1;
-            dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
-            dtoInstance.State = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
+            dtoInstance.Duration  = Convert.ToInt32(duration.ElapsedMilliseconds);
+            dtoInstance.State     = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
             // string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{Id}-{DateTime.Now:HHmmss}";
-           
+
             _repository.UpdateEntity(_mapper.Map<DtoInstance>(dtoInstance));
             _repository.UpdateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
-            }//method
+        } //method
 
         public string GetCurrentView()
         {
-            int i = 1;
-            bool dataObtained = false;
-            string htmlReport = "";
+            int    i            = 1;
+            bool   dataObtained = false;
+            string htmlReport   = "";
 
             while (!dataObtained && i <= TryCount)
             {
                 try
                 {
                     var jsonReport = _dataEx.Execute(this);
-                    htmlReport = _viewEx.Execute(ViewTemplate, jsonReport);
+                    htmlReport   = _viewEx.Execute(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;
@@ -180,6 +189,7 @@ namespace ReportService.Core
 
                 i++;
             }
+
             return htmlReport;
         }
     } //class

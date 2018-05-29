@@ -9,13 +9,13 @@ namespace ReportService.Nancy
     public class HostHolder : IHostHolder
     {
         private readonly IClientControl _monik;
-        private readonly NancyHost _nancyHost;
+        private readonly NancyHost      _nancyHost;
 
         public HostHolder()
         {
             _nancyHost = new NancyHost(
-                new Uri("http://localhost:12345"), 
-                new Bootstrapper(), 
+                new Uri("http://localhost:12345"),
+                new Bootstrapper(),
                 HostConfigs);
 
             _monik = Bootstrapper.Global.Resolve<IClientControl>();
@@ -24,7 +24,8 @@ namespace ReportService.Nancy
 
         private static readonly HostConfiguration HostConfigs = new HostConfiguration()
         {
-            UrlReservations = new UrlReservations() {CreateAutomatically = true}, RewriteLocalhost = true
+            UrlReservations  = new UrlReservations() {CreateAutomatically = true},
+            RewriteLocalhost = true
         };
 
         public void Start()

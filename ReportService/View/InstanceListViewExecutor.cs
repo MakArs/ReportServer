@@ -46,5 +46,5 @@
     </table>
 </body>
 </html>";
-    }//class
+    } //class
 }

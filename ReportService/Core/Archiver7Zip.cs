@@ -31,10 +31,10 @@ namespace ReportService.Core
         {
             using (var compressedStream = new MemoryStream(byteData))
             {
-                var extractor=new SevenZipExtractor(compressedStream);
-                using (var extractedStream= new MemoryStream())
+                var extractor = new SevenZipExtractor(compressedStream);
+                using (var extractedStream = new MemoryStream())
                 {
-                    extractor.ExtractFile(0,extractedStream);
+                    extractor.ExtractFile(0, extractedStream);
                     return System.Text.Encoding.UTF8.GetString(extractedStream.ToArray());
                 }
             }

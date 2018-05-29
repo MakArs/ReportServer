@@ -1,5 +1,4 @@
-﻿using System;
-using Nancy;
+﻿using Nancy;
 using ReportService.Interfaces;
 
 namespace ReportService.Nancy
@@ -40,12 +39,12 @@ namespace ReportService.Nancy
 
             Get["/send"] = parameters =>
             {
-                int id = Request.Query.id;
+                int    id   = Request.Query.id;
                 string mail = Request.Query.address;
                 try
                 {
                     string sentReps = logic.ForceExecute(id, mail);
-                    var response = (Response)sentReps;
+                    var    response = (Response) sentReps;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

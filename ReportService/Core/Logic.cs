@@ -15,34 +15,38 @@ namespace ReportService.Core
     public class Logic : ILogic
     {
         private readonly ILifetimeScope _autofac;
-        private readonly IMapper _mapper;
+        private readonly IMapper        _mapper;
         private readonly IClientControl _monik;
-        private readonly IArchiver _archiver;
-        private readonly IRepository _repository;
-        private readonly Scheduler _checkScheduleAndExecuteScheduler;
-        private readonly IViewExecutor _tableView;
+        private readonly IArchiver      _archiver;
+        private readonly IRepository    _repository;
+        private readonly Scheduler      _checkScheduleAndExecuteScheduler;
+        private readonly IViewExecutor  _tableView;
 
         private readonly List<RRecepientGroup> _recepientGroups;
-        private readonly List<DtoSchedule> _schedules;
-        private readonly List<DtoReport> _reports;
-        private readonly List<IRTask> _tasks;
+        private readonly List<DtoSchedule>     _schedules;
+        private readonly List<DtoReport>       _reports;
+        private readonly List<DtoTelegramChannel> _telegramChannels;
+        private readonly List<IRTask>          _tasks;
 
-        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik, IMapper mapper,IArchiver archiver)
+        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
+                     IMapper mapper, IArchiver archiver)
         {
-            _autofac = autofac;
-            _mapper = mapper;
-            _monik = monik;
-            _archiver = archiver;
+            _autofac    = autofac;
+            _mapper     = mapper;
+            _monik      = monik;
+            _archiver   = archiver;
             _repository = repository;
 
             _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
-            _tableView = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+            _tableView                        = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
 
-            _recepientGroups = new List<RRecepientGroup>();
-            _schedules = new List<DtoSchedule>();
-            _reports=new List<DtoReport>();
-            _tasks = new List<IRTask>();
-        }//ctor
+            _recepientGroups  = new List<RRecepientGroup>();
+            _schedules        = new List<DtoSchedule>();
+            _reports          = new List<DtoReport>();
+            _telegramChannels = new List<DtoTelegramChannel>();
+            _tasks            = new List<IRTask>();
+
+        } //ctor
 
         private void UpdateRecepientGroupsList()
         {
@@ -79,6 +83,19 @@ namespace ReportService.Core
             }
         }
 
+        private void UpdateTelegramChannelsList()
+        {
+            var chanList = _repository.GetAllTelegramChannels();
+            lock (this)
+            {
+                _telegramChannels.Clear();
+                foreach (var channel in chanList)
+                {
+                    _telegramChannels.Add(channel);
+                }
+            }
+        }
+
         private void UpdateTaskList()
         {
             var taskLst = _repository.GetAllTasks();
@@ -95,11 +112,13 @@ namespace ReportService.Core
                         new NamedParameter("schedule", _schedules
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                         new NamedParameter("query", report.Query),
+                        new NamedParameter("chatId", _telegramChannels
+                            .FirstOrDefault(tc => tc.Id == dtoTask.TelegramChannelId)?.ChatId),
                         new NamedParameter("sendAddress", _recepientGroups
                             .FirstOrDefault(r => r.Id == dtoTask.RecepientGroupId)),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", report.QueryTimeOut),
-                        new NamedParameter("reportType", (RReportType)report.ReportType),
+                        new NamedParameter("reportType", (RReportType) report.ReportType),
                         new NamedParameter("connStr", report.ConnectionString),
                         new NamedParameter("reportId", report.Id),
                         new NamedParameter("htmlBody", dtoTask.HasHtmlBody),
@@ -118,7 +137,7 @@ namespace ReportService.Core
 
             DateTime time = DateTime.Now;
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
-            var currentDay = time.ToString("ddd").ToLower().Substring(0, 2);
+            var currentDay  = time.ToString("ddd").ToLower().Substring(0, 2);
             var currentTime = time.ToString("HHmm");
 
             foreach (var task in tasks.Where(x => x.Schedule != null))
@@ -148,10 +167,11 @@ namespace ReportService.Core
 
         public void Start()
         {
-           // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
             UpdateScheduleList();
             UpdateRecepientGroupsList();
             UpdateReportsList();
+            UpdateTelegramChannelsList();
             UpdateTaskList();
             _checkScheduleAndExecuteScheduler.OnStart();
         }
@@ -175,12 +195,10 @@ namespace ReportService.Core
             Task.Factory.StartNew(() => task.Execute(mail));
             return $"Report {taskId} sent!";
         }
-
-
+        
         public string GetTaskList_HtmlPage()
         {
             List<IRTask> tasks;
-            
             lock (this)
                 tasks = _tasks.ToList();
 
@@ -198,17 +216,18 @@ namespace ReportService.Core
                 })
                 .ToList();
             var jsonTasks = JsonConvert.SerializeObject(tasksView);
-            return _tableView.Execute("", jsonTasks);
+            var tr= _tableView.Execute("", jsonTasks);
+            return tr;
         }
 
         public string GetFullInstanceList_HtmlPage(int taskId)
         {
             List<DtoFullInstance> instancesByteData = _repository.GetFullInstancesByTaskId(taskId);
-            var instances = new List<RFullInstance>();
+            var                   instances         = new List<RFullInstance>();
             foreach (var instance in instancesByteData)
             {
                 var rinstance = _mapper.Map<RFullInstance>(instance);
-                rinstance.Data = _archiver.ExtractFromByteArchive(instance.Data);
+                rinstance.Data     = _archiver.ExtractFromByteArchive(instance.Data);
                 rinstance.ViewData = _archiver.ExtractFromByteArchive(instance.ViewData);
                 instances.Add(rinstance);
             }
@@ -222,7 +241,7 @@ namespace ReportService.Core
             List<IRTask> tasks;
             lock (this)
                 tasks = _tasks.ToList();
-            var tr= JsonConvert.SerializeObject(tasks
+            var tr = JsonConvert.SerializeObject(tasks
                 .Select(t => _mapper.Map<ApiTask>(t)));
             return tr;
         }
@@ -244,11 +263,11 @@ namespace ReportService.Core
 
         public int CreateTask(ApiFullTask task)
         {
-                var dtoTask = _mapper.Map<DtoTask>(task);
-                var newTaskId = _repository.CreateEntity(dtoTask);
-                UpdateTaskList();
-                _monik.ApplicationInfo($"Создана задача {newTaskId}");
-                return newTaskId;
+            var dtoTask   = _mapper.Map<DtoTask>(task);
+            var newTaskId = _repository.CreateEntity(dtoTask);
+            UpdateTaskList();
+            _monik.ApplicationInfo($"Создана задача {newTaskId}");
+            return newTaskId;
         }
 
         public void UpdateTask(ApiFullTask task)
@@ -271,9 +290,9 @@ namespace ReportService.Core
 
         public string GetFullInstanceByIdJson(int id)
         {
-            var instance = _repository.GetFullInstanceById(id);
+            var instance  = _repository.GetFullInstanceById(id);
             var rinstance = _mapper.Map<RFullInstance>(instance);
-            rinstance.Data = _archiver.ExtractFromByteArchive(instance.Data);
+            rinstance.Data     = _archiver.ExtractFromByteArchive(instance.Data);
             rinstance.ViewData = _archiver.ExtractFromByteArchive(instance.ViewData);
             return JsonConvert.SerializeObject(rinstance);
         }
@@ -303,7 +322,7 @@ namespace ReportService.Core
 
         public string GetAllSchedulesJson()
         {
-            return JsonConvert.SerializeObject(_schedules); 
+            return JsonConvert.SerializeObject(_schedules);
         }
 
         public string GetAllRecepientGroupsJson()

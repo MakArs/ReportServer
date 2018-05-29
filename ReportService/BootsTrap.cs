@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using Autofac;
 using AutoMapper;
@@ -13,6 +14,7 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using ReportService.View;
 using SevenZip;
+using Telegram.Bot;
 
 namespace ReportService
 {
@@ -58,13 +60,14 @@ namespace ReportService
             existingContainer
                 .RegisterInstance<IRepository, Repository>(repository);
 
-            // Partial bootstrapper
+            // Partial bootstrapper for private named implementations registration
             IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
             if (privboots != null)
                 privboots
                     .PrivateConfigureApplicationContainer(existingContainer);
 
-            // Configure Monik
+            #region ConfigureMonik
+
             var logSender = new AzureSender(
                 ConfigurationManager.AppSettings["monikendpoint"],
                 "incoming");
@@ -85,18 +88,20 @@ namespace ReportService
             existingContainer
                 .RegisterSingleton<IClientControl, MonikInstance>();
 
-            existingContainer //why?
-                .RegisterInstance<ILifetimeScope,ILifetimeScope>(existingContainer);
-            
+            #endregion
 
-            //mapper instance
+            #region ConfigureMapper
+
             var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
             // Hint: add to ctor if many profileSs needed: cfg.AddProfile(typeof(AutoMapperProfile));
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
-            existingContainer.RegisterInstance<IMapper, IMapper>(mapper);
+            existingContainer.RegisterSingleInstance<IMapper, IMapper>(mapper);
 
-            //compressore instance
+            #endregion
+
+            #region ConfigureCompressor
+
             var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                 Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
             SevenZipBase.SetLibraryPath(path);
@@ -107,6 +112,23 @@ namespace ReportService
             };
             var archiver = new Archiver7Zip(compressor);
             existingContainer.RegisterSingleInstance<IArchiver, Archiver7Zip>(archiver);
+
+            #endregion
+
+            #region ConfigureBot
+
+            Uri proxyUri = new Uri(ConfigurationManager.AppSettings["proxyUriAddr"]);
+            ICredentials credentials = new NetworkCredential(ConfigurationManager.AppSettings["proxyLogin"],
+                ConfigurationManager.AppSettings["proxyPassword"]);
+            WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
+            TelegramBotClient bot = new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"], proxy);
+            existingContainer
+                .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
+
+            #endregion
+
+            existingContainer //why?
+                .RegisterInstance<ILifetimeScope, ILifetimeScope>(existingContainer);
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)

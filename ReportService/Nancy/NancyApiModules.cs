@@ -56,8 +56,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var newTask = this.Bind<ApiFullTask>();
-                    var id = logic.CreateTask(newTask);
+                    var newTask  = this.Bind<ApiFullTask>();
+                    var id       = logic.CreateTask(newTask);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -126,7 +126,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetCurrentViewByTaskId(parameters.taskid);
+                    var response = (Response) logic.GetCurrentViewByTaskId(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -200,7 +200,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllRecepientGroupsJson();
+                    var response = (Response) logic.GetAllRecepientGroupsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -223,7 +223,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllReportsJson();
+                    var response = (Response) logic.GetAllReportsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -238,8 +238,8 @@ namespace ReportService.Nancy
                 try
                 {
                     var newReport = this.Bind<DtoReport>();
-                    var id = logic.CreateReport(newReport);
-                    var response = (Response)$"{id}";
+                    var id        = logic.CreateReport(newReport);
+                    var response  = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

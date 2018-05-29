@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using PagedList;
 using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
@@ -16,11 +17,11 @@ namespace ReportService.View
 
             TemplateServiceConfiguration templateConfig = new TemplateServiceConfiguration();
             templateConfig.DisableTempFileLocking = true;
-            templateConfig.CachingProvider = new DefaultCachingProvider(t => { });
+            templateConfig.CachingProvider        = new DefaultCachingProvider(t => { });
+            //templateConfig.Namespaces.Add("PagedList");
             var serv = RazorEngineService.Create(templateConfig);
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
-
             JArray jObj = JArray.Parse(json);
 
             List<string> headers = new List<string>();
@@ -35,6 +36,7 @@ namespace ReportService.View
 
                 content.Add(prop);
             }
+            //   var pagedList = content.ToPagedList(2,3);
 
             var model = new {Headers = headers, Content = content, Date = date};
 

@@ -6,15 +6,15 @@ namespace ReportService.Interfaces
     public class DtoRecepientGroup
     {
         public int Id { get; set; }
-        public string Name { get; set; } 
-        public string Addresses { get; set; } 
+        public string Name { get; set; }
+        public string Addresses { get; set; }
     }
 
     public class DtoSchedule
     {
         public int Id { get; set; }
-        public string Name { get; set; } 
-        public string Schedule { get; set; } 
+        public string Name { get; set; }
+        public string Schedule { get; set; }
     }
 
     public class DtoReport
@@ -28,12 +28,21 @@ namespace ReportService.Interfaces
         public int QueryTimeOut { get; set; } //seconds
     }
 
+    public class DtoTelegramChannel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public long ChatId { get; set; }
+    }
+
     public class DtoTask
     {
         public int Id { get; set; }
         public int ReportId { get; set; }
         public int? ScheduleId { get; set; }
         public int? RecepientGroupId { get; set; }
+        public int? TelegramChannelId { get; set; }
         public int TryCount { get; set; }
         public bool HasHtmlBody { get; set; }
         public bool HasJsonAttachment { get; set; }
@@ -42,8 +51,8 @@ namespace ReportService.Interfaces
     public class DtoFullInstance
     {
         public int Id { get; set; }
-        public byte[] Data { get; set; } 
-        public byte[] ViewData { get; set; } 
+        public byte[] Data { get; set; }
+        public byte[] ViewData { get; set; }
         public int TaskId { get; set; }
         public DateTime StartTime { get; set; }
         public int Duration { get; set; }
@@ -65,7 +74,7 @@ namespace ReportService.Interfaces
     {
         public int InstanceId { get; set; }
         public byte[] Data { get; set; }
-        public byte[]  ViewData { get; set; }
+        public byte[] ViewData { get; set; }
     }
 
 
@@ -74,6 +83,7 @@ namespace ReportService.Interfaces
         List<DtoRecepientGroup> GetAllRecepientGroups();
         List<DtoSchedule> GetAllSchedules();
         List<DtoReport> GetAllReports();
+        List<DtoTelegramChannel> GetAllTelegramChannels();
         List<DtoTask> GetAllTasks();
         List<DtoInstance> GetAllInstances();
         List<DtoInstance> GetInstancesByTaskId(int taskId);

@@ -36,6 +36,13 @@ namespace ReportService.Core
                 .ToList();
         }
 
+        public List<DtoTelegramChannel> GetAllTelegramChannels()
+        {
+            return SimpleCommand.ExecuteQuery<DtoTelegramChannel>(_connStr,
+                    "select * from TelegramChannel")
+                .ToList();
+        }
+
         public List<DtoTask> GetAllTasks()
         {
             return SimpleCommand.ExecuteQuery<DtoTask>(_connStr, "select * from task").ToList();
@@ -84,7 +91,7 @@ namespace ReportService.Core
                 case DtoReport rep:
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Report", rep, "Id");
 
-                case DtoTask task: 
+                case DtoTask task:
                     return (int) MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
 
                 case DtoInstance instance:
@@ -95,6 +102,10 @@ namespace ReportService.Core
                     MappedCommand.Insert(_connStr, "InstanceData", instanceData);
                     return 0;
                 }
+
+                case DtoTelegramChannel channel:
+                    return (int)MappedCommand.InsertAndGetId(_connStr, "TelegramChannel", channel, "Id");
+
                 default:
                     return 0;
             }
@@ -116,7 +127,7 @@ namespace ReportService.Core
                     MappedCommand.Update(_connStr, "Report", rep, "Id");
                     break;
 
-                case DtoTask task: 
+                case DtoTask task:
                     MappedCommand.Update(_connStr, "Task", task, "Id");
                     break;
 
@@ -126,6 +137,10 @@ namespace ReportService.Core
 
                 case DtoInstanceData instanceData:
                     MappedCommand.Update(_connStr, "InstanceData", instanceData, "InstanceId");
+                    break;
+
+                case DtoTelegramChannel channel:
+                    MappedCommand.Update(_connStr, "TelegramChannel", channel, "Id");
                     break;
             }
         }
@@ -138,7 +153,10 @@ namespace ReportService.Core
                 case bool _ when type == typeof(DtoRecepientGroup): //todo:method
                     break;
 
-                case bool _ when type == typeof(DtoSchedule)://todo:method
+                case bool _ when type == typeof(DtoSchedule): //todo:method
+                    break;
+
+                case bool _ when type == typeof(DtoTelegramChannel): //todo:method
                     break;
 
                 case bool _ when type == typeof(DtoInstance):
@@ -147,7 +165,8 @@ namespace ReportService.Core
                     break;
 
                 case bool _ when type == typeof(DtoTask):
-                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid in (select id from instance where TaskID={id})");
+                    SimpleCommand.ExecuteNonQuery(_connStr,
+                        $@"delete InstanceData where instanceid in (select id from instance where TaskID={id})");
                     SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where TaskID={id}");
                     SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={id}");
                     break;
@@ -178,7 +197,7 @@ namespace ReportService.Core
                 var schedules = new[]
                 {
                     new DtoSchedule() {Name = "workDaysEvening", Schedule = "motuwethfr2230"},
-                    new DtoSchedule() {Name = "sundayEvening", Schedule = "su2230"}
+                    new DtoSchedule() {Name = "sundayEvening", Schedule   = "su2230"}
                 };
                 SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 CREATE TABLE Schedule
@@ -202,12 +221,22 @@ namespace ReportService.Core
                 ); ");
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+                IF OBJECT_ID('TelegramChannel') IS NULL
+                CREATE TABLE TelegramChannel
+                (Id INT PRIMARY KEY IDENTITY,
+                Name NVARCHAR(127) NOT NULL,
+                Description NVARCHAR(255) NULL,
+                ChatId BIGINT NOT NULL
+                );  ");
+
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('Task') IS NULL
                 CREATE TABLE Task
                 (Id INT PRIMARY KEY IDENTITY,
                 ReportId INT NOT NULL,
                 ScheduleId INT NULL,
                 RecepientGroupId INT NULL,
+                TelegramChannelId INT NULL,
                 TryCount TINYINT NOT NULL,
                 HasHtmlBody BIT NOT NULL,
                 HasJsonAttachment BIT NOT NULL,
@@ -215,6 +244,8 @@ namespace ReportService.Core
                 REFERENCES RecepientGroup(Id),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
                 REFERENCES Schedule(Id),
+                CONSTRAINT FK_Task_TelegramChannel FOREIGN KEY(TelegramChannelId) 
+                REFERENCES TelegramChannel(Id),
                 CONSTRAINT FK_Task_Report FOREIGN KEY(ReportId) 
                 REFERENCES Report(Id)
                 )");
