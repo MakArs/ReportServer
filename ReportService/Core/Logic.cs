@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,32 +10,36 @@ using Monik.Client;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
+using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 
 namespace ReportService.Core
 {
     public class Logic : ILogic
     {
         private readonly ILifetimeScope _autofac;
-        private readonly IMapper        _mapper;
+        private readonly IMapper _mapper;
         private readonly IClientControl _monik;
-        private readonly IArchiver      _archiver;
-        private readonly IRepository    _repository;
-        private readonly Scheduler      _checkScheduleAndExecuteScheduler;
-        private readonly IViewExecutor  _tableView;
+        private readonly IArchiver _archiver;
+        private readonly ITelegramBotClient _bot;
+        private readonly IRepository _repository;
+        private readonly Scheduler _checkScheduleAndExecuteScheduler;
+        private readonly IViewExecutor _tableView;
 
         private readonly List<RRecepientGroup> _recepientGroups;
-        private readonly List<DtoSchedule>     _schedules;
-        private readonly List<DtoReport>       _reports;
-        private readonly List<DtoTelegramChannel> _telegramChannels;
-        private readonly List<IRTask>          _tasks;
+        private readonly List<DtoSchedule> _schedules;
+        private readonly List<DtoReport> _reports;
+        private readonly ConcurrentDictionary<long, DtoTelegramChannel> _telegramChannels;
+        private readonly List<IRTask> _tasks;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
-                     IMapper mapper, IArchiver archiver)
+                     IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
         {
             _autofac    = autofac;
             _mapper     = mapper;
             _monik      = monik;
             _archiver   = archiver;
+            _bot        = bot;
             _repository = repository;
 
             _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
@@ -43,8 +48,9 @@ namespace ReportService.Core
             _recepientGroups  = new List<RRecepientGroup>();
             _schedules        = new List<DtoSchedule>();
             _reports          = new List<DtoReport>();
-            _telegramChannels = new List<DtoTelegramChannel>();
+            _telegramChannels = new ConcurrentDictionary<long, DtoTelegramChannel>();
             _tasks            = new List<IRTask>();
+            _bot.OnUpdate += OnBotUpd;
 
         } //ctor
 
@@ -91,7 +97,7 @@ namespace ReportService.Core
                 _telegramChannels.Clear();
                 foreach (var channel in chanList)
                 {
-                    _telegramChannels.Add(channel);
+                    _telegramChannels.TryAdd(channel.ChatId, channel);
                 }
             }
         }
@@ -113,7 +119,7 @@ namespace ReportService.Core
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                         new NamedParameter("query", report.Query),
                         new NamedParameter("chatId", _telegramChannels
-                            .FirstOrDefault(tc => tc.Id == dtoTask.TelegramChannelId)?.ChatId),
+                            .FirstOrDefault(tc => tc.Value.Id == dtoTask.TelegramChannelId).Value?.ChatId),
                         new NamedParameter("sendAddress", _recepientGroups
                             .FirstOrDefault(r => r.Id == dtoTask.RecepientGroupId)),
                         new NamedParameter("tryCount", dtoTask.TryCount),
@@ -173,6 +179,7 @@ namespace ReportService.Core
             UpdateReportsList();
             UpdateTelegramChannelsList();
             UpdateTaskList();
+            _bot.StartReceiving();
             _checkScheduleAndExecuteScheduler.OnStart();
         }
 
@@ -195,7 +202,7 @@ namespace ReportService.Core
             Task.Factory.StartNew(() => task.Execute(mail));
             return $"Report {taskId} sent!";
         }
-        
+
         public string GetTaskList_HtmlPage()
         {
             List<IRTask> tasks;
@@ -216,7 +223,7 @@ namespace ReportService.Core
                 })
                 .ToList();
             var jsonTasks = JsonConvert.SerializeObject(tasksView);
-            var tr= _tableView.Execute("", jsonTasks);
+            var tr        = _tableView.Execute("", jsonTasks);
             return tr;
         }
 
@@ -345,6 +352,45 @@ namespace ReportService.Core
 
             if (task == null) return "No tasks with such Id found..";
             return task.GetCurrentView();
+        }
+
+        private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)
+        {
+            long       chatId   = 0;
+            string     chatName = "";
+            ChatType   chatType = ChatType.Private;
+            UpdateType updType  = e.Update.Type;
+            switch (updType)
+            {
+                case UpdateType.ChannelPost:
+                    chatId   = e.Update.ChannelPost.Chat.Id;
+                    chatName = e.Update.ChannelPost.Chat.Title;
+                    chatType = ChatType.Channel;
+                    break;
+                case UpdateType.Message:
+                    chatType = e.Update.Message.Chat.Type;
+                    chatId   = e.Update.Message.Chat.Id;
+                    switch (chatType)
+                    {
+                        case ChatType.Private:
+                            chatName =$"{e.Update.Message.Chat.FirstName} {e.Update.Message.Chat.LastName}";
+                            break;
+
+                        case ChatType.Group:
+                            chatName = e.Update.Message.Chat.Title;
+                            break;
+                    }
+
+                    break;
+            }
+
+            if (chatId != 0 && !_telegramChannels.ContainsKey(chatId))
+            {
+                DtoTelegramChannel channel =
+                    new DtoTelegramChannel {ChatId = chatId, Name = chatName, Type = (int) chatType};
+                channel.Id = _repository.CreateEntity(channel);
+                _telegramChannels.TryAdd(channel.ChatId, channel);
+            }
         }
 
     } //class

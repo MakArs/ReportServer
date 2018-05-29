@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Xml;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -142,7 +143,18 @@ namespace ReportService.Core
                         HasJsonAttachment ? jsonReport : null);
                     if (ChatId!=0)
                     {
-                        _bot.SendTextMessageAsync(ChatId, htmlReport).Wait();
+                        try
+                        {
+
+                        var xml = new XmlDocument();
+                        xml.LoadXml(htmlReport);
+                        _bot.SendTextMessageAsync(ChatId, xml.InnerText).Wait();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
                     }
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }

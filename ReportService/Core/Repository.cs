@@ -226,7 +226,8 @@ namespace ReportService.Core
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
                 Description NVARCHAR(255) NULL,
-                ChatId BIGINT NOT NULL
+                ChatId BIGINT NOT NULL,
+                Type TINYINT NOT NULL
                 );  ");
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, @"

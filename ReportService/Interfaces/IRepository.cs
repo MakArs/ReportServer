@@ -19,21 +19,22 @@ namespace ReportService.Interfaces
 
     public class DtoReport
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public int    Id               { get; set; }
+        public string Name             { get; set; }
         public string ConnectionString { get; set; }
-        public string ViewTemplate { get; set; }
-        public string Query { get; set; }
-        public int ReportType { get; set; }
-        public int QueryTimeOut { get; set; } //seconds
+        public string ViewTemplate     { get; set; }
+        public string Query            { get; set; }
+        public int    ReportType       { get; set; }
+        public int    QueryTimeOut     { get; set; } //seconds
     }
 
     public class DtoTelegramChannel
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public int    Id          { get; set; }
+        public string Name        { get; set; }
         public string Description { get; set; }
-        public long ChatId { get; set; }
+        public long   ChatId      { get; set; }
+        public int    Type        { get; set; }
     }
 
     public class DtoTask
