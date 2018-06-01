@@ -22,6 +22,24 @@ namespace ReportService.Core
                 .ToList();
         }
 
+        public List<T> GetAllInstances<T>()
+        {
+            List<T> retList = new List<T>();
+            var     type    = typeof(T);
+
+            switch (true)
+            {
+                case bool _ when type == typeof(DtoRecepientGroup):
+                    var list = SimpleCommand.ExecuteQuery<DtoRecepientGroup>(_connStr,
+                        "select * from RecepientGroup");
+                    foreach (dynamic instance in list)
+                        retList.Add((T) instance.Value);
+                    break;
+            }
+
+            return retList;
+        }
+
         public List<DtoSchedule> GetAllSchedules()
         {
             return SimpleCommand.ExecuteQuery<DtoSchedule>(_connStr,

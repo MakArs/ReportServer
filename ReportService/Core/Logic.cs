@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,12 +46,12 @@ namespace ReportService.Core
             _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
             _tableView                        = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
 
-            _recepientGroups  = new List<RRecepientGroup>();
-            _schedules        = new List<DtoSchedule>();
-            _reports          = new List<DtoReport>();
-            _telegramChannels = new ConcurrentDictionary<long, DtoTelegramChannel>();
-            _tasks            = new List<IRTask>();
-            _bot.OnUpdate += OnBotUpd;
+            _recepientGroups  =  new List<RRecepientGroup>();
+            _schedules        =  new List<DtoSchedule>();
+            _reports          =  new List<DtoReport>();
+            _telegramChannels =  new ConcurrentDictionary<long, DtoTelegramChannel>();
+            _tasks            =  new List<IRTask>();
+            _bot.OnUpdate     += OnBotUpd;
 
         } //ctor
 
@@ -114,6 +115,7 @@ namespace ReportService.Core
                     var report = _reports.First(rep => rep.Id == dtoTask.ReportId);
                     var task = _autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
+                        new NamedParameter("reportName", report.Name),
                         new NamedParameter("template", report.ViewTemplate),
                         new NamedParameter("schedule", _schedules
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
@@ -173,7 +175,15 @@ namespace ReportService.Core
 
         public void Start()
         {
-            // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            try
+            {
+
+            CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
             UpdateScheduleList();
             UpdateRecepientGroupsList();
             UpdateReportsList();
@@ -223,7 +233,7 @@ namespace ReportService.Core
                 })
                 .ToList();
             var jsonTasks = JsonConvert.SerializeObject(tasksView);
-            var tr        = _tableView.Execute("", jsonTasks);
+            var tr        = _tableView.ExecuteHtml("", jsonTasks);
             return tr;
         }
 
@@ -240,7 +250,7 @@ namespace ReportService.Core
             }
 
             var jsonInstances = JsonConvert.SerializeObject(instances);
-            return _tableView.Execute("", jsonInstances);
+            return _tableView.ExecuteHtml("", jsonInstances);
         }
 
         public string GetAllTasksJson()
@@ -373,7 +383,7 @@ namespace ReportService.Core
                     switch (chatType)
                     {
                         case ChatType.Private:
-                            chatName =$"{e.Update.Message.Chat.FirstName} {e.Update.Message.Chat.LastName}";
+                            chatName = $"{e.Update.Message.Chat.FirstName} {e.Update.Message.Chat.LastName}";
                             break;
 
                         case ChatType.Group:
@@ -387,9 +397,19 @@ namespace ReportService.Core
             if (chatId != 0 && !_telegramChannels.ContainsKey(chatId))
             {
                 DtoTelegramChannel channel =
-                    new DtoTelegramChannel {ChatId = chatId, Name = chatName, Type = (int) chatType};
+                    new DtoTelegramChannel
+                    {
+                        ChatId = chatId,
+                        Name   = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
+                        Type   = (int) chatType
+                    };
+
                 channel.Id = _repository.CreateEntity(channel);
-                _telegramChannels.TryAdd(channel.ChatId, channel);
+
+                lock (this)
+                {
+                    _telegramChannels.TryAdd(channel.ChatId, channel);
+                }
             }
         }
 

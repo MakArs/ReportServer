@@ -2,6 +2,7 @@
 {
     public interface IViewExecutor
     {
-        string Execute(string viewTemplate, string json);
+        string ExecuteHtml(string viewTemplate, string json);
+        string ExecuteTelegramView(string json, string reportName = "Отчёт");
     }
 }

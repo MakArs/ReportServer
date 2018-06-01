@@ -5,9 +5,9 @@ namespace ReportService.View
 {
     public class TaskListViewExecutor : CommonViewExecutor
     {
-        public override string Execute(string viewTemplate, string json)
+        public override string ExecuteHtml(string viewTemplate, string json)
         {
-            return base.Execute(_tableTemplate, json);
+            return base.ExecuteHtml(_tableTemplate, json);
         }
 
         private string _tableTemplate = @"<!DOCTYPE html>

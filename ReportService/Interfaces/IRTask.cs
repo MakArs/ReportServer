@@ -49,6 +49,7 @@ namespace ReportService.Interfaces
     public interface IRTask
     {
         int             Id                { get; }
+        string          ReportName        { get; }
         RRecepientGroup SendAddresses     { get; }
         string          ViewTemplate      { get; }
         DtoSchedule     Schedule          { get; }

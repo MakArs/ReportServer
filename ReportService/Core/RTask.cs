@@ -6,12 +6,14 @@ using AutoMapper;
 using Monik.Client;
 using ReportService.Interfaces;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 
 namespace ReportService.Core
 {
     public class RTask : IRTask
     {
         public int             Id                { get; }
+        public string          ReportName        { get; }
         public RRecepientGroup SendAddresses     { get; }
         public string          ViewTemplate      { get; }
         public DtoSchedule     Schedule          { get; }
@@ -36,7 +38,7 @@ namespace ReportService.Core
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository,
                      IClientControl monik, IMapper mapper, IArchiver archiver, ITelegramBotClient botClient,
-                     int id, string template, DtoSchedule schedule, string connStr, string query,
+                     int id, string reportName, string template, DtoSchedule schedule, string connStr, string query,
                      long chatId, RRecepientGroup sendAddress, int tryCount, int timeOut,
                      RReportType reportType, int reportId, bool htmlBody, bool jsonAttach)
         {
@@ -59,6 +61,7 @@ namespace ReportService.Core
             _archiver         = archiver;
             _postMaster       = postMaster;
             Id                = id;
+            ReportName        = reportName;
             Query             = query;
             ChatId            = chatId;
             ViewTemplate      = template;
@@ -90,23 +93,12 @@ namespace ReportService.Core
 
             _repository.CreateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
 
-            string[] deliveryAddrs;
+            string[] deliveryAddrs = { };
 
             if (!string.IsNullOrEmpty(address))
                 deliveryAddrs = new[] {address};
-            else
-            {
-                try
-                {
-                    var addrArray = SendAddresses.GetAddresses();
-                    deliveryAddrs = addrArray;
-                }
-                catch
-                {
-                    _monik.ApplicationWarning($"Нет списка получателей для отчёта {Id}");
-                    return;
-                }
-            }
+            else if (SendAddresses != null)
+                deliveryAddrs = SendAddresses.GetAddresses();
 
             Stopwatch duration = new Stopwatch();
             duration.Start();
@@ -120,7 +112,7 @@ namespace ReportService.Core
                 try
                 {
                     jsonReport   = _dataEx.Execute(this);
-                    htmlReport   = _viewEx.Execute(ViewTemplate, jsonReport);
+                    htmlReport   = _viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;
@@ -138,17 +130,17 @@ namespace ReportService.Core
             {
                 try
                 {
-                    _postMaster.Send(deliveryAddrs,
-                        HasHtmlBody ? htmlReport : null,
-                        HasJsonAttachment ? jsonReport : null);
-                    if (ChatId!=0)
+                    if (deliveryAddrs?.Length > 0)
+                        _postMaster.Send(deliveryAddrs,
+                            HasHtmlBody ? htmlReport : null,
+                            HasJsonAttachment ? jsonReport : null);
+
+                    if (ChatId != 0)
                     {
                         try
                         {
-
-                        var xml = new XmlDocument();
-                        xml.LoadXml(htmlReport);
-                        _bot.SendTextMessageAsync(ChatId, xml.InnerText).Wait();
+                            _bot.SendTextMessageAsync(ChatId, _viewEx.ExecuteTelegramView(jsonReport, ReportName),
+                                ParseMode.Markdown).Wait();
                         }
                         catch (Exception e)
                         {
@@ -156,6 +148,7 @@ namespace ReportService.Core
                             throw;
                         }
                     }
+
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)
@@ -189,7 +182,7 @@ namespace ReportService.Core
                 try
                 {
                     var jsonReport = _dataEx.Execute(this);
-                    htmlReport   = _viewEx.Execute(ViewTemplate, jsonReport);
+                    htmlReport   = _viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;
