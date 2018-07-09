@@ -175,15 +175,14 @@ namespace ReportService.Core
 
         public void Start()
         {
-            try
-            {
-
-            CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            //try
+            //{
+            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine(e);
+            //}
             UpdateScheduleList();
             UpdateRecepientGroupsList();
             UpdateReportsList();
