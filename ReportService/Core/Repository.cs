@@ -22,7 +22,7 @@ namespace ReportService.Core
                 .ToList();
         }
 
-        public List<T> GetAllInstances<T>()
+        public List<T> GetAllInstances<T>() where T:new()
         {
             List<T> retList = new List<T>();
             var     type    = typeof(T);
@@ -30,7 +30,7 @@ namespace ReportService.Core
             switch (true)
             {
                 case bool _ when type == typeof(DtoRecepientGroup):
-                    var list = SimpleCommand.ExecuteQuery<DtoRecepientGroup>(_connStr,
+                    var list = SimpleCommand.ExecuteQuery<T>(_connStr,
                         "select * from RecepientGroup");
                     foreach (dynamic instance in list)
                         retList.Add((T) instance.Value);

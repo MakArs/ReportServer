@@ -201,6 +201,7 @@ namespace ReportService.Core
         public string ForceExecute(int taskId, string mail)
         {
             List<IRTask> tasks;
+
             lock (this)
                 tasks = _tasks.ToList();
 
