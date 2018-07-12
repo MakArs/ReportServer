@@ -7,7 +7,7 @@ namespace ReportService.Core
 {
     public class CommonDataExecutor : IDataExecutor
     {
-        public string Execute(RTask task)
+        public string Execute(IRTask task)
         {
             var queryResult = new List<Dictionary<string, object>>();
 
