@@ -131,7 +131,7 @@ namespace ReportService.Core
                 try
                 {
                     if (deliveryAddrs?.Length > 0)
-                        _postMaster.Send(deliveryAddrs,
+                        _postMaster.Send(ReportName, deliveryAddrs,
                             HasHtmlBody ? htmlReport : null,
                             HasJsonAttachment ? jsonReport : null);
 

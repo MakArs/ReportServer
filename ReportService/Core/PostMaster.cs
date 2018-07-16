@@ -11,9 +11,9 @@ namespace ReportService.Core
     {
         private string _filename;
 
-        public void Send(string[] addresses, string htmlReport = null, string jsonReport = null)
+        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null)
         {
-            _filename = $"Report{DateTime.Now:HHmmss}.html";
+            _filename = $"Report_{reportName}_{DateTime.Now:HHmmss}.html";
 
             using (FileStream fs = new FileStream($@"C:\ArsMak\job\{_filename}", FileMode.CreateNew))
             {
@@ -35,7 +35,7 @@ namespace ReportService.Core
             _monik = monik;
         }
 
-        public void Send(string[] addresses, string htmlReport = null, string jsonReport = null)
+        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null)
         {
             string filename = "";
             bool   hasHtml  = !string.IsNullOrEmpty(htmlReport);
@@ -46,7 +46,7 @@ namespace ReportService.Core
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             foreach (var address in addresses)
                 msg.To.Add(new MailAddress(address));
-            msg.Subject = "Отчёт";
+            msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
 
             if (hasHtml)
             {
