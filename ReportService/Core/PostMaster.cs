@@ -46,7 +46,7 @@ namespace ReportService.Core
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             foreach (var address in addresses)
                 msg.To.Add(new MailAddress(address));
-            msg.Subject = reportName;
+            msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
 
             if (hasHtml)
             {
