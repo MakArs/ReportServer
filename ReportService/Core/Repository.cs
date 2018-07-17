@@ -259,6 +259,7 @@ namespace ReportService.Core
                 TryCount TINYINT NOT NULL,
                 HasHtmlBody BIT NOT NULL,
                 HasJsonAttachment BIT NOT NULL,
+                HasXlsxAttachment BIT NOT NULL,
                 CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) 
                 REFERENCES RecepientGroup(Id),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
