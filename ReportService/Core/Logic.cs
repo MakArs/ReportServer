@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
-using Autofac;
+﻿using Autofac;
 using AutoMapper;
 using Monik.Client;
+using NCrontab;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -132,6 +132,9 @@ namespace ReportService.Core
                         new NamedParameter("htmlBody", dtoTask.HasHtmlBody),
                         new NamedParameter("jsonAttach", dtoTask.HasJsonAttachment));
 
+                    // might be replaced with saved time from db
+                    task.UpdateLastTime();
+
                     _tasks.Add(task);
                 }
             } //lock
@@ -145,20 +148,32 @@ namespace ReportService.Core
 
             DateTime time = DateTime.Now;
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
-            var currentDay  = time.ToString("ddd").ToLower().Substring(0, 2);
-            var currentTime = time.ToString("HHmm");
 
             foreach (var task in tasks.Where(x => x.Schedule != null))
             {
-                string[] schedDays = _schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(' ');
+                string[] cronStrings = _schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(';');
 
-                if (!schedDays.Any(s => s.Contains(currentDay) && s.Contains(currentTime)))
-                    continue;
-
-                _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
-
-                Task.Factory.StartNew(() => task.Execute());
+                foreach (var cronString in cronStrings)
+                {
+                    var cronSchedule = CrontabSchedule.TryParse(cronString);
+                    if (cronSchedule != null)
+                    {
+                        var occurrences = cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
+                        if (occurrences.Any())
+                        {
+                            ExecuteTask(task);
+                            break;
+                        }
+                    }
+                }
             } //for
+        }
+
+        private void ExecuteTask(IRTask task)
+        {
+            task.UpdateLastTime();
+            _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
+            Task.Factory.StartNew(() => task.Execute());
         }
 
         private void CreateBase(string connStr)

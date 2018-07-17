@@ -1,10 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Xml;
-using Autofac;
+﻿using Autofac;
 using AutoMapper;
 using Monik.Client;
 using ReportService.Interfaces;
+using System;
+using System.Diagnostics;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -26,6 +25,7 @@ namespace ReportService.Core
         public int             ReportId          { get; }
         public bool            HasHtmlBody       { get; }
         public bool            HasJsonAttachment { get; }
+        public DateTime        LastTime          { get; private set; }
 
         private readonly IDataExecutor _dataEx;
         private readonly IViewExecutor _viewEx;
@@ -196,6 +196,11 @@ namespace ReportService.Core
             }
 
             return htmlReport;
+        }
+
+        public void UpdateLastTime()
+        {
+            LastTime = DateTime.Now;
         }
     } //class
 }
