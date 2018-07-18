@@ -62,6 +62,7 @@ namespace ReportService.Interfaces
         int             ReportId          { get; }
         bool            HasHtmlBody       { get; }
         bool            HasJsonAttachment { get; }
+        bool            HasXlsxAttachment { get; }
         DateTime        LastTime          { get; }
 
         void   Execute(string address = null);

@@ -3,6 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.Net.Mail;
 using Monik.Client;
+using OfficeOpenXml;
 using ReportService.Interfaces;
 
 namespace ReportService.Core
@@ -11,7 +12,7 @@ namespace ReportService.Core
     {
         private string _filename;
 
-        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null)
+        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsReport = null)
         {
             _filename = $"Report_{reportName}_{DateTime.Now:HHmmss}.html";
 
@@ -35,18 +36,22 @@ namespace ReportService.Core
             _monik = monik;
         }
 
-        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null)
+        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsxReport = null)
         {
-            string filename = "";
+            string reportNameFull = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
+
+            string filenameJson = $@"{AppDomain.CurrentDomain.BaseDirectory}{reportNameFull}.json";
+            string filenameXlsx = $@"{AppDomain.CurrentDomain.BaseDirectory}{reportNameFull}.xlsx";
             bool   hasHtml  = !string.IsNullOrEmpty(htmlReport);
             bool   hasJson  = !string.IsNullOrEmpty(jsonReport);
+            bool   hasXlsx  = xlsxReport != null;
 
             SmtpClient  client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg    = new MailMessage();
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             foreach (var address in addresses)
                 msg.To.Add(new MailAddress(address));
-            msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
+            msg.Subject = reportNameFull;
 
             if (hasHtml)
             {
@@ -56,15 +61,20 @@ namespace ReportService.Core
 
             if (hasJson)
             {
-                Random rand = new Random();
-                filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{rand.Next(32767)}.json";
-                using (FileStream fstr = new FileStream(filename, FileMode.Create))
+                using (FileStream fstr = new FileStream(filenameJson, FileMode.Create))
                 {
                     byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(jsonReport);
                     fstr.Write(bytePage, 0, bytePage.Length);
                 }
 
-                msg.Attachments.Add(new Attachment(filename));
+                msg.Attachments.Add(new Attachment(filenameJson));
+            }
+
+            if (hasXlsx)
+            {
+                xlsxReport.SaveAs(new FileInfo(filenameXlsx));
+
+                msg.Attachments.Add(new Attachment(filenameXlsx));
             }
 
             client.EnableSsl      = true;
@@ -74,17 +84,14 @@ namespace ReportService.Core
             {
                 client.Send(msg);
             }
-            catch (Exception ex)
-            {
-                _monik.ApplicationError($"Отчёт не выслан: " + ex.Message);
-            }
             finally
             {
                 msg.Dispose();
+                if (hasJson)
+                    File.Delete(filenameJson);
+                if (hasXlsx)
+                    File.Delete(filenameXlsx);
             }
-
-            if (hasJson)
-                File.Delete(filename);
         }
     }
 }

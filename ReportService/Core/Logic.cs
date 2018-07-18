@@ -130,7 +130,9 @@ namespace ReportService.Core
                         new NamedParameter("connStr", report.ConnectionString),
                         new NamedParameter("reportId", report.Id),
                         new NamedParameter("htmlBody", dtoTask.HasHtmlBody),
-                        new NamedParameter("jsonAttach", dtoTask.HasJsonAttachment));
+                        new NamedParameter("jsonAttach", dtoTask.HasJsonAttachment),
+                        new NamedParameter("xlsxAttach", dtoTask.HasXlsxAttachment)
+                    );
 
                     // might be replaced with saved time from db
                     task.UpdateLastTime();

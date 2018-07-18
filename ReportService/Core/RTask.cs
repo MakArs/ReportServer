@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using AutoMapper;
 using Monik.Client;
+using OfficeOpenXml;
 using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
@@ -25,7 +26,10 @@ namespace ReportService.Core
         public int             ReportId          { get; }
         public bool            HasHtmlBody       { get; }
         public bool            HasJsonAttachment { get; }
+        public bool            HasXlsxAttachment { get; }
         public DateTime        LastTime          { get; private set; }
+
+        public bool HasTelegram => ChatId != 0;
 
         private readonly IDataExecutor _dataEx;
         private readonly IViewExecutor _viewEx;
@@ -40,7 +44,7 @@ namespace ReportService.Core
                      IClientControl monik, IMapper mapper, IArchiver archiver, ITelegramBotClient botClient,
                      int id, string reportName, string template, DtoSchedule schedule, string connStr, string query,
                      long chatId, RRecepientGroup sendAddress, int tryCount, int timeOut,
-                     RReportType reportType, int reportId, bool htmlBody, bool jsonAttach)
+                     RReportType reportType, int reportId, bool htmlBody, bool jsonAttach, bool xlsxAttach)
         {
             Type = reportType;
 
@@ -74,6 +78,7 @@ namespace ReportService.Core
             ConnectionString  = connStr;
             HasHtmlBody       = htmlBody;
             HasJsonAttachment = jsonAttach;
+            HasXlsxAttachment = xlsxAttach;
             _monik            = monik;
             _mapper           = mapper;
             _bot              = botClient;
@@ -106,13 +111,14 @@ namespace ReportService.Core
             bool   dataObtained = false;
             string jsonReport   = "";
             string htmlReport   = "";
+            string teleReport   = "";
+            ExcelPackage xlsxReport = null;
 
             while (!dataObtained && i <= TryCount)
             {
                 try
                 {
                     jsonReport   = _dataEx.Execute(this);
-                    htmlReport   = _viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;
@@ -120,7 +126,6 @@ namespace ReportService.Core
                 catch (Exception ex)
                 {
                     jsonReport = ex.Message;
-                    htmlReport = ex.Message;
                 }
 
                 i++;
@@ -128,19 +133,61 @@ namespace ReportService.Core
 
             if (dataObtained)
             {
+                if (HasHtmlBody)
+                    try
+                    {
+                        htmlReport = _viewEx.ExecuteHtml(ViewTemplate, jsonReport);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        htmlReport = ex.Message;
+                    }
+                if (HasTelegram)
+                    try
+                    {
+                        teleReport = _viewEx.ExecuteTelegramView(jsonReport, ReportName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        teleReport = ex.Message;
+                    }
+                if (HasXlsxAttachment)
+                    try
+                    {
+                        xlsxReport = _viewEx.ExecuteXlsx(jsonReport, ReportName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        xlsxReport = null;
+                    }
+
                 try
                 {
                     if (deliveryAddrs?.Length > 0)
-                        _postMaster.Send(ReportName, deliveryAddrs,
-                            HasHtmlBody ? htmlReport : null,
-                            HasJsonAttachment ? jsonReport : null);
-
-                    if (ChatId != 0)
                     {
                         try
                         {
-                            _bot.SendTextMessageAsync(ChatId, _viewEx.ExecuteTelegramView(jsonReport, ReportName),
-                                ParseMode.Markdown).Wait();
+                            _postMaster.Send(ReportName, deliveryAddrs,
+                                HasHtmlBody ? htmlReport : null,
+                                HasJsonAttachment ? jsonReport : null,
+                                HasXlsxAttachment ? xlsxReport : null
+                            );
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    }
+
+                    if (HasTelegram)
+                    {
+                        try
+                        {
+                            _bot.SendTextMessageAsync(ChatId, teleReport, ParseMode.Markdown).Wait();
                         }
                         catch (Exception e)
                         {
@@ -150,10 +197,17 @@ namespace ReportService.Core
                     }
 
                     _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
+                    Console.WriteLine($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)
                 {
-                    _monik.ApplicationError(e.Message);
+                    _monik.ApplicationError($"Отчёт не выслан: " + e.Message);
+                    Console.WriteLine($"Отчёт не выслан: " + e.Message);
+                }
+                finally
+                {
+                    if (HasXlsxAttachment && xlsxReport != null)
+                        xlsxReport.Dispose();
                 }
             }
 
