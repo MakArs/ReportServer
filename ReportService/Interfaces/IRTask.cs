@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ReportService.Extensions;
+using System;
 
 namespace ReportService.Interfaces
 {
@@ -20,10 +21,15 @@ namespace ReportService.Interfaces
         public int    Id        { get; set; }
         public string Name      { get; set; }
         public string Addresses { get; set; }
+        public string AddressesBcc { get; set; }
 
-        public string[] GetAddresses()
+        public RecepientAddresses GetAddresses()
         {
-            return Addresses.Split(';');
+            return new RecepientAddresses()
+            {
+                To = Addresses.Split(';'),
+                Bcc = AddressesBcc.Split(';')
+            };
         }
     }
 

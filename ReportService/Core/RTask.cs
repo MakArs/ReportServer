@@ -2,6 +2,7 @@
 using AutoMapper;
 using Monik.Client;
 using OfficeOpenXml;
+using ReportService.Extensions;
 using ReportService.Interfaces;
 using System;
 using System.Diagnostics;
@@ -98,10 +99,10 @@ namespace ReportService.Core
 
             _repository.CreateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
 
-            string[] deliveryAddrs = { };
+            RecepientAddresses deliveryAddrs = null;
 
             if (!string.IsNullOrEmpty(address))
-                deliveryAddrs = new[] {address};
+                deliveryAddrs = new RecepientAddresses() { To = new string[] { address } };
             else if (SendAddresses != null)
                 deliveryAddrs = SendAddresses.GetAddresses();
 
@@ -166,7 +167,7 @@ namespace ReportService.Core
 
                 try
                 {
-                    if (deliveryAddrs?.Length > 0)
+                    if (deliveryAddrs != null && deliveryAddrs.HaveRecepients)
                     {
                         try
                         {

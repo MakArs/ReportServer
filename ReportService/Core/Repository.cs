@@ -203,7 +203,8 @@ namespace ReportService.Core
                 CREATE TABLE RecepientGroup
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
-                Addresses NVARCHAR(4000) NOT NULL
+                Addresses NVARCHAR(4000) NOT NULL,
+                AddressesBcc NVARCHAR(4000) NOT NULL
                 ); ");
 
             var existScheduleTable = Convert.ToInt64(SimpleCommand

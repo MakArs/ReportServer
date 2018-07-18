@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Mail;
 using Monik.Client;
 using OfficeOpenXml;
+using ReportService.Extensions;
 using ReportService.Interfaces;
 
 namespace ReportService.Core
@@ -12,7 +13,7 @@ namespace ReportService.Core
     {
         private string _filename;
 
-        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsReport = null)
+        public void Send(string reportName, RecepientAddresses addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsReport = null)
         {
             _filename = $"Report_{reportName}_{DateTime.Now:HHmmss}.html";
 
@@ -36,7 +37,7 @@ namespace ReportService.Core
             _monik = monik;
         }
 
-        public void Send(string reportName, string[] addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsxReport = null)
+        public void Send(string reportName, RecepientAddresses addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsxReport = null)
         {
             string reportNameFull = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
 
@@ -48,9 +49,10 @@ namespace ReportService.Core
 
             SmtpClient  client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
             MailMessage msg    = new MailMessage();
+
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-            foreach (var address in addresses)
-                msg.To.Add(new MailAddress(address));
+            msg.AddRecepients(addresses);
+
             msg.Subject = reportNameFull;
 
             if (hasHtml)
