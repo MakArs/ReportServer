@@ -16,6 +16,7 @@ namespace ReportService.Nancy
         public int    ReportType        { get; set; }
         public bool   HasHtmlBody       { get; set; }
         public bool   HasJsonAttachment { get; set; }
+        public bool   HasXlsxAttachment { get; set; }
     }
 
     public class ApiTask
@@ -29,6 +30,7 @@ namespace ReportService.Nancy
         public int  ReportType        { get; set; }
         public bool HasHtmlBody       { get; set; }
         public bool HasJsonAttachment { get; set; }
+        public bool HasXlsxAttachment { get; set; }
     }
 
     public class NancyBaseModule : NancyModule
