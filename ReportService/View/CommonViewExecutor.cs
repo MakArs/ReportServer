@@ -7,6 +7,7 @@ using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
 using ReportService.Interfaces;
+using ReportService.Extensions;
 
 namespace ReportService.View
 {
@@ -29,11 +30,11 @@ namespace ReportService.View
             foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
                 headers.Add(p.Name);
 
-            List<List<string>> content = new List<List<string>>();
+            List<List<JToken>> content = new List<List<JToken>>();
             foreach (JObject j in jObj.Children<JObject>())
             {
-                List<string> prop = new List<string>();
-                foreach (JProperty p in j.Properties()) prop.Add(p.Value.ToString());
+                List<JToken> prop = new List<JToken>();
+                foreach (JProperty p in j.Properties()) prop.Add(p.Value);
 
                 content.Add(prop);
             }
@@ -54,11 +55,11 @@ namespace ReportService.View
             foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
                 headers.Add(p.Name);
 
-            List<List<string>> content = new List<List<string>>();
+            List<List<JToken>> content = new List<List<JToken>>();
             foreach (JObject j in jObj.Children<JObject>())
             {
-                List<string> prop = new List<string>();
-                foreach (JProperty p in j.Properties()) prop.Add(p.Value.ToString());
+                List<JToken> prop = new List<JToken>();
+                foreach (JProperty p in j.Properties()) prop.Add(p.Value);
 
                 content.Add(prop);
             }
@@ -66,7 +67,13 @@ namespace ReportService.View
             var tmRep = $@"*{reportName}*" + Environment.NewLine;
             foreach (var prop in content)
             {
-                tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine + $"{prop[0]} : {prop[1]}");
+                for (var i = 0; i < prop.Count; ++i)
+                {
+                    if (i == 0)
+                        tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine + $"{prop[i]}");
+                    else
+                        tmRep = tmRep.Insert(tmRep.Length, $"|{prop[i]}");
+                }
             }
 
             return tmRep;
@@ -99,7 +106,7 @@ namespace ReportService.View
                 foreach (JProperty p in row.Properties())
                 {
                     j++;
-                    ws.Cells[i + 1, j].Value = p.Value.ToString();
+                    ws.Cells[i + 1, j].SetJValue( p.Value );
                 }
             }
 

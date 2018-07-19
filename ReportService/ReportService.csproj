@@ -146,6 +146,7 @@
   <ItemGroup>
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
+    <Compile Include="Extensions\ExcelRangeExtension.cs" />
     <Compile Include="Extensions\MailMessageExtension.cs" />
     <Compile Include="Interfaces\IArchiver.cs" />
     <Compile Include="Nancy\HostHolder.cs" />
