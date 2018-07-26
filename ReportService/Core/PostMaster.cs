@@ -39,10 +39,10 @@ namespace ReportService.Core
 
         public void Send(string reportName, RecepientAddresses addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsxReport = null)
         {
-            string reportNameFull = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
+            string filename = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
 
-            string filenameJson = $@"{AppDomain.CurrentDomain.BaseDirectory}{reportNameFull}.json";
-            string filenameXlsx = $@"{AppDomain.CurrentDomain.BaseDirectory}{reportNameFull}.xlsx";
+            string filenameJson = $@"{AppDomain.CurrentDomain.BaseDirectory}{filename}.json";
+            string filenameXlsx = $@"{AppDomain.CurrentDomain.BaseDirectory}{filename}.xlsx";
             bool   hasHtml  = !string.IsNullOrEmpty(htmlReport);
             bool   hasJson  = !string.IsNullOrEmpty(jsonReport);
             bool   hasXlsx  = xlsxReport != null;
@@ -53,7 +53,7 @@ namespace ReportService.Core
             msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
             msg.AddRecepients(addresses);
 
-            msg.Subject = reportNameFull;
+            msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
 
             if (hasHtml)
             {
