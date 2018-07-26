@@ -41,58 +41,58 @@ namespace ReportService.Core
         {
             string filename = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
 
-            string filenameJson = $@"{AppDomain.CurrentDomain.BaseDirectory}{filename}.json";
-            string filenameXlsx = $@"{AppDomain.CurrentDomain.BaseDirectory}{filename}.xlsx";
+            string filenameJson = $@"{filename}.json";
+            string filenameXlsx = $@"{filename}.xlsx";
             bool   hasHtml  = !string.IsNullOrEmpty(htmlReport);
             bool   hasJson  = !string.IsNullOrEmpty(jsonReport);
             bool   hasXlsx  = xlsxReport != null;
 
-            SmtpClient  client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25);
-            MailMessage msg    = new MailMessage();
-
-            msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-            msg.AddRecepients(addresses);
-
-            msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
-
-            if (hasHtml)
+            using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
+            using (var msg = new MailMessage())
             {
-                msg.IsBodyHtml = true;
-                msg.Body       = htmlReport;
-            }
+                client.EnableSsl = true;
+                client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-            if (hasJson)
-            {
-                using (FileStream fstr = new FileStream(filenameJson, FileMode.Create))
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
+                msg.AddRecepients(addresses);
+
+                msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
+
+                if (hasHtml)
                 {
-                    byte[] bytePage = System.Text.Encoding.UTF8.GetBytes(jsonReport);
-                    fstr.Write(bytePage, 0, bytePage.Length);
+                    msg.IsBodyHtml = true;
+                    msg.Body = htmlReport;
                 }
 
-                msg.Attachments.Add(new Attachment(filenameJson));
-            }
 
-            if (hasXlsx)
-            {
-                xlsxReport.SaveAs(new FileInfo(filenameXlsx));
+                MemoryStream streamJson = null;
+                MemoryStream streamXlsx = null;
 
-                msg.Attachments.Add(new Attachment(filenameXlsx));
-            }
+                try
+                {
+                    if (hasJson)
+                    {
+                        streamJson = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(jsonReport));
+                        msg.Attachments.Add(new Attachment(streamJson, filenameJson, @"application/json"));
+                    }
 
-            client.EnableSsl      = true;
-            client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                    if (hasXlsx)
+                    {
+                        streamXlsx = new MemoryStream();
+                        xlsxReport.SaveAs(streamXlsx);
+                        streamXlsx.Position = 0;
+                        msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx, @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                    }
 
-            try
-            {
-                client.Send(msg);
-            }
-            finally
-            {
-                msg.Dispose();
-                if (hasJson)
-                    File.Delete(filenameJson);
-                if (hasXlsx)
-                    File.Delete(filenameXlsx);
+                    client.Send(msg);
+                }
+                finally
+                {
+                    if (streamJson != null)
+                        streamJson.Dispose();
+                    if (streamXlsx != null)
+                        streamXlsx.Dispose();
+                }
             }
         }
     }
