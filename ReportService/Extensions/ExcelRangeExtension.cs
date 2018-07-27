@@ -12,7 +12,7 @@ namespace ReportService.Extensions
             {
                 case JTokenType.Date:
                     rng.Value = ((DateTime)token).ToOADate();
-                    rng.Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
+                    rng.Style.Numberformat.Format = "dd/mm/yyyy hh:mm:ss";
                     break;
                 case JTokenType.Integer:
                     rng.Value = (long)token;
