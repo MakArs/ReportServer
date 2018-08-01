@@ -8,6 +8,7 @@ namespace ReportService.Interfaces
         public int Id { get; set; }
         public string Name { get; set; }
         public string Addresses { get; set; }
+        public string AddressesBcc { get; set; }
     }
 
     public class DtoSchedule
@@ -47,6 +48,7 @@ namespace ReportService.Interfaces
         public int TryCount { get; set; }
         public bool HasHtmlBody { get; set; }
         public bool HasJsonAttachment { get; set; }
+        public bool HasXlsxAttachment { get; set; }
     }
 
     public class DtoFullInstance

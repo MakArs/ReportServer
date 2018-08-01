@@ -203,7 +203,8 @@ namespace ReportService.Core
                 CREATE TABLE RecepientGroup
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
-                Addresses NVARCHAR(4000) NOT NULL
+                Addresses NVARCHAR(4000) NOT NULL,
+                AddressesBcc NVARCHAR(4000) NOT NULL
                 ); ");
 
             var existScheduleTable = Convert.ToInt64(SimpleCommand
@@ -259,6 +260,7 @@ namespace ReportService.Core
                 TryCount TINYINT NOT NULL,
                 HasHtmlBody BIT NOT NULL,
                 HasJsonAttachment BIT NOT NULL,
+                HasXlsxAttachment BIT NOT NULL,
                 CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) 
                 REFERENCES RecepientGroup(Id),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
