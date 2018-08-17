@@ -6,11 +6,11 @@ namespace ReportService.Core
 {
     public class Archiver7Zip : IArchiver
     {
-        private readonly SevenZipCompressor _compressor;
+        private readonly SevenZipCompressor compressor;
 
         public Archiver7Zip(SevenZipCompressor compressor)
         {
-            _compressor = compressor;
+            this.compressor = compressor;
         }
 
         public byte[] CompressString(string data)
@@ -21,7 +21,7 @@ namespace ReportService.Core
 
                 using (var viewStream = new MemoryStream(dataBytes))
                 {
-                    _compressor.CompressStream(viewStream, compressedStream);
+                    compressor.CompressStream(viewStream, compressedStream);
                     return compressedStream.ToArray();
                 }
             }
@@ -29,6 +29,8 @@ namespace ReportService.Core
 
         public string ExtractFromByteArchive(byte[] byteData)
         {
+            if (byteData.Length == 0) return null;
+
             using (var compressedStream = new MemoryStream(byteData))
             {
                 var extractor = new SevenZipExtractor(compressedStream);

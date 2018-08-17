@@ -91,6 +91,7 @@ namespace ReportService.Interfaces
         List<DtoInstance> GetAllInstances();
         List<DtoInstance> GetInstancesByTaskId(int taskId);
         List<DtoFullInstance> GetFullInstancesByTaskId(int taskId);
+
         DtoFullInstance GetFullInstanceById(int id);
 
         int CreateEntity<T>(T entity);

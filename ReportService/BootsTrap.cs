@@ -208,11 +208,10 @@ namespace ReportService
             CreateMap<ApiFullTask, DtoTask>();
             CreateMap<ApiFullTask, DtoReport>();
 
-            // .ForMember("ConnectionString", opt => opt.MapFrom(s => s.ConnectionString == "" ? null : s.ConnectionString));
             CreateMap<RTask, ApiTask>()
-                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));
+                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
+                .ForMember("TelegramChannelId", opt => opt.MapFrom(s => s.TelegramChannel.Id));
 
             CreateMap<DtoFullInstance, DtoInstance>();
             CreateMap<DtoFullInstance, DtoInstanceData>()

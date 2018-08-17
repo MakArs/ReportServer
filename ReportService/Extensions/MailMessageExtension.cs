@@ -18,12 +18,13 @@ namespace ReportService.Extensions
             AddAddressesToCollection(addresses.Bcc, msg.Bcc);
         }
 
-        static void AddAddressesToCollection(string[] addresses, MailAddressCollection col)
+        private static void AddAddressesToCollection(string[] addresses, MailAddressCollection col)
         {
-            if (addresses != null)
-                foreach (var address in addresses)
-                    if (!string.IsNullOrEmpty(address))
-                        col.Add(new MailAddress(address));
+            if (addresses == null) return;
+
+            foreach (var address in addresses)
+                if (!string.IsNullOrEmpty(address))
+                    col.Add(new MailAddress(address));
         }
     }
 }

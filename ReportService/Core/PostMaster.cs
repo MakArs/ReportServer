@@ -11,32 +11,25 @@ namespace ReportService.Core
 {
     internal class PostMasterTest : IPostMaster
     {
-        private string _filename;
+        private string filename;
 
         public void Send(string reportName, RecepientAddresses addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsReport = null)
         {
-            _filename = $"Report_{reportName}_{DateTime.Now:HHmmss}.html";
+            filename = $"Report_{reportName}_{DateTime.Now:HHmmss}.html";
 
-            using (FileStream fs = new FileStream($@"C:\ArsMak\job\{_filename}", FileMode.CreateNew))
+            using (FileStream fs = new FileStream($@"C:\ArsMak\job\{filename}", FileMode.CreateNew))
             {
                 byte[] array =
                     System.Text.Encoding.Default.GetBytes(string.IsNullOrEmpty(htmlReport) ? "" : htmlReport);
                 fs.Write(array, 0, array.Length);
             }
 
-            Console.WriteLine($"file {_filename} saved to disk...");
+            Console.WriteLine($"file {filename} saved to disk...");
         }
     } //saving at disk
 
     public class PostMasterWork : IPostMaster
     {
-        private readonly IClientControl _monik;
-
-        public PostMasterWork(IClientControl monik)
-        {
-            _monik = monik;
-        }
-
         public void Send(string reportName, RecepientAddresses addresses, string htmlReport = null, string jsonReport = null, ExcelPackage xlsxReport = null)
         {
             string filename = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
@@ -88,10 +81,9 @@ namespace ReportService.Core
                 }
                 finally
                 {
-                    if (streamJson != null)
-                        streamJson.Dispose();
-                    if (streamXlsx != null)
-                        streamXlsx.Dispose();
+                    streamJson?.Dispose();
+
+                    streamXlsx?.Dispose();
                 }
             }
         }

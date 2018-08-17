@@ -18,111 +18,112 @@ namespace ReportService.Core
 {
     public class Logic : ILogic
     {
-        private readonly ILifetimeScope _autofac;
-        private readonly IMapper _mapper;
-        private readonly IClientControl _monik;
-        private readonly IArchiver _archiver;
-        private readonly ITelegramBotClient _bot;
-        private readonly IRepository _repository;
-        private readonly Scheduler _checkScheduleAndExecuteScheduler;
-        private readonly IViewExecutor _tableView;
+        private readonly ILifetimeScope autofac;
+        private readonly IMapper mapper;
+        private readonly IClientControl monik;
+        private readonly IArchiver archiver;
+        private readonly ITelegramBotClient bot;
+        private readonly IRepository repository;
+        private readonly Scheduler checkScheduleAndExecuteScheduler;
+        private readonly IViewExecutor tableView;
 
-        private readonly List<RRecepientGroup> _recepientGroups;
-        private readonly List<DtoSchedule> _schedules;
-        private readonly List<DtoReport> _reports;
-        private readonly ConcurrentDictionary<long, DtoTelegramChannel> _telegramChannels;
-        private readonly List<IRTask> _tasks;
+        private readonly List<RRecepientGroup> recepientGroups;
+        private readonly List<DtoReport> reports;
+        private readonly List<DtoSchedule> schedules;
+        private readonly ConcurrentDictionary<long, DtoTelegramChannel> telegramChannels;
+        private readonly List<IRTask> tasks;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
                      IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
         {
-            _autofac    = autofac;
-            _mapper     = mapper;
-            _monik      = monik;
-            _archiver   = archiver;
-            _bot        = bot;
-            _repository = repository;
+            this.autofac = autofac;
+            this.mapper = mapper;
+            this.monik = monik;
+            this.archiver = archiver;
+            this.bot = bot;
+            this.repository = repository;
 
-            _checkScheduleAndExecuteScheduler = new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
-            _tableView                        = _autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+            checkScheduleAndExecuteScheduler =
+                new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
+            tableView = this.autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
 
-            _recepientGroups  =  new List<RRecepientGroup>();
-            _schedules        =  new List<DtoSchedule>();
-            _reports          =  new List<DtoReport>();
-            _telegramChannels =  new ConcurrentDictionary<long, DtoTelegramChannel>();
-            _tasks            =  new List<IRTask>();
-            _bot.OnUpdate     += OnBotUpd;
+            recepientGroups = new List<RRecepientGroup>();
+            schedules = new List<DtoSchedule>();
+            reports = new List<DtoReport>();
+            telegramChannels = new ConcurrentDictionary<long, DtoTelegramChannel>();
+            tasks = new List<IRTask>();
+            this.bot.OnUpdate += OnBotUpd;
 
         } //ctor
 
         private void UpdateRecepientGroupsList()
         {
-            var recepList = _repository.GetAllRecepientGroups();
+            var recepList = repository.GetAllRecepientGroups();
             lock (this)
             {
-                _recepientGroups.Clear();
+                recepientGroups.Clear();
                 foreach (var sched in recepList)
                 {
-                    _recepientGroups.Add(_mapper.Map<RRecepientGroup>(sched));
+                    recepientGroups.Add(mapper.Map<RRecepientGroup>(sched));
                 }
             }
         }
 
         private void UpdateScheduleList()
         {
-            var schedList = _repository.GetAllSchedules();
+            var schedList = repository.GetAllSchedules();
             lock (this)
             {
-                _schedules.Clear();
+                schedules.Clear();
                 foreach (var sched in schedList)
-                    _schedules.Add(sched);
+                    schedules.Add(sched);
             }
         }
 
         private void UpdateReportsList()
         {
-            var repList = _repository.GetAllReports();
+            var repList = repository.GetAllReports();
             lock (this)
             {
-                _reports.Clear();
+                reports.Clear();
                 foreach (var rep in repList)
-                    _reports.Add(rep);
+                    reports.Add(rep);
             }
         }
 
         private void UpdateTelegramChannelsList()
         {
-            var chanList = _repository.GetAllTelegramChannels();
+            var chanList = repository.GetAllTelegramChannels();
             lock (this)
             {
-                _telegramChannels.Clear();
+                telegramChannels.Clear();
                 foreach (var channel in chanList)
                 {
-                    _telegramChannels.TryAdd(channel.ChatId, channel);
+                    telegramChannels.TryAdd(channel.ChatId, channel);
                 }
             }
         }
 
         private void UpdateTaskList()
         {
-            var taskLst = _repository.GetAllTasks();
+            var taskLst = repository.GetAllTasks();
             lock (this)
             {
-                _tasks.Clear();
+                tasks.Clear();
 
                 foreach (var dtoTask in taskLst)
                 {
-                    var report = _reports.First(rep => rep.Id == dtoTask.ReportId);
-                    var task = _autofac.Resolve<IRTask>(
+                    var report = reports.First(rep => rep.Id == dtoTask.ReportId);
+                    var task = autofac.Resolve<IRTask>(
                         new NamedParameter("id", dtoTask.Id),
                         new NamedParameter("reportName", report.Name),
                         new NamedParameter("template", report.ViewTemplate),
-                        new NamedParameter("schedule", _schedules
+                        new NamedParameter("schedule", schedules
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                         new NamedParameter("query", report.Query),
-                        new NamedParameter("chatId", _telegramChannels
-                            .FirstOrDefault(tc => tc.Value.Id == dtoTask.TelegramChannelId).Value?.ChatId),
-                        new NamedParameter("sendAddress", _recepientGroups
+                        new NamedParameter("telegramChannel", telegramChannels
+                            .FirstOrDefault(tc => tc.Value.Id == dtoTask.TelegramChannelId).Value),
+                        new NamedParameter("sendAddress", recepientGroups
                             .FirstOrDefault(r => r.Id == dtoTask.RecepientGroupId)),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", report.QueryTimeOut),
@@ -137,36 +138,36 @@ namespace ReportService.Core
                     // might be replaced with saved time from db
                     task.UpdateLastTime();
 
-                    _tasks.Add(task);
+                    tasks.Add(task);
                 }
             } //lock
         }
 
         private void CheckScheduleAndExecute()
         {
-            List<IRTask> tasks;
+            List<IRTask> currentTasks;
             lock (this)
-                tasks = _tasks.ToList();
+                currentTasks = tasks.ToList();
 
-            DateTime time = DateTime.Now;
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-            foreach (var task in tasks.Where(x => x.Schedule != null))
+            foreach (var task in currentTasks.Where(x => x.Schedule != null))
             {
-                string[] cronStrings = _schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(';');
+                string[] cronStrings =
+                    schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(';');
 
                 foreach (var cronString in cronStrings)
                 {
                     var cronSchedule = CrontabSchedule.TryParse(cronString);
-                    if (cronSchedule != null)
-                    {
-                        var occurrences = cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
-                        if (occurrences.Any())
-                        {
-                            ExecuteTask(task);
-                            break;
-                        }
-                    }
+
+                  if (cronSchedule == null) continue;
+
+                    var occurrences =
+                        cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
+                    if (!occurrences.Any()) continue;
+
+                    ExecuteTask(task);
+                    break;
                 }
             } //for
         }
@@ -174,7 +175,7 @@ namespace ReportService.Core
         private void ExecuteTask(IRTask task)
         {
             task.UpdateLastTime();
-            _monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
+            monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
             Task.Factory.StartNew(() => task.Execute());
         }
 
@@ -182,11 +183,11 @@ namespace ReportService.Core
         {
             try
             {
-                _repository.CreateBase(connStr);
+                repository.CreateBase(connStr);
             }
             catch (Exception e)
             {
-                _monik.ApplicationError(e.Message);
+                monik.ApplicationError(e.Message);
             }
         }
 
@@ -205,26 +206,26 @@ namespace ReportService.Core
             UpdateReportsList();
             UpdateTelegramChannelsList();
             UpdateTaskList();
-            _bot.StartReceiving();
-            _checkScheduleAndExecuteScheduler.OnStart();
+            bot.StartReceiving();
+            checkScheduleAndExecuteScheduler.OnStart();
         }
 
         public void Stop()
         {
-            _checkScheduleAndExecuteScheduler.OnStop();
+            checkScheduleAndExecuteScheduler.OnStop();
         }
 
         public string ForceExecute(int taskId, string mail)
         {
-            List<IRTask> tasks;
+            List<IRTask> currentTasks;
 
             lock (this)
-                tasks = _tasks.ToList();
+                currentTasks = tasks.ToList();
 
-            var task = tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            _monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
+            monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
 
             Task.Factory.StartNew(() => task.Execute(mail));
             return $"Report {taskId} sent!";
@@ -232,11 +233,11 @@ namespace ReportService.Core
 
         public string GetTaskList_HtmlPage()
         {
-            List<IRTask> tasks;
+            List<IRTask> currentTasks;
             lock (this)
-                tasks = _tasks.ToList();
+                currentTasks = tasks.ToList();
 
-            var tasksView = tasks.Select(t => new
+            var tasksView = currentTasks.Select(t => new
                 {
                     t.Id,
                     SendAddresses = t.SendAddresses?.Addresses,
@@ -250,132 +251,133 @@ namespace ReportService.Core
                 })
                 .ToList();
             var jsonTasks = JsonConvert.SerializeObject(tasksView);
-            var tr        = _tableView.ExecuteHtml("", jsonTasks);
+            var tr = tableView.ExecuteHtml("", jsonTasks);
             return tr;
         }
 
         public string GetFullInstanceList_HtmlPage(int taskId)
         {
-            List<DtoFullInstance> instancesByteData = _repository.GetFullInstancesByTaskId(taskId);
-            var                   instances         = new List<RFullInstance>();
+            List<DtoFullInstance> instancesByteData = repository.GetFullInstancesByTaskId(taskId);
+            var instances = new List<RFullInstance>();
             foreach (var instance in instancesByteData)
             {
-                var rinstance = _mapper.Map<RFullInstance>(instance);
-                rinstance.Data     = _archiver.ExtractFromByteArchive(instance.Data);
-                rinstance.ViewData = _archiver.ExtractFromByteArchive(instance.ViewData);
+                var rinstance = mapper.Map<RFullInstance>(instance);
+                rinstance.Data = archiver.ExtractFromByteArchive(instance.Data);
+                rinstance.ViewData = archiver.ExtractFromByteArchive(instance.ViewData);
                 instances.Add(rinstance);
             }
 
             var jsonInstances = JsonConvert.SerializeObject(instances);
-            return _tableView.ExecuteHtml("", jsonInstances);
+            return tableView.ExecuteHtml("", jsonInstances);
         }
 
         public string GetAllTasksJson()
         {
-            List<IRTask> tasks;
+            List<IRTask> currentTasks;
             lock (this)
-                tasks = _tasks.ToList();
-            var tr = JsonConvert.SerializeObject(tasks
-                .Select(t => _mapper.Map<ApiTask>(t)));
+                currentTasks = tasks.ToList();
+            var tr = JsonConvert.SerializeObject(currentTasks
+                .Select(t => mapper.Map<ApiTask>(t)));
             return tr;
         }
 
         public string GetFullTaskByIdJson(int id)
         {
-            List<IRTask> tasks;
+            List<IRTask> currentTasks;
             lock (this)
-                tasks = _tasks.ToList();
-            return JsonConvert.SerializeObject(_mapper.Map<ApiFullTask>(tasks.First(t => t.Id == id)));
+                currentTasks = tasks.ToList();
+            return JsonConvert.SerializeObject(
+                mapper.Map<ApiFullTask>(currentTasks.First(t => t.Id == id)));
         }
 
         public void DeleteTask(int taskId)
         {
-            _repository.DeleteEntity<DtoTask>(taskId);
+            repository.DeleteEntity<DtoTask>(taskId);
             UpdateTaskList();
-            _monik.ApplicationInfo($"Удалена задача {taskId}");
+            monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
         public int CreateTask(ApiFullTask task)
         {
-            var dtoTask   = _mapper.Map<DtoTask>(task);
-            var newTaskId = _repository.CreateEntity(dtoTask);
+            var dtoTask = mapper.Map<DtoTask>(task);
+            var newTaskId = repository.CreateEntity(dtoTask);
             UpdateTaskList();
-            _monik.ApplicationInfo($"Создана задача {newTaskId}");
+            monik.ApplicationInfo($"Создана задача {newTaskId}");
             return newTaskId;
         }
 
         public void UpdateTask(ApiFullTask task)
         {
-            var dtoTask = _mapper.Map<DtoTask>(task);
-            _repository.UpdateEntity(dtoTask);
+            var dtoTask = mapper.Map<DtoTask>(task);
+            repository.UpdateEntity(dtoTask);
             UpdateTaskList();
-            _monik.ApplicationInfo($"Обновлена задача {task.Id}");
+            monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }
 
         public string GetAllInstancesJson()
         {
-            return JsonConvert.SerializeObject(_repository.GetAllInstances());
+            return JsonConvert.SerializeObject(repository.GetAllInstances());
         }
 
         public string GetAllInstancesByTaskIdJson(int taskId)
         {
-            return JsonConvert.SerializeObject(_repository.GetInstancesByTaskId(taskId));
+            return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
         }
 
         public string GetFullInstanceByIdJson(int id)
         {
-            var instance  = _repository.GetFullInstanceById(id);
-            var rinstance = _mapper.Map<RFullInstance>(instance);
-            rinstance.Data     = _archiver.ExtractFromByteArchive(instance.Data);
-            rinstance.ViewData = _archiver.ExtractFromByteArchive(instance.ViewData);
+            var instance = repository.GetFullInstanceById(id);
+            var rinstance = mapper.Map<RFullInstance>(instance);
+            rinstance.Data = archiver.ExtractFromByteArchive(instance.Data);
+            rinstance.ViewData = archiver.ExtractFromByteArchive(instance.ViewData);
             return JsonConvert.SerializeObject(rinstance);
         }
 
         public void DeleteInstance(int instanceId)
         {
-            _repository.DeleteEntity<DtoInstance>(instanceId);
+            repository.DeleteEntity<DtoInstance>(instanceId);
             UpdateTaskList();
-            _monik.ApplicationInfo($"Удалена запись {instanceId}");
+            monik.ApplicationInfo($"Удалена запись {instanceId}");
         }
 
         public int CreateReport(DtoReport report)
         {
-            var reportId = _repository.CreateEntity(report);
+            var reportId = repository.CreateEntity(report);
             UpdateReportsList();
-            _monik.ApplicationInfo($"Добавлен отчёт {reportId}");
+            monik.ApplicationInfo($"Добавлен отчёт {reportId}");
             return reportId;
         }
 
         public void UpdateReport(DtoReport report)
         {
-            _repository.UpdateEntity(report);
+            repository.UpdateEntity(report);
             UpdateReportsList();
             UpdateTaskList();
-            _monik.ApplicationInfo($"Обновлён отчёт {report.Id}");
+            monik.ApplicationInfo($"Обновлён отчёт {report.Id}");
         }
 
         public string GetAllSchedulesJson()
         {
-            return JsonConvert.SerializeObject(_schedules);
+            return JsonConvert.SerializeObject(schedules);
         }
 
         public string GetAllRecepientGroupsJson()
         {
-            return JsonConvert.SerializeObject(_repository.GetAllRecepientGroups());
+            return JsonConvert.SerializeObject(repository.GetAllRecepientGroups());
         }
 
         public string GetAllReportsJson()
         {
-            return JsonConvert.SerializeObject(_reports);
+            return JsonConvert.SerializeObject(reports);
         }
 
         public string GetCurrentViewByTaskId(int taskId)
         {
-            List<IRTask> tasks;
+            List<IRTask> currentTasks;
             lock (this)
-                tasks = _tasks.ToList();
+                currentTasks = tasks.ToList();
 
-            var task = tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
             return task.GetCurrentView();
@@ -383,24 +385,25 @@ namespace ReportService.Core
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)
         {
-            long       chatId   = 0;
-            string     chatName = "";
-            ChatType   chatType = ChatType.Private;
-            UpdateType updType  = e.Update.Type;
+            long chatId = 0;
+            string chatName = "";
+            ChatType chatType = ChatType.Private;
+            UpdateType updType = e.Update.Type;
             switch (updType)
             {
                 case UpdateType.ChannelPost:
-                    chatId   = e.Update.ChannelPost.Chat.Id;
+                    chatId = e.Update.ChannelPost.Chat.Id;
                     chatName = e.Update.ChannelPost.Chat.Title;
                     chatType = ChatType.Channel;
                     break;
                 case UpdateType.Message:
                     chatType = e.Update.Message.Chat.Type;
-                    chatId   = e.Update.Message.Chat.Id;
+                    chatId = e.Update.Message.Chat.Id;
                     switch (chatType)
                     {
                         case ChatType.Private:
-                            chatName = $"{e.Update.Message.Chat.FirstName} {e.Update.Message.Chat.LastName}";
+                            chatName =
+                                $"{e.Update.Message.Chat.FirstName} {e.Update.Message.Chat.LastName}";
                             break;
 
                         case ChatType.Group:
@@ -411,21 +414,21 @@ namespace ReportService.Core
                     break;
             }
 
-            if (chatId != 0 && !_telegramChannels.ContainsKey(chatId))
+            if (chatId != 0 && !telegramChannels.ContainsKey(chatId))
             {
                 DtoTelegramChannel channel =
                     new DtoTelegramChannel
                     {
                         ChatId = chatId,
-                        Name   = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
-                        Type   = (int) chatType
+                        Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
+                        Type = (int) chatType
                     };
 
-                channel.Id = _repository.CreateEntity(channel);
+                channel.Id = repository.CreateEntity(channel);
 
                 lock (this)
                 {
-                    _telegramChannels.TryAdd(channel.ChatId, channel);
+                    telegramChannels.TryAdd(channel.ChatId, channel);
                 }
             }
         }

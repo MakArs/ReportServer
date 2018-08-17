@@ -13,76 +13,78 @@ namespace ReportService.Core
 {
     public class RTask : IRTask
     {
-        public int             Id                { get; }
-        public string          ReportName        { get; }
-        public RRecepientGroup SendAddresses     { get; }
-        public string          ViewTemplate      { get; }
-        public DtoSchedule     Schedule          { get; }
-        public string          ConnectionString  { get; }
-        public string          Query             { get; }
-        public long            ChatId            { get; }
-        public int             TryCount          { get; }
-        public int             QueryTimeOut      { get; }
-        public RReportType     Type              { get; }
-        public int             ReportId          { get; }
-        public bool            HasHtmlBody       { get; }
-        public bool            HasJsonAttachment { get; }
-        public bool            HasXlsxAttachment { get; }
-        public DateTime        LastTime          { get; private set; }
+        public int Id { get; }
+        public string ReportName { get; }
+        public RRecepientGroup SendAddresses { get; }
+        public string ViewTemplate { get; }
+        public DtoSchedule Schedule { get; }
+        public DtoTelegramChannel TelegramChannel { get; }
+        public string ConnectionString { get; }
+        public string Query { get; }
+        public int TryCount { get; }
+        public int QueryTimeOut { get; }
+        public RReportType Type { get; }
+        public int ReportId { get; }
+        public bool HasHtmlBody { get; }
+        public bool HasJsonAttachment { get; }
+        public bool HasXlsxAttachment { get; }
+        public DateTime LastTime { get; private set; }
 
-        public bool HasTelegram => ChatId != 0;
+        public bool HasTelegram => TelegramChannel != null;
 
-        private readonly IDataExecutor _dataEx;
-        private readonly IViewExecutor _viewEx;
-        private readonly IPostMaster _postMaster;
-        private readonly IRepository _repository;
-        private readonly IClientControl _monik;
-        private readonly IMapper _mapper;
-        private readonly IArchiver _archiver;
-        private readonly ITelegramBotClient _bot;
+        private readonly IDataExecutor dataEx;
+        private readonly IViewExecutor viewEx;
+        public readonly IPostMaster PostMaster;
+        private readonly IRepository repository;
+        private readonly IClientControl monik;
+        private readonly IMapper mapper;
+        private readonly IArchiver archiver;
+        private readonly ITelegramBotClient bot;
 
         public RTask(ILifetimeScope autofac, IPostMaster postMaster, IRepository repository,
-                     IClientControl monik, IMapper mapper, IArchiver archiver, ITelegramBotClient botClient,
-                     int id, string reportName, string template, DtoSchedule schedule, string connStr, string query,
-                     long chatId, RRecepientGroup sendAddress, int tryCount, int timeOut,
-                     RReportType reportType, int reportId, bool htmlBody, bool jsonAttach, bool xlsxAttach)
+                     IClientControl monik, IMapper mapper, IArchiver archiver,
+                     ITelegramBotClient botClient,
+                     int id, string reportName, string template, DtoSchedule schedule,
+                     string connStr, string query, RRecepientGroup sendAddress,
+                     int tryCount, int timeOut, RReportType reportType, int reportId,
+                     DtoTelegramChannel telegramChannel, bool htmlBody, bool jsonAttach, bool xlsxAttach)
         {
             Type = reportType;
 
             switch (Type)
             {
                 case RReportType.Common:
-                    _dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
-                    _viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
+                    dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
+                    viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
                     break;
                 case RReportType.Custom:
-                    _dataEx = autofac.ResolveNamed<IDataExecutor>(query);
-                    _viewEx = autofac.ResolveNamed<IViewExecutor>(template);
+                    dataEx = autofac.ResolveNamed<IDataExecutor>(query);
+                    viewEx = autofac.ResolveNamed<IViewExecutor>(template);
                     break;
                 default:
                     throw new NotImplementedException();
             }
 
-            _archiver         = archiver;
-            _postMaster       = postMaster;
-            Id                = id;
-            ReportName        = reportName;
-            Query             = query;
-            ChatId            = chatId;
-            ViewTemplate      = template;
-            ReportId          = reportId;
-            SendAddresses     = sendAddress;
-            Schedule          = schedule;
-            _repository       = repository;
-            TryCount          = tryCount;
-            QueryTimeOut      = timeOut;
-            ConnectionString  = connStr;
-            HasHtmlBody       = htmlBody;
+            this.archiver = archiver;
+            PostMaster = postMaster;
+            Id = id;
+            ReportName = reportName;
+            Query = query;
+            TelegramChannel = telegramChannel;
+            ViewTemplate = template;
+            ReportId = reportId;
+            SendAddresses = sendAddress;
+            Schedule = schedule;
+            this.repository = repository;
+            TryCount = tryCount;
+            QueryTimeOut = timeOut;
+            ConnectionString = connStr;
+            HasHtmlBody = htmlBody;
             HasJsonAttachment = jsonAttach;
             HasXlsxAttachment = xlsxAttach;
-            _monik            = monik;
-            _mapper           = mapper;
-            _bot              = botClient;
+            this.monik = monik;
+            this.mapper = mapper;
+            bot = botClient;
         }
 
         public void Execute(string address = null)
@@ -90,36 +92,36 @@ namespace ReportService.Core
             var dtoInstance = new DtoFullInstance()
             {
                 StartTime = DateTime.Now,
-                TaskId    = Id,
-                State     = (int) InstanceState.InProcess
+                TaskId = Id,
+                State = (int) InstanceState.InProcess
             };
 
             dtoInstance.Id =
-                _repository.CreateEntity(_mapper.Map<DtoInstance>(dtoInstance));
+                repository.CreateEntity(mapper.Map<DtoInstance>(dtoInstance));
 
-            _repository.CreateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
+            repository.CreateEntity(mapper.Map<DtoInstanceData>(dtoInstance));
 
             RecepientAddresses deliveryAddrs = null;
 
             if (!string.IsNullOrEmpty(address))
-                deliveryAddrs = new RecepientAddresses() { To = new string[] { address } };
+                deliveryAddrs = new RecepientAddresses {To = new string[] {address}};
             else if (SendAddresses != null)
                 deliveryAddrs = SendAddresses.GetAddresses();
 
             Stopwatch duration = new Stopwatch();
             duration.Start();
-            int    i            = 1;
-            bool   dataObtained = false;
-            string jsonReport   = "";
-            string htmlReport   = "";
-            string teleReport   = "";
+            int i = 1;
+            bool dataObtained = false;
+            string jsonReport = "";
+            string htmlReport = "";
+            string teleReport = "";
             ExcelPackage xlsxReport = null;
 
             while (!dataObtained && i <= TryCount)
             {
                 try
                 {
-                    jsonReport   = _dataEx.Execute(this);
+                    jsonReport = dataEx.Execute(this);
                     dataObtained = true;
                     i++;
                     break;
@@ -137,27 +139,29 @@ namespace ReportService.Core
                 if (HasHtmlBody)
                     try
                     {
-                        htmlReport = _viewEx.ExecuteHtml(ViewTemplate, jsonReport);
+                        htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         htmlReport = ex.Message;
                     }
+
                 if (HasTelegram)
                     try
                     {
-                        teleReport = _viewEx.ExecuteTelegramView(jsonReport, ReportName);
+                        teleReport = viewEx.ExecuteTelegramView(jsonReport, ReportName);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         teleReport = ex.Message;
                     }
+
                 if (HasXlsxAttachment)
                     try
                     {
-                        xlsxReport = _viewEx.ExecuteXlsx(jsonReport, ReportName);
+                        xlsxReport = viewEx.ExecuteXlsx(jsonReport, ReportName);
                     }
                     catch (Exception ex)
                     {
@@ -171,7 +175,7 @@ namespace ReportService.Core
                     {
                         try
                         {
-                            _postMaster.Send(ReportName, deliveryAddrs,
+                            PostMaster.Send(ReportName, deliveryAddrs,
                                 HasHtmlBody ? htmlReport : null,
                                 HasJsonAttachment ? jsonReport : null,
                                 HasXlsxAttachment ? xlsxReport : null
@@ -188,7 +192,8 @@ namespace ReportService.Core
                     {
                         try
                         {
-                            _bot.SendTextMessageAsync(ChatId, teleReport, ParseMode.Markdown).Wait();
+                            bot.SendTextMessageAsync(TelegramChannel.ChatId, teleReport, ParseMode.Markdown)
+                                .Wait();
                         }
                         catch (Exception e)
                         {
@@ -197,13 +202,13 @@ namespace ReportService.Core
                         }
                     }
 
-                    _monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
+                    monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                     Console.WriteLine($"Отчёт {Id} успешно выслан");
                 }
                 catch (Exception e)
                 {
-                    _monik.ApplicationError($"Отчёт не выслан: " + e.Message);
-                    Console.WriteLine($"Отчёт не выслан: " + e.Message);
+                    monik.ApplicationError($"Отчёт не выслан: " + e.Message);
+                    Console.WriteLine($"Отчёт не выслан: "      + e.Message);
                 }
                 finally
                 {
@@ -214,30 +219,31 @@ namespace ReportService.Core
 
             duration.Stop();
 
-            dtoInstance.Data      = _archiver.CompressString(jsonReport);
-            dtoInstance.ViewData  = _archiver.CompressString(htmlReport);
+            dtoInstance.Data = archiver.CompressString(jsonReport);
+            dtoInstance.ViewData = archiver.CompressString(htmlReport);
             dtoInstance.TryNumber = i - 1;
-            dtoInstance.Duration  = Convert.ToInt32(duration.ElapsedMilliseconds);
-            dtoInstance.State     = dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
+            dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
+            dtoInstance.State =
+                dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
             // string filename = $@"{AppDomain.CurrentDomain.BaseDirectory}\\Report{Id}-{DateTime.Now:HHmmss}";
 
-            _repository.UpdateEntity(_mapper.Map<DtoInstance>(dtoInstance));
-            _repository.UpdateEntity(_mapper.Map<DtoInstanceData>(dtoInstance));
+            repository.UpdateEntity(mapper.Map<DtoInstance>(dtoInstance));
+            repository.UpdateEntity(mapper.Map<DtoInstanceData>(dtoInstance));
         } //method
 
         public string GetCurrentView()
         {
-            int    i            = 1;
-            bool   dataObtained = false;
-            string htmlReport   = "";
+            int i = 1;
+            bool dataObtained = false;
+            string htmlReport = "";
 
             while (!dataObtained && i <= TryCount)
             {
                 try
                 {
-                    var jsonReport = _dataEx.Execute(this);
-                    htmlReport   = _viewEx.ExecuteHtml(ViewTemplate, jsonReport);
+                    var jsonReport = dataEx.Execute(this);
+                    htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;

@@ -8,16 +8,16 @@ namespace ReportService.Core
 {
     public class Repository : IRepository
     {
-        private readonly string _connStr;
+        private readonly string connStr;
 
         public Repository(string connStr)
         {
-            _connStr = connStr;
+            this.connStr = connStr;
         } //ctor
 
         public List<DtoRecepientGroup> GetAllRecepientGroups()
         {
-            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(connStr,
                     "select * from RecepientGroup")
                 .ToList();
         }
@@ -30,7 +30,7 @@ namespace ReportService.Core
             switch (true)
             {
                 case bool _ when type == typeof(DtoRecepientGroup):
-                    var list = SimpleCommand.ExecuteQuery<T>(_connStr,
+                    var list = SimpleCommand.ExecuteQuery<T>(connStr,
                         "select * from RecepientGroup");
                     foreach (dynamic instance in list)
                         retList.Add((T) instance.Value);
@@ -42,47 +42,47 @@ namespace ReportService.Core
 
         public List<DtoSchedule> GetAllSchedules()
         {
-            return SimpleCommand.ExecuteQuery<DtoSchedule>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoSchedule>(connStr,
                     "select * from Schedule")
                 .ToList();
         }
 
         public List<DtoReport> GetAllReports()
         {
-            return SimpleCommand.ExecuteQuery<DtoReport>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoReport>(connStr,
                     "select * from Report")
                 .ToList();
         }
 
         public List<DtoTelegramChannel> GetAllTelegramChannels()
         {
-            return SimpleCommand.ExecuteQuery<DtoTelegramChannel>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoTelegramChannel>(connStr,
                     "select * from TelegramChannel")
                 .ToList();
         }
 
         public List<DtoTask> GetAllTasks()
         {
-            return SimpleCommand.ExecuteQuery<DtoTask>(_connStr, "select * from task").ToList();
+            return SimpleCommand.ExecuteQuery<DtoTask>(connStr, "select * from task").ToList();
         }
 
         public List<DtoInstance> GetAllInstances()
         {
-            return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoInstance>(connStr,
                     "select * from Instance")
                 .ToList();
         }
 
         public List<DtoInstance> GetInstancesByTaskId(int taskId)
         {
-            return SimpleCommand.ExecuteQuery<DtoInstance>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoInstance>(connStr,
                     $"select * from Instance where taskid={taskId}")
                 .ToList();
         }
 
         public List<DtoFullInstance> GetFullInstancesByTaskId(int taskId)
         {
-            return SimpleCommand.ExecuteQuery<DtoFullInstance>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoFullInstance>(connStr,
                     $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
                 from Instance i join instancedata idat on id=instanceid where taskid={taskId} order by id")
                 .ToList();
@@ -90,7 +90,7 @@ namespace ReportService.Core
 
         public DtoFullInstance GetFullInstanceById(int id)
         {
-            return SimpleCommand.ExecuteQuery<DtoFullInstance>(_connStr,
+            return SimpleCommand.ExecuteQuery<DtoFullInstance>(connStr,
                     $@"select id,taskid,starttime,duration,state,trynumber,data,viewdata
                 from Instance i join instancedata idat on id=instanceid where id={id}")
                 .ToList().First();
@@ -101,28 +101,28 @@ namespace ReportService.Core
             switch (entity)
             {
                 case DtoRecepientGroup recepgroup: //todo:test
-                    return (int) MappedCommand.InsertAndGetId(_connStr, "RecepientGroup", recepgroup, "Id");
+                    return (int) MappedCommand.InsertAndGetId(connStr, "RecepientGroup", recepgroup, "Id");
 
                 case DtoSchedule sched: //todo:test
-                    return (int) MappedCommand.InsertAndGetId(_connStr, "Schedule", sched, "Id");
+                    return (int) MappedCommand.InsertAndGetId(connStr, "Schedule", sched, "Id");
 
                 case DtoReport rep:
-                    return (int) MappedCommand.InsertAndGetId(_connStr, "Report", rep, "Id");
+                    return (int) MappedCommand.InsertAndGetId(connStr, "Report", rep, "Id");
 
                 case DtoTask task:
-                    return (int) MappedCommand.InsertAndGetId(_connStr, "Task", task, "Id");
+                    return (int) MappedCommand.InsertAndGetId(connStr, "Task", task, "Id");
 
                 case DtoInstance instance:
-                    return (int) MappedCommand.InsertAndGetId(_connStr, "Instance", instance, "Id");
+                    return (int) MappedCommand.InsertAndGetId(connStr, "Instance", instance, "Id");
 
                 case DtoInstanceData instanceData:
                 {
-                    MappedCommand.Insert(_connStr, "InstanceData", instanceData);
+                    MappedCommand.Insert(connStr, "InstanceData", instanceData);
                     return 0;
                 }
 
                 case DtoTelegramChannel channel:
-                    return (int)MappedCommand.InsertAndGetId(_connStr, "TelegramChannel", channel, "Id");
+                    return (int)MappedCommand.InsertAndGetId(connStr, "TelegramChannel", channel, "Id");
 
                 default:
                     return 0;
@@ -134,31 +134,31 @@ namespace ReportService.Core
             switch (entity)
             {
                 case DtoRecepientGroup recepgroup: //todo:test
-                    MappedCommand.Update(_connStr, "RecepientGroup", recepgroup, "Id");
+                    MappedCommand.Update(connStr, "RecepientGroup", recepgroup, "Id");
                     break;
 
                 case DtoSchedule sched: //todo:test
-                    MappedCommand.Update(_connStr, "RecepientGroup", sched, "Id");
+                    MappedCommand.Update(connStr, "RecepientGroup", sched, "Id");
                     break;
 
                 case DtoReport rep:
-                    MappedCommand.Update(_connStr, "Report", rep, "Id");
+                    MappedCommand.Update(connStr, "Report", rep, "Id");
                     break;
 
                 case DtoTask task:
-                    MappedCommand.Update(_connStr, "Task", task, "Id");
+                    MappedCommand.Update(connStr, "Task", task, "Id");
                     break;
 
                 case DtoInstance instance:
-                    MappedCommand.Update(_connStr, "Instance", instance, "Id");
+                    MappedCommand.Update(connStr, "Instance", instance, "Id");
                     break;
 
                 case DtoInstanceData instanceData:
-                    MappedCommand.Update(_connStr, "InstanceData", instanceData, "InstanceId");
+                    MappedCommand.Update(connStr, "InstanceData", instanceData, "InstanceId");
                     break;
 
                 case DtoTelegramChannel channel:
-                    MappedCommand.Update(_connStr, "TelegramChannel", channel, "Id");
+                    MappedCommand.Update(connStr, "TelegramChannel", channel, "Id");
                     break;
             }
         }
@@ -178,15 +178,15 @@ namespace ReportService.Core
                     break;
 
                 case bool _ when type == typeof(DtoInstance):
-                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete InstanceData where instanceid={id}");
-                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where id={id}");
+                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete InstanceData where instanceid={id}");
+                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete Instance where id={id}");
                     break;
 
                 case bool _ when type == typeof(DtoTask):
-                    SimpleCommand.ExecuteNonQuery(_connStr,
+                    SimpleCommand.ExecuteNonQuery(connStr,
                         $@"delete InstanceData where instanceid in (select id from instance where TaskID={id})");
-                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Instance where TaskID={id}");
-                    SimpleCommand.ExecuteNonQuery(_connStr, $@"delete Task where id={id}");
+                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete Instance where TaskID={id}");
+                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete Task where id={id}");
                     break;
             }
         }
@@ -204,7 +204,7 @@ namespace ReportService.Core
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
                 Addresses NVARCHAR(4000) NOT NULL,
-                AddressesBcc NVARCHAR(4000) NOT NULL
+                AddressesBcc NVARCHAR(4000) NULL
                 ); ");
 
             var existScheduleTable = Convert.ToInt64(SimpleCommand

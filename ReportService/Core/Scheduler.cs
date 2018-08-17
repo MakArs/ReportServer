@@ -6,17 +6,17 @@ namespace ReportService.Core
 {
     public class Scheduler
     {
-        public int    Period     { get; set; } = 60; // in seconds
-        public Action TaskMethod { get; set; }       // may be with exceptions
+        public int Period { get; set; } = 60; // in seconds
+        public Action TaskMethod { get; set; } // may be with exceptions
 
-        private          Task                    _workTask;
-        private          bool                    _started      = false;
-        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
-        private          CancellationToken       _cancelToken;
+        private Task workTask;
+        private bool started = false;
+        private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private CancellationToken cancelToken;
 
         private void WorkCycle()
         {
-            while (_started)
+            while (started)
             {
                 try
                 {
@@ -33,20 +33,20 @@ namespace ReportService.Core
 
         public void OnStart()
         {
-            _started     = true;
-            _cancelToken = _cancelSource.Token;
+            started = true;
+            cancelToken = cancelSource.Token;
 
-            _workTask = new Task(WorkCycle, _cancelToken);
-            _workTask.Start();
+            workTask = new Task(WorkCycle, cancelToken);
+            workTask.Start();
         }
 
         public void OnStop()
         {
-            _started = false;
+            started = false;
             Task.Delay(1000).Wait();
 
-            if (!_workTask.IsCanceled)
-                _cancelSource.Cancel();
+            if (!workTask.IsCanceled)
+                cancelSource.Cancel();
 
         }
     }
