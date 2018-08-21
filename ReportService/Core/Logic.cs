@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac.Core;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -32,6 +33,8 @@ namespace ReportService.Core
         private readonly List<DtoSchedule> schedules;
         private readonly ConcurrentDictionary<long, DtoTelegramChannel> telegramChannels;
         private readonly List<IRTask> tasks;
+        private string customViewExecutors;
+        private string customDataExecutors;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
                      IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
@@ -201,6 +204,25 @@ namespace ReportService.Core
             //{
             //    Console.WriteLine(e);
             //}
+            customDataExecutors = JsonConvert
+                .SerializeObject(autofac
+                    .ComponentRegistry
+                    .Registrations
+                    .Where(r => typeof(IDataExecutor)
+                        .IsAssignableFrom(r.Activator.LimitType))
+                    .Select(r => (r.Services.ToList().First() as KeyedService)?
+                        .ServiceKey.ToString())
+                    .Where(key => key != "commondataex")
+                    .ToList());
+
+            customViewExecutors = JsonConvert
+                .SerializeObject(autofac.ComponentRegistry.Registrations
+                    .Where(r => typeof(IViewExecutor)
+                        .IsAssignableFrom(r.Activator.LimitType))
+                    .Select(r => (r.Services.ToList().First() as KeyedService)?
+                        .ServiceKey.ToString())
+                    .Where(key => key != "commonviewex")
+                    .ToList());
             UpdateScheduleList();
             UpdateRecepientGroupsList();
             UpdateReportsList();
@@ -297,7 +319,7 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
-        public int CreateTask(ApiFullTask task)
+        public int CreateTask(ApiTask task)
         {
             var dtoTask = mapper.Map<DtoTask>(task);
             var newTaskId = repository.CreateEntity(dtoTask);
@@ -306,7 +328,7 @@ namespace ReportService.Core
             return newTaskId;
         }
 
-        public void UpdateTask(ApiFullTask task)
+        public void UpdateTask(ApiTask task)
         {
             var dtoTask = mapper.Map<DtoTask>(task);
             repository.UpdateEntity(dtoTask);
@@ -381,6 +403,16 @@ namespace ReportService.Core
 
             if (task == null) return "No tasks with such Id found..";
             return task.GetCurrentView();
+        }
+
+        public string GetAllCustomDataExecutors()
+        {
+            return customDataExecutors;
+        }
+
+        public string GetAllCustomViewExecutors()
+        {
+            return customViewExecutors;
         }
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)

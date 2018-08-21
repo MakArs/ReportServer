@@ -56,7 +56,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var newTask = this.Bind<ApiFullTask>();
+                    var newTask = this.Bind<ApiTask>();
                     var id = logic.CreateTask(newTask);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
@@ -72,7 +72,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingTask = this.Bind<ApiFullTask>();
+                    var existingTask = this.Bind<ApiTask>();
 
                     if (parameters.id != existingTask.Id)
                         return HttpStatusCode.BadRequest;
@@ -224,6 +224,34 @@ namespace ReportService.Nancy
                 try
                 {
                     var response = (Response) logic.GetAllReportsJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/customdataexecutors"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllCustomDataExecutors();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/customviewexecutors"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllCustomViewExecutors();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

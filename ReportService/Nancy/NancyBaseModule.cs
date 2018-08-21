@@ -23,9 +23,9 @@ namespace ReportService.Nancy
     {
         public int Id { get; set; }
         public int ReportId { get; set; }
-        public int ScheduleId { get; set; }//
-        public int RecepientGroupId { get; set; }//
-        public int TelegramChannelId { get; set; }//
+        public int? ScheduleId { get; set; }//
+        public int? RecepientGroupId { get; set; }//
+        public int? TelegramChannelId { get; set; }//
         public int TryCount { get; set; }
         public bool HasHtmlBody { get; set; }
         public bool HasJsonAttachment { get; set; }

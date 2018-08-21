@@ -14,9 +14,8 @@ namespace ReportService.Interfaces
         string GetAllTasksJson();
         string GetFullTaskByIdJson(int id);
         void   DeleteTask(int taskId);
-        int    CreateTask(ApiFullTask task);
-        void   UpdateTask(ApiFullTask task);
-
+        int    CreateTask(ApiTask task);
+        void   UpdateTask(ApiTask task);
 
         string GetAllInstancesJson();
         string GetAllInstancesByTaskIdJson(int taskId);
@@ -31,5 +30,8 @@ namespace ReportService.Interfaces
         string GetAllReportsJson();
 
         string GetCurrentViewByTaskId(int id);
+
+        string GetAllCustomDataExecutors();
+        string GetAllCustomViewExecutors();
     }
 }

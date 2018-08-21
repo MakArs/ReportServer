@@ -41,14 +41,16 @@ namespace ReportService
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
             // Perform registration that should have an application lifetime
-            existingContainer
-                .RegisterNamedImplementation<IDataExecutor, CommonDataExecutor>("commondataex");
-            existingContainer
-                .RegisterNamedImplementation<IViewExecutor, CommonViewExecutor>("commonviewex");
-            existingContainer
-                .RegisterNamedImplementation<IViewExecutor, TaskListViewExecutor>("tasklistviewex");
-            existingContainer
-                .RegisterNamedImplementation<IViewExecutor, InstanceListViewExecutor>("instancelistviewex");
+
+            RegisterNamedDataExecutor<CommonDataExecutor>(existingContainer, "commondataex");
+
+            RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
+
+            RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
+
+            RegisterNamedViewExecutor<InstanceListViewExecutor>(existingContainer,
+                "instancelistviewex");
+
             existingContainer
                 .RegisterSingleton<IPostMaster, PostMasterWork>();
             existingContainer
@@ -92,9 +94,11 @@ namespace ReportService
 
             #region ConfigureMapper
 
-            var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
+            var mapperConfig =
+                new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
             // Hint: add to ctor if many profileSs needed: cfg.AddProfile(typeof(AutoMapperProfile));
-            existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(mapperConfig);
+            existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
+                mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
             existingContainer.RegisterSingleInstance<IMapper, IMapper>(mapper);
 
@@ -118,10 +122,12 @@ namespace ReportService
             #region ConfigureBot
 
             Uri proxyUri = new Uri(ConfigurationManager.AppSettings["proxyUriAddr"]);
-            ICredentials credentials = new NetworkCredential(ConfigurationManager.AppSettings["proxyLogin"],
+            ICredentials credentials = new NetworkCredential(
+                ConfigurationManager.AppSettings["proxyLogin"],
                 ConfigurationManager.AppSettings["proxyPassword"]);
             WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
-            TelegramBotClient bot = new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"], proxy);
+            TelegramBotClient bot =
+                new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"], proxy);
             existingContainer
                 .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
 
@@ -131,21 +137,41 @@ namespace ReportService
                 .RegisterInstance<ILifetimeScope, ILifetimeScope>(existingContainer);
         }
 
-        protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
+        protected override void ConfigureRequestContainer(ILifetimeScope container,
+                                                          NancyContext context)
         {
             // Perform registrations that should have a request lifetime
         }
 
-        protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines, NancyContext context)
+        protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines,
+                                               NancyContext context)
         {
             // No registrations should be performed in here, however you may
             // resolve things that are needed during request startup.
+        }
+
+        private void RegisterNamedViewExecutor<TImplementation>
+            (ILifetimeScope container, string name) where TImplementation : IViewExecutor
+        {
+            container.Update(builder => builder
+                .RegisterType<TImplementation>()
+                .Named<IViewExecutor>(name));
+        }
+
+
+        private void RegisterNamedDataExecutor<TImplementation>
+            (ILifetimeScope container, string name) where TImplementation : IDataExecutor
+        {
+            container.Update(builder => builder
+                .RegisterType<TImplementation>()
+                    .Named<IDataExecutor>(name));
         }
     }
 
     public static class LifeTimeExtension
     {
-        public static void RegisterSingleton<TInterface, TImplementation>(this ILifetimeScope container)
+        public static void RegisterSingleton<TInterface, TImplementation>(
+            this ILifetimeScope container)
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
@@ -153,14 +179,16 @@ namespace ReportService
                 .SingleInstance());
         }
 
-        public static void RegisterImplementation<TInterface, TImplementation>(this ILifetimeScope container)
+        public static void RegisterImplementation<TInterface, TImplementation>(
+            this ILifetimeScope container)
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
                 .As<TInterface>());
         }
 
-        public static void RegisterInstance<TInterface, TImplementation>(this ILifetimeScope container,
+        public static void RegisterInstance<TInterface, TImplementation>(
+            this ILifetimeScope container,
             TImplementation aInstance)
         {
             container.Update(builder => builder
@@ -168,7 +196,8 @@ namespace ReportService
                 .As<TInterface>());
         }
 
-        public static void RegisterSingleInstance<TInterface, TImplementation>(this ILifetimeScope container,
+        public static void RegisterSingleInstance<TInterface, TImplementation>(
+            this ILifetimeScope container,
             TImplementation aInstance)
         {
             container.Update(builder => builder
@@ -177,7 +206,8 @@ namespace ReportService
                 .SingleInstance());
         }
 
-        public static void RegisterNamedSingleton<TInterface, TImplementation>(this ILifetimeScope container,
+        public static void RegisterNamedSingleton<TInterface, TImplementation>(
+            this ILifetimeScope container,
             string name)
         {
             container.Update(builder => builder
@@ -186,13 +216,15 @@ namespace ReportService
                 .SingleInstance());
         }
 
-        public static void RegisterNamedImplementation<TInterface, TImplementation>(this ILifetimeScope container,
+        public static void RegisterNamedImplementation<TInterface, TImplementation>(
+            this ILifetimeScope container,
             string name)
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
                 .Named<TInterface>(name));
         }
+
     } //extensions
 
     public class MapperProfile : Profile
@@ -205,7 +237,7 @@ namespace ReportService
                 .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
                 .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));
 
-            CreateMap<ApiFullTask, DtoTask>();
+            CreateMap<ApiTask, DtoTask>();
             CreateMap<ApiFullTask, DtoReport>();
 
             CreateMap<RTask, ApiTask>()
