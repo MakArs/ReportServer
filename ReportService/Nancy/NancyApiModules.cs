@@ -171,15 +171,50 @@ namespace ReportService.Nancy
     {
         public ScheduleModule(ILogic logic)
         {
-            ModulePath = "/api/v1";
+            ModulePath = "/api/v1/schedules";
 
-            Get["/schedules"] = parameters =>
+            Get[""] = parameters =>
             {
                 try
                 {
                     var response = (Response) logic.GetAllSchedulesJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Post[""] = parameters =>
+            {
+                try
+                {
+                    var newSchedule = this.Bind<DtoSchedule>();
+                    var id = logic.CreateSchedule(newSchedule);
+                    var response = (Response)$"{id}";
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+
+            Put["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var existingSchedule = this.Bind<DtoSchedule>();
+
+                    if (parameters.id != existingSchedule.Id)
+                        return HttpStatusCode.BadRequest;
+
+                    logic.UpdateSchedule(existingSchedule);
+                    return HttpStatusCode.OK;
                 }
                 catch
                 {
@@ -194,9 +229,9 @@ namespace ReportService.Nancy
     {
         public RecepientGroupsModule(ILogic logic)
         {
-            ModulePath = "/api/v1";
+            ModulePath = "/api/v1/recepientgroups";
 
-            Get["/recepientgroups"] = parameters =>
+            Get[""] = parameters =>
             {
                 try
                 {
@@ -210,6 +245,40 @@ namespace ReportService.Nancy
                 }
             };
 
+            Post[""] = parameters =>
+            {
+                try
+                {
+                    var newReport = this.Bind<DtoRecepientGroup>();
+                    var id = logic.CreateRecepientGroup(newReport);
+                    var response = (Response)$"{id}";
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+
+            Put["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var existingGroup = this.Bind<DtoRecepientGroup>();
+
+                    if (parameters.id != existingGroup.Id)
+                        return HttpStatusCode.BadRequest;
+
+                    logic.UpdateRecepientGroup(existingGroup);
+                    return HttpStatusCode.OK;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
         }
     } //class
 

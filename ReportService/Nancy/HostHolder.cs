@@ -8,18 +8,18 @@ namespace ReportService.Nancy
 {
     public class HostHolder : IHostHolder
     {
-        private readonly IClientControl _monik;
-        private readonly NancyHost      _nancyHost;
+        private readonly IClientControl monik;
+        private readonly NancyHost      nancyHost;
 
         public HostHolder()
         {
-            _nancyHost = new NancyHost(
+            nancyHost = new NancyHost(
                 new Uri("http://localhost:12345"),
                 new Bootstrapper(),
                 HostConfigs);
 
-            _monik = Bootstrapper.Global.Resolve<IClientControl>();
-            _monik.ApplicationInfo("HostHolder.ctor");
+            monik = Bootstrapper.Global.Resolve<IClientControl>();
+            monik.ApplicationInfo("HostHolder.ctor");
         }
 
         private static readonly HostConfiguration HostConfigs = new HostConfiguration()
@@ -30,15 +30,15 @@ namespace ReportService.Nancy
 
         public void Start()
         {
-            _monik.ApplicationWarning("Started");
+            monik.ApplicationWarning("Started");
 
             try
             {
-                _nancyHost.Start();
+                nancyHost.Start();
             }
             catch (Exception e)
             {
-                _monik.ApplicationError(e.Message);
+                monik.ApplicationError(e.Message);
             }
         }
 
@@ -46,15 +46,15 @@ namespace ReportService.Nancy
         {
             try
             {
-                _nancyHost.Stop();
+                nancyHost.Stop();
             }
             catch (Exception e)
             {
-                _monik.ApplicationError(e.Message);
+                monik.ApplicationError(e.Message);
             }
 
-            _monik.ApplicationWarning("Stopped");
-            _monik.OnStop();
+            monik.ApplicationWarning("Stopped");
+            monik.OnStop();
         }
     }
 }

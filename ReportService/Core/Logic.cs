@@ -336,6 +336,36 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }
 
+        public int CreateRecepientGroup(DtoRecepientGroup group)
+        {
+            var newGroupId = repository.CreateEntity(group);
+            UpdateRecepientGroupsList();
+            monik.ApplicationInfo($"Создана группа получателей {newGroupId}");
+            return newGroupId;
+        }
+
+        public void UpdateRecepientGroup(DtoRecepientGroup group)
+        {
+            repository.UpdateEntity(group);
+            UpdateRecepientGroupsList();
+            monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
+        }
+
+        public int CreateSchedule(DtoSchedule schedule)
+        {
+            var newScheduleId = repository.CreateEntity(schedule);
+            UpdateScheduleList();
+            monik.ApplicationInfo($"Создано расписание {newScheduleId}");
+            return newScheduleId;
+        }
+
+        public void UpdateSchedule(DtoSchedule schedule)
+        {
+            repository.UpdateEntity(schedule);
+            UpdateScheduleList();
+            monik.ApplicationInfo($"Обновлено расписание {schedule.Id}");
+        }
+
         public string GetAllInstancesJson()
         {
             return JsonConvert.SerializeObject(repository.GetAllInstances());
