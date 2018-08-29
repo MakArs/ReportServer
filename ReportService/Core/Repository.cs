@@ -100,10 +100,10 @@ namespace ReportService.Core
         {
             switch (entity)
             {
-                case DtoRecepientGroup recepgroup: //todo:test
+                case DtoRecepientGroup recepgroup: 
                     return (int) MappedCommand.InsertAndGetId(connStr, "RecepientGroup", recepgroup, "Id");
 
-                case DtoSchedule sched: //todo:test
+                case DtoSchedule sched:
                     return (int) MappedCommand.InsertAndGetId(connStr, "Schedule", sched, "Id");
 
                 case DtoReport rep:
@@ -133,12 +133,12 @@ namespace ReportService.Core
         {
             switch (entity)
             {
-                case DtoRecepientGroup recepgroup: //todo:test
+                case DtoRecepientGroup recepgroup: 
                     MappedCommand.Update(connStr, "RecepientGroup", recepgroup, "Id");
                     break;
 
-                case DtoSchedule sched: //todo:test
-                    MappedCommand.Update(connStr, "RecepientGroup", sched, "Id");
+                case DtoSchedule sched:
+                    MappedCommand.Update(connStr, "Schedule", sched, "Id");
                     break;
 
                 case DtoReport rep:
