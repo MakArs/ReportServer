@@ -10,6 +10,7 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Core;
+using ReportService.DataExporters;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using ReportService.View;
@@ -51,8 +52,9 @@ namespace ReportService
             RegisterNamedViewExecutor<InstanceListViewExecutor>(existingContainer,
                 "instancelistviewex");
 
-            existingContainer
-                .RegisterSingleton<IPostMaster, PostMasterWork>();
+            existingContainer.RegisterNamedSingleton<IDataExporter,EmailDataSender>
+                    ("emailsender");
+
             existingContainer
                 .RegisterSingleton<ILogic, Logic>();
             existingContainer
@@ -231,19 +233,15 @@ namespace ReportService
     {
         public MapperProfile()
         {
-            CreateMap<DtoRecepientGroup, RRecepientGroup>();
             CreateMap<RTask, ApiFullTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
                 .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));
 
             CreateMap<ApiTask, DtoTask>();
             CreateMap<ApiFullTask, DtoReport>();
 
             CreateMap<RTask, ApiTask>()
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("RecepientGroupId", opt => opt.MapFrom(s => s.SendAddresses.Id))
-                .ForMember("TelegramChannelId", opt => opt.MapFrom(s => s.TelegramChannel.Id));
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
 
             CreateMap<DtoFullInstance, DtoInstance>();
             CreateMap<DtoFullInstance, DtoInstanceData>()

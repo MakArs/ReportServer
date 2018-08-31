@@ -235,7 +235,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllRecepientGroupsJson();
+                    var response = (Response) logic.GetAllExporterToTaskBindersJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -245,40 +245,40 @@ namespace ReportService.Nancy
                 }
             };
 
-            Post[""] = parameters =>
-            {
-                try
-                {
-                    var newReport = this.Bind<DtoRecepientGroup>();
-                    var id = logic.CreateRecepientGroup(newReport);
-                    var response = (Response)$"{id}";
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
+            //Post[""] = parameters =>
+            //{
+            //    try
+            //    {
+            //        var newReport = this.Bind<DtoRecepientGroup>();
+            //        var id = logic.CreateRecepientGroup(newReport);
+            //        var response = (Response)$"{id}";
+            //        response.StatusCode = HttpStatusCode.OK;
+            //        return response;
+            //    }
+            //    catch
+            //    {
+            //        return HttpStatusCode.InternalServerError;
+            //    }
+            //};
 
 
-            Put["/{id:int}"] = parameters =>
-            {
-                try
-                {
-                    var existingGroup = this.Bind<DtoRecepientGroup>();
+            //Put["/{id:int}"] = parameters =>
+            //{
+            //    try
+            //    {
+            //        var existingGroup = this.Bind<DtoRecepientGroup>();
 
-                    if (parameters.id != existingGroup.Id)
-                        return HttpStatusCode.BadRequest;
+            //        if (parameters.id != existingGroup.Id)
+            //            return HttpStatusCode.BadRequest;
 
-                    logic.UpdateRecepientGroup(existingGroup);
-                    return HttpStatusCode.OK;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
+            //        logic.UpdateRecepientGroup(existingGroup);
+            //        return HttpStatusCode.OK;
+            //    }
+            //    catch
+            //    {
+            //        return HttpStatusCode.InternalServerError;
+            //    }
+            //};
         }
     } //class
 

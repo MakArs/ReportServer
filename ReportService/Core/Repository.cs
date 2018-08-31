@@ -15,29 +15,11 @@ namespace ReportService.Core
             this.connStr = connStr;
         } //ctor
 
-        public List<DtoRecepientGroup> GetAllRecepientGroups()
+        List<DtoExporterToTaskBinder> IRepository.GetAllExporterToTaskBinders()
         {
-            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(connStr,
-                    "select * from RecepientGroup")
+            return SimpleCommand.ExecuteQuery<DtoExporterToTaskBinder>(connStr,
+                    "select * from ExporterToTaskBinder")
                 .ToList();
-        }
-
-        public List<T> GetAllInstances<T>() where T:new()
-        {
-            List<T> retList = new List<T>();
-            var     type    = typeof(T);
-
-            switch (true)
-            {
-                case bool _ when type == typeof(DtoRecepientGroup):
-                    var list = SimpleCommand.ExecuteQuery<T>(connStr,
-                        "select * from RecepientGroup");
-                    foreach (dynamic instance in list)
-                        retList.Add((T) instance.Value);
-                    break;
-            }
-
-            return retList;
         }
 
         public List<DtoSchedule> GetAllSchedules()
@@ -53,17 +35,17 @@ namespace ReportService.Core
                     "select * from Report")
                 .ToList();
         }
-
-        public List<DtoTelegramChannel> GetAllTelegramChannels()
+        
+        public List<DtoTask> GetAllTasks()
         {
-            return SimpleCommand.ExecuteQuery<DtoTelegramChannel>(connStr,
-                    "select * from TelegramChannel")
+            return SimpleCommand.ExecuteQuery<DtoTask>(connStr, "select * from task")
                 .ToList();
         }
 
-        public List<DtoTask> GetAllTasks()
+        List<DtoExporterConfig> IRepository.GetAllExporterConfigs()
         {
-            return SimpleCommand.ExecuteQuery<DtoTask>(connStr, "select * from task").ToList();
+            return SimpleCommand.ExecuteQuery<DtoExporterConfig>(connStr, "select * from ExporterConfig")
+                .ToList();
         }
 
         public List<DtoInstance> GetAllInstances()
@@ -100,8 +82,8 @@ namespace ReportService.Core
         {
             switch (entity)
             {
-                case DtoRecepientGroup recepgroup: 
-                    return (int) MappedCommand.InsertAndGetId(connStr, "RecepientGroup", recepgroup, "Id");
+                case DtoExporterConfig exporterConfig: //todo: test
+                    return (int) MappedCommand.InsertAndGetId(connStr, "ExporterConfig", exporterConfig, "Id");
 
                 case DtoSchedule sched:
                     return (int) MappedCommand.InsertAndGetId(connStr, "Schedule", sched, "Id");
@@ -121,8 +103,8 @@ namespace ReportService.Core
                     return 0;
                 }
 
-                case DtoTelegramChannel channel:
-                    return (int)MappedCommand.InsertAndGetId(connStr, "TelegramChannel", channel, "Id");
+                case DtoExporterToTaskBinder binder: //todo: test
+                    return (int)MappedCommand.InsertAndGetId(connStr, "ExporterToTaskBinder", binder, "Id");
 
                 default:
                     return 0;
@@ -133,10 +115,6 @@ namespace ReportService.Core
         {
             switch (entity)
             {
-                case DtoRecepientGroup recepgroup: 
-                    MappedCommand.Update(connStr, "RecepientGroup", recepgroup, "Id");
-                    break;
-
                 case DtoSchedule sched:
                     MappedCommand.Update(connStr, "Schedule", sched, "Id");
                     break;
@@ -157,8 +135,8 @@ namespace ReportService.Core
                     MappedCommand.Update(connStr, "InstanceData", instanceData, "InstanceId");
                     break;
 
-                case DtoTelegramChannel channel:
-                    MappedCommand.Update(connStr, "TelegramChannel", channel, "Id");
+                case DtoExporterConfig exporterConfig:  //todo: test
+                    MappedCommand.Update(connStr, "DtoExporterConfig", exporterConfig, "Id");
                     break;
             }
         }
@@ -168,13 +146,13 @@ namespace ReportService.Core
             var type = typeof(T);
             switch (true)
             {
-                case bool _ when type == typeof(DtoRecepientGroup): //todo:method
+                case bool _ when type == typeof(DtoExporterConfig): //todo:method
                     break;
 
                 case bool _ when type == typeof(DtoSchedule): //todo:method
                     break;
 
-                case bool _ when type == typeof(DtoTelegramChannel): //todo:method
+                case bool _ when type == typeof(DtoExporterToTaskBinder): //todo:method
                     break;
 
                 case bool _ when type == typeof(DtoInstance):
@@ -198,15 +176,14 @@ namespace ReportService.Core
             // TODO: refactoring
             // Task table refac (new base-creating uses)
             // 4. ConnStr => DataSource table
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
-                IF OBJECT_ID('RecepientGroup') IS NULL
-                CREATE TABLE RecepientGroup
-                (Id INT PRIMARY KEY IDENTITY,
-                Name NVARCHAR(127) NOT NULL,
-                Addresses NVARCHAR(4000) NOT NULL,
-                AddressesBcc NVARCHAR(4000) NULL
-                ); ");
 
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+                IF OBJECT_ID('ExporterConfig') IS NULL
+                CREATE TABLE ExporterConfig
+                (Id INT PRIMARY KEY IDENTITY,
+                ExporterType NVARCHAR(255) NOT NULL,
+                JsonConfig NVARCHAR(4000) NOT NULL); ");
+            
             var existScheduleTable = Convert.ToInt64(SimpleCommand
                 .ExecuteQueryFirstColumn<object>(baseConnStr, @"
                SELECT ISNULL(OBJECT_ID('Schedule'),0)")
@@ -215,8 +192,8 @@ namespace ReportService.Core
             {
                 var schedules = new[]
                 {
-                    new DtoSchedule() {Name = "workDaysEvening", Schedule = "motuwethfr2230"},
-                    new DtoSchedule() {Name = "sundayEvening", Schedule   = "su2230"}
+                    new DtoSchedule {Name = "workDaysEvening", Schedule = "30 22 * * 1-5"},
+                    new DtoSchedule {Name = "sundayEvening", Schedule   = "30 22 * * 0"}
                 };
                 SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 CREATE TABLE Schedule
@@ -272,10 +249,20 @@ namespace ReportService.Core
                 )");
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+                IF OBJECT_ID('ExporterToTaskBinder') IS NULL
+                CREATE TABLE ExporterToTaskBinder
+                (Id INT PRIMARY KEY IDENTITY,
+                TaskId INT NOT NULL,
+                ConfigId INT NOT NULL,
+                CONSTRAINT FK_ExporterToTaskBinder_Task FOREIGN KEY(TaskId) 
+                REFERENCES Task(Id),
+                CONSTRAINT FK_ExporterToTaskBinder_ExporterConfig FOREIGN KEY(ConfigId) 
+                REFERENCES ExporterConfig(Id)); ");
+
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('Instance') IS NULL
                 CREATE TABLE Instance
-                (
-                Id INT PRIMARY KEY IDENTITY,
+                (Id INT PRIMARY KEY IDENTITY,
                 TaskID INT NOT NULL,
                 StartTime DATETIME NOT NULL,
                 Duration INT NOT NULL,

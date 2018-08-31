@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,10 +28,10 @@ namespace ReportService.Core
         private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
 
-        private readonly List<RRecepientGroup> recepientGroups;
         private readonly List<DtoReport> reports;
         private readonly List<DtoSchedule> schedules;
-        private readonly ConcurrentDictionary<long, DtoTelegramChannel> telegramChannels;
+        private readonly List<DtoExporterToTaskBinder> binders;
+        private readonly List<DtoExporterConfig> exporterConfigs;
         private readonly List<IRTask> tasks;
         private string customViewExecutors;
         private string customDataExecutors;
@@ -50,25 +50,34 @@ namespace ReportService.Core
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
             tableView = this.autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
 
-            recepientGroups = new List<RRecepientGroup>();
+            binders = new List<DtoExporterToTaskBinder>();
             schedules = new List<DtoSchedule>();
             reports = new List<DtoReport>();
-            telegramChannels = new ConcurrentDictionary<long, DtoTelegramChannel>();
             tasks = new List<IRTask>();
+            exporterConfigs = new List<DtoExporterConfig>();
             this.bot.OnUpdate += OnBotUpd;
 
         } //ctor
 
-        private void UpdateRecepientGroupsList()
+        private void UpdateBindersList()
         {
-            var recepList = repository.GetAllRecepientGroups();
+            var bindersList = repository.GetAllExporterToTaskBinders();
             lock (this)
             {
-                recepientGroups.Clear();
-                foreach (var sched in recepList)
-                {
-                    recepientGroups.Add(mapper.Map<RRecepientGroup>(sched));
-                }
+                binders.Clear();
+                foreach (var binder in bindersList)
+                    binders.Add(binder);
+            }
+        }
+
+        private void UpdateExporterConfigsList()
+        {
+            var configList = repository.GetAllExporterConfigs();
+            lock (this)
+            {
+                exporterConfigs.Clear();
+                foreach (var config in configList)
+                    exporterConfigs.Add(config);
             }
         }
 
@@ -93,20 +102,7 @@ namespace ReportService.Core
                     reports.Add(rep);
             }
         }
-
-        private void UpdateTelegramChannelsList()
-        {
-            var chanList = repository.GetAllTelegramChannels();
-            lock (this)
-            {
-                telegramChannels.Clear();
-                foreach (var channel in chanList)
-                {
-                    telegramChannels.TryAdd(channel.ChatId, channel);
-                }
-            }
-        }
-
+        
         private void UpdateTaskList()
         {
             var taskLst = repository.GetAllTasks();
@@ -124,23 +120,22 @@ namespace ReportService.Core
                         new NamedParameter("schedule", schedules
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                         new NamedParameter("query", report.Query),
-                        new NamedParameter("telegramChannel", telegramChannels
-                            .FirstOrDefault(tc => tc.Value.Id == dtoTask.TelegramChannelId).Value),
-                        new NamedParameter("sendAddress", recepientGroups
-                            .FirstOrDefault(r => r.Id == dtoTask.RecepientGroupId)),
+                        new NamedParameter("dataExporterConfigs", exporterConfigs
+                            .Where(ec =>
+                                binders
+                                    .Where(binder => binder.TaskId == dtoTask.Id)
+                                    .Select(binder => binder.TaskId)
+                                    .Contains(ec.Id))
+                            .ToList()),
                         new NamedParameter("tryCount", dtoTask.TryCount),
                         new NamedParameter("timeOut", report.QueryTimeOut),
                         new NamedParameter("reportType", (RReportType) report.ReportType),
                         new NamedParameter("connStr", report.ConnectionString),
-                        new NamedParameter("reportId", report.Id),
-                        new NamedParameter("htmlBody", dtoTask.HasHtmlBody),
-                        new NamedParameter("jsonAttach", dtoTask.HasJsonAttachment),
-                        new NamedParameter("xlsxAttach", dtoTask.HasXlsxAttachment)
+                        new NamedParameter("reportId", report.Id)
                     );
 
                     // might be replaced with saved time from db
                     task.UpdateLastTime();
-
                     tasks.Add(task);
                 }
             } //lock
@@ -198,7 +193,7 @@ namespace ReportService.Core
         {
             //try
             //{
-            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            //    CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
             //}
             //catch (Exception e)
             //{
@@ -223,10 +218,11 @@ namespace ReportService.Core
                         .ServiceKey.ToString())
                     .Where(key => key != "commonviewex")
                     .ToList());
+
             UpdateScheduleList();
-            UpdateRecepientGroupsList();
+            UpdateBindersList();
             UpdateReportsList();
-            UpdateTelegramChannelsList();
+            UpdateExporterConfigsList();
             UpdateTaskList();
             bot.StartReceiving();
             checkScheduleAndExecuteScheduler.OnStart();
@@ -262,7 +258,6 @@ namespace ReportService.Core
             var tasksView = currentTasks.Select(t => new
                 {
                     t.Id,
-                    SendAddresses = t.SendAddresses?.Addresses,
                     t.ViewTemplate,
                     Schedule = t.Schedule?.Name,
                     t.ConnectionString,
@@ -336,19 +331,27 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }
 
-        public int CreateRecepientGroup(DtoRecepientGroup group)
+        public int CreateExporterConfig(DtoExporterConfig exporter)
         {
-            var newGroupId = repository.CreateEntity(group);
-            UpdateRecepientGroupsList();
-            monik.ApplicationInfo($"Создана группа получателей {newGroupId}");
-            return newGroupId;
+            var newExporterId = repository.CreateEntity(exporter);
+            UpdateExporterConfigsList();
+            monik.ApplicationInfo($"Создана конфигурация экспортёра данных {newExporterId}");
+            return newExporterId;
         }
 
-        public void UpdateRecepientGroup(DtoRecepientGroup group)
+        public void UpdateExporterConfig(DtoExporterConfig exporter)
         {
-            repository.UpdateEntity(group);
-            UpdateRecepientGroupsList();
-            monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
+            repository.UpdateEntity(exporter);
+            UpdateExporterConfigsList();
+            monik.ApplicationInfo($"Обновлена конфигурация экспортёра данных {exporter.Id}");
+        }
+
+        public int CreateExporterToTaskBinder(DtoExporterToTaskBinder binder)
+        {
+            var newBinderId = repository.CreateEntity(binder);
+            UpdateExporterConfigsList();
+            monik.ApplicationInfo($"В задачу {binder.TaskId} добавлен экспортёр {binder.ConfigId}");
+            return newBinderId;
         }
 
         public int CreateSchedule(DtoSchedule schedule)
@@ -413,9 +416,9 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(schedules);
         }
 
-        public string GetAllRecepientGroupsJson()
+        public string GetAllExporterToTaskBindersJson()
         {
-            return JsonConvert.SerializeObject(repository.GetAllRecepientGroups());
+            return JsonConvert.SerializeObject(repository.GetAllExporterToTaskBinders());
         }
 
         public string GetAllReportsJson()
@@ -476,23 +479,24 @@ namespace ReportService.Core
                     break;
             }
 
-            if (chatId != 0 && !telegramChannels.ContainsKey(chatId))
-            {
-                DtoTelegramChannel channel =
-                    new DtoTelegramChannel
-                    {
-                        ChatId = chatId,
-                        Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
-                        Type = (int) chatType
-                    };
+            //todo:logic for adding bot exporter
+            //if (chatId != 0 && !telegramChannels.ContainsKey(chatId))
+            //{
+            //    DtoTelegramChannel channel =
+            //        new DtoTelegramChannel
+            //        {
+            //            ChatId = chatId,
+            //            Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
+            //            Type = (int) chatType
+            //        };
 
-                channel.Id = repository.CreateEntity(channel);
+            //    channel.Id = repository.CreateEntity(channel);
 
-                lock (this)
-                {
-                    telegramChannels.TryAdd(channel.ChatId, channel);
-                }
-            }
+            //    lock (this)
+            //    {
+            //        telegramChannels.TryAdd(channel.ChatId, channel);
+            //    }
+            //}
         }
 
     } //class

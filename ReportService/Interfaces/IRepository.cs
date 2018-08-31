@@ -3,14 +3,6 @@ using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
-    public class DtoRecepientGroup
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Addresses { get; set; }
-        public string AddressesBcc { get; set; }
-    }
-
     public class DtoSchedule
     {
         public int Id { get; set; }
@@ -27,15 +19,6 @@ namespace ReportService.Interfaces
         public string Query            { get; set; }
         public int    ReportType       { get; set; }
         public int    QueryTimeOut     { get; set; } //seconds
-    }
-
-    public class DtoTelegramChannel
-    {
-        public int    Id          { get; set; }
-        public string Name        { get; set; }
-        public string Description { get; set; }
-        public long   ChatId      { get; set; }
-        public int    Type        { get; set; }
     }
 
     public class DtoTask
@@ -80,13 +63,26 @@ namespace ReportService.Interfaces
         public byte[] ViewData { get; set; }
     }
 
+    public class DtoExporterToTaskBinder
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public int ConfigId { get; set; }
+    }
+
+    public class DtoExporterConfig
+    {
+        public int Id { get; set; }
+        public string ExporterType { get; set; } //todo:change with enum?
+        public string JsonConfig { get; set; }
+    }
 
     public interface IRepository
     {
-        List<DtoRecepientGroup> GetAllRecepientGroups();
+        List<DtoExporterToTaskBinder> GetAllExporterToTaskBinders();
         List<DtoSchedule> GetAllSchedules();
         List<DtoReport> GetAllReports();
-        List<DtoTelegramChannel> GetAllTelegramChannels();
+        List<DtoExporterConfig> GetAllExporterConfigs();
         List<DtoTask> GetAllTasks();
         List<DtoInstance> GetAllInstances();
         List<DtoInstance> GetInstancesByTaskId(int taskId);

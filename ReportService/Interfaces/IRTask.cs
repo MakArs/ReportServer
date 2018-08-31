@@ -1,5 +1,6 @@
 ﻿using ReportService.Extensions;
 using System;
+using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
@@ -25,7 +26,7 @@ namespace ReportService.Interfaces
 
         public RecepientAddresses GetAddresses()
         {
-            return new RecepientAddresses()
+            return new RecepientAddresses
             {
                 To = Addresses.Split(';'),
                 Bcc = AddressesBcc?.Split(';')
@@ -56,11 +57,9 @@ namespace ReportService.Interfaces
     {
         int Id { get; }
         string ReportName { get; }
-        RRecepientGroup SendAddresses { get; }
         string ViewTemplate { get; }
         DtoSchedule Schedule { get; }
         string ConnectionString { get; }
-        DtoTelegramChannel TelegramChannel { get; }
         string Query { get; }
         int TryCount { get; }
         int QueryTimeOut { get; }
@@ -68,8 +67,11 @@ namespace ReportService.Interfaces
         int ReportId { get; }
         bool HasHtmlBody { get; }
         bool HasJsonAttachment { get; }
+        bool HasJsonEnAttachment { get; }
         bool HasXlsxAttachment { get; }
+        bool HasTelegramView { get; }
         DateTime LastTime { get; }
+        List<IDataExporter> Exporters { get; set; }
 
         void Execute(string address = null);
         void UpdateLastTime();

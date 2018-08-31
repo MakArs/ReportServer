@@ -25,14 +25,16 @@ namespace ReportService.Interfaces
         int CreateReport(DtoReport report);
         void UpdateReport(DtoReport report);
 
-        int CreateRecepientGroup(DtoRecepientGroup group);
-        void UpdateRecepientGroup(DtoRecepientGroup group);
+        int CreateExporterConfig(DtoExporterConfig exporter);
+        void UpdateExporterConfig(DtoExporterConfig exporter);
+
+        int CreateExporterToTaskBinder(DtoExporterToTaskBinder binder);
 
         int CreateSchedule(DtoSchedule schedule);
         void UpdateSchedule(DtoSchedule schedule);
 
         string GetAllSchedulesJson();
-        string GetAllRecepientGroupsJson();
+        string GetAllExporterToTaskBindersJson();
         string GetAllReportsJson();
 
         string GetCurrentViewByTaskId(int id);
@@ -41,3 +43,4 @@ namespace ReportService.Interfaces
         string GetAllCustomViewExecutors();
     }
 }
+//todo:replace create&update methods with createorupdate?
