@@ -12,6 +12,7 @@ namespace ReportService.Interfaces
         string GetFullInstanceList_HtmlPage(int taskId);
 
         string GetAllTasksJson();
+        string GetAllRecepientGroupsJson();
         string GetFullTaskByIdJson(int id);
         void DeleteTask(int taskId);
         int CreateTask(ApiTask task);
@@ -32,6 +33,9 @@ namespace ReportService.Interfaces
 
         int CreateSchedule(DtoSchedule schedule);
         void UpdateSchedule(DtoSchedule schedule);
+
+        int CreateRecepientGroup(DtoRecepientGroup group);
+        void UpdateRecepientGroup(DtoRecepientGroup group);
 
         string GetAllSchedulesJson();
         string GetAllExporterToTaskBindersJson();

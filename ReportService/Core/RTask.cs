@@ -7,8 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
+using ReportService.DataExporters;
 using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
 
 namespace ReportService.Core
 {
@@ -70,9 +71,11 @@ namespace ReportService.Core
             bot = botClient;
             Id = id;
             Exporters=new List<IDataExporter>();
+
+
             foreach (var config in dataExporterConfigs)
                 Exporters.Add(autofac.ResolveNamed<IDataExporter>(config.ExporterType,
-                   new NamedParameter("id", config.JsonConfig)));
+                   new NamedParameter("jsonConfig", config.JsonConfig)));
 
             ReportName = reportName;
             Query = query;
@@ -182,6 +185,8 @@ namespace ReportService.Core
                 {
                     if (HasXlsxAttachment)
                         sendData.XlsxData?.Dispose();
+                    monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
+                    Console.WriteLine($"Отчёт {Id} успешно выслан");
                 }
 
             }

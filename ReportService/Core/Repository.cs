@@ -10,6 +10,12 @@ namespace ReportService.Core
     {
         private readonly string connStr;
 
+        public List<DtoRecepientGroup> GetAllRecepientGroups()
+        {
+            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(connStr,
+                "select * from RecepientGroup").ToList();
+        }
+
         public Repository(string connStr)
         {
             this.connStr = connStr;
@@ -35,7 +41,7 @@ namespace ReportService.Core
                     "select * from Report")
                 .ToList();
         }
-        
+
         public List<DtoTask> GetAllTasks()
         {
             return SimpleCommand.ExecuteQuery<DtoTask>(connStr, "select * from task")
@@ -44,7 +50,8 @@ namespace ReportService.Core
 
         List<DtoExporterConfig> IRepository.GetAllExporterConfigs()
         {
-            return SimpleCommand.ExecuteQuery<DtoExporterConfig>(connStr, "select * from ExporterConfig")
+            return SimpleCommand
+                .ExecuteQuery<DtoExporterConfig>(connStr, "select * from ExporterConfig")
                 .ToList();
         }
 
@@ -78,10 +85,19 @@ namespace ReportService.Core
                 .ToList().First();
         }
 
+        public List<DtoTelegramChannel> GetAllTelegramChannels()
+        {
+            return SimpleCommand.ExecuteQuery<DtoTelegramChannel>(connStr,
+                "select * from TelegramChannel").ToList();
+        }
+
         public int CreateEntity<T>(T entity)
         {
             switch (entity)
             {
+                case DtoRecepientGroup recepgroup:
+                    return (int)MappedCommand.InsertAndGetId(connStr, "RecepientGroup", recepgroup, "Id");
+
                 case DtoExporterConfig exporterConfig: //todo: test
                     return (int) MappedCommand.InsertAndGetId(connStr, "ExporterConfig", exporterConfig, "Id");
 
@@ -96,6 +112,9 @@ namespace ReportService.Core
 
                 case DtoInstance instance:
                     return (int) MappedCommand.InsertAndGetId(connStr, "Instance", instance, "Id");
+
+                case DtoTelegramChannel channel:
+                    return (int)MappedCommand.InsertAndGetId(connStr, "TelegramChannel", channel, "Id");
 
                 case DtoInstanceData instanceData:
                 {
@@ -115,6 +134,10 @@ namespace ReportService.Core
         {
             switch (entity)
             {
+                case DtoRecepientGroup recepgroup:
+                    MappedCommand.Update(connStr, "RecepientGroup", recepgroup, "Id");
+                    break;
+
                 case DtoSchedule sched:
                     MappedCommand.Update(connStr, "Schedule", sched, "Id");
                     break;
@@ -135,6 +158,10 @@ namespace ReportService.Core
                     MappedCommand.Update(connStr, "InstanceData", instanceData, "InstanceId");
                     break;
 
+                case DtoTelegramChannel channel:
+                    MappedCommand.Update(connStr, "TelegramChannel", channel, "Id");
+                    break;
+
                 case DtoExporterConfig exporterConfig:  //todo: test
                     MappedCommand.Update(connStr, "DtoExporterConfig", exporterConfig, "Id");
                     break;
@@ -153,6 +180,12 @@ namespace ReportService.Core
                     break;
 
                 case bool _ when type == typeof(DtoExporterToTaskBinder): //todo:method
+                    break;
+
+                case bool _ when type == typeof(DtoTelegramChannel): //todo:method
+                    break;
+
+                case bool _ when type == typeof(DtoRecepientGroup): //todo:method
                     break;
 
                 case bool _ when type == typeof(DtoInstance):
@@ -183,7 +216,15 @@ namespace ReportService.Core
                 (Id INT PRIMARY KEY IDENTITY,
                 ExporterType NVARCHAR(255) NOT NULL,
                 JsonConfig NVARCHAR(4000) NOT NULL); ");
-            
+
+            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+                IF OBJECT_ID('RecepientGroup') IS NULL
+                CREATE TABLE RecepientGroup
+                Name NVARCHAR(127) NOT NULL,
+                Addresses NVARCHAR(4000) NOT NULL,
+                AddressesBcc NVARCHAR(4000) NULL
+                ); ");
+
             var existScheduleTable = Convert.ToInt64(SimpleCommand
                 .ExecuteQueryFirstColumn<object>(baseConnStr, @"
                SELECT ISNULL(OBJECT_ID('Schedule'),0)")
@@ -232,18 +273,9 @@ namespace ReportService.Core
                 (Id INT PRIMARY KEY IDENTITY,
                 ReportId INT NOT NULL,
                 ScheduleId INT NULL,
-                RecepientGroupId INT NULL,
-                TelegramChannelId INT NULL,
                 TryCount TINYINT NOT NULL,
-                HasHtmlBody BIT NOT NULL,
-                HasJsonAttachment BIT NOT NULL,
-                HasXlsxAttachment BIT NOT NULL,
-                CONSTRAINT FK_Task_RecepientGroup FOREIGN KEY(RecepientGroupId) 
-                REFERENCES RecepientGroup(Id),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
                 REFERENCES Schedule(Id),
-                CONSTRAINT FK_Task_TelegramChannel FOREIGN KEY(TelegramChannelId) 
-                REFERENCES TelegramChannel(Id),
                 CONSTRAINT FK_Task_Report FOREIGN KEY(ReportId) 
                 REFERENCES Report(Id)
                 )");

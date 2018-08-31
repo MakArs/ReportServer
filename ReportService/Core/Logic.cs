@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
@@ -28,6 +29,8 @@ namespace ReportService.Core
         private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
 
+        private readonly List<DtoRecepientGroup> recepientGroups;
+        private readonly ConcurrentDictionary<long, DtoTelegramChannel> telegramChannels;
         private readonly List<DtoReport> reports;
         private readonly List<DtoSchedule> schedules;
         private readonly List<DtoExporterToTaskBinder> binders;
@@ -50,11 +53,13 @@ namespace ReportService.Core
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
             tableView = this.autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
 
+            recepientGroups = new List<DtoRecepientGroup>();
             binders = new List<DtoExporterToTaskBinder>();
             schedules = new List<DtoSchedule>();
             reports = new List<DtoReport>();
             tasks = new List<IRTask>();
             exporterConfigs = new List<DtoExporterConfig>();
+            telegramChannels = new ConcurrentDictionary<long, DtoTelegramChannel>();
             this.bot.OnUpdate += OnBotUpd;
 
         } //ctor
@@ -102,7 +107,31 @@ namespace ReportService.Core
                     reports.Add(rep);
             }
         }
-        
+
+        private void UpdateRecepientGroupsList()
+        {
+            var recepList = repository.GetAllRecepientGroups();
+            lock (this)
+            {
+                recepientGroups.Clear();
+                foreach (var recepGroup in recepList)
+                    recepientGroups.Add(recepGroup);
+            }
+        }
+
+        private void UpdateTelegramChannelsList()
+        {
+            var chanList = repository.GetAllTelegramChannels();
+            lock (this)
+            {
+                telegramChannels.Clear();
+                foreach (var channel in chanList)
+                {
+                    telegramChannels.TryAdd(channel.ChatId, channel);
+                }
+            }
+        }
+
         private void UpdateTaskList()
         {
             var taskLst = repository.GetAllTasks();
@@ -124,7 +153,7 @@ namespace ReportService.Core
                             .Where(ec =>
                                 binders
                                     .Where(binder => binder.TaskId == dtoTask.Id)
-                                    .Select(binder => binder.TaskId)
+                                    .Select(binder => binder.ConfigId)
                                     .Contains(ec.Id))
                             .ToList()),
                         new NamedParameter("tryCount", dtoTask.TryCount),
@@ -219,6 +248,8 @@ namespace ReportService.Core
                     .Where(key => key != "commonviewex")
                     .ToList());
 
+            UpdateRecepientGroupsList();
+            UpdateTelegramChannelsList();
             UpdateScheduleList();
             UpdateBindersList();
             UpdateReportsList();
@@ -369,6 +400,21 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Обновлено расписание {schedule.Id}");
         }
 
+        public int CreateRecepientGroup(DtoRecepientGroup group)
+        {
+            var newGroupId = repository.CreateEntity(group);
+            UpdateRecepientGroupsList();
+            monik.ApplicationInfo($"Создана группа получателей {newGroupId}");
+            return newGroupId;
+        }
+
+        public void UpdateRecepientGroup(DtoRecepientGroup group)
+        {
+            repository.UpdateEntity(group);
+            UpdateRecepientGroupsList();
+            monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
+        }
+
         public string GetAllInstancesJson()
         {
             return JsonConvert.SerializeObject(repository.GetAllInstances());
@@ -426,6 +472,11 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(reports);
         }
 
+        public string GetAllRecepientGroupsJson()
+        {
+            return JsonConvert.SerializeObject(recepientGroups);
+        }
+
         public string GetCurrentViewByTaskId(int taskId)
         {
             List<IRTask> currentTasks;
@@ -479,24 +530,23 @@ namespace ReportService.Core
                     break;
             }
 
-            //todo:logic for adding bot exporter
-            //if (chatId != 0 && !telegramChannels.ContainsKey(chatId))
-            //{
-            //    DtoTelegramChannel channel =
-            //        new DtoTelegramChannel
-            //        {
-            //            ChatId = chatId,
-            //            Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
-            //            Type = (int) chatType
-            //        };
+             if (chatId != 0 && !telegramChannels.ContainsKey(chatId))
+                {
+                    DtoTelegramChannel channel =
+                        new DtoTelegramChannel
+                        {
+                            ChatId = chatId,
+                            Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
+                            Type = (int)chatType
+                        };
 
-            //    channel.Id = repository.CreateEntity(channel);
+                    channel.Id = repository.CreateEntity(channel);
 
-            //    lock (this)
-            //    {
-            //        telegramChannels.TryAdd(channel.ChatId, channel);
-            //    }
-            //}
+                    lock (this)
+                    {
+                        telegramChannels.TryAdd(channel.ChatId, channel);
+                    }
+                }
         }
 
     } //class

@@ -3,6 +3,23 @@ using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
+    public class DtoRecepientGroup
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Addresses { get; set; }
+        public string AddressesBcc { get; set; }
+    }
+
+    public class DtoTelegramChannel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public long ChatId { get; set; }
+        public int Type { get; set; }
+    }
+
     public class DtoSchedule
     {
         public int Id { get; set; }
@@ -79,6 +96,8 @@ namespace ReportService.Interfaces
 
     public interface IRepository
     {
+        List<DtoRecepientGroup> GetAllRecepientGroups();
+        List<DtoTelegramChannel> GetAllTelegramChannels();
         List<DtoExporterToTaskBinder> GetAllExporterToTaskBinders();
         List<DtoSchedule> GetAllSchedules();
         List<DtoReport> GetAllReports();

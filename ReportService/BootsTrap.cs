@@ -33,16 +33,12 @@ namespace ReportService
         protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {
             Global = Container;
-            // No registrations should be performed in here, however you may
-            // resolve things that are needed during application startup.
             ILogic log = Container.Resolve<ILogic>();
             log.Start();
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-            // Perform registration that should have an application lifetime
-
             RegisterNamedDataExecutor<CommonDataExecutor>(existingContainer, "commondataex");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
@@ -52,8 +48,14 @@ namespace ReportService
             RegisterNamedViewExecutor<InstanceListViewExecutor>(existingContainer,
                 "instancelistviewex");
 
-            existingContainer.RegisterNamedSingleton<IDataExporter,EmailDataSender>
+            existingContainer.RegisterNamedImplementation<IDataExporter,EmailDataSender>
                     ("emailsender");
+
+            existingContainer.RegisterNamedImplementation<IDataExporter, TelegramDataSender>
+                ("telegramsender");
+
+            //existingContainer.RegisterNamedImplementation<IDataExporter, DbDataExporter>
+            //    ("dbexporter");
 
             existingContainer
                 .RegisterSingleton<ILogic, Logic>();
