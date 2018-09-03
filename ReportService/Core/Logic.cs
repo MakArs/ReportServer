@@ -6,9 +6,7 @@ using Newtonsoft.Json;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +28,7 @@ namespace ReportService.Core
         private readonly IViewExecutor tableView;
 
         private readonly List<DtoRecepientGroup> recepientGroups;
-        private readonly ConcurrentDictionary<long, DtoTelegramChannel> telegramChannels;
+        private readonly List<DtoTelegramChannel> telegramChannels;
         private readonly List<DtoReport> reports;
         private readonly List<DtoSchedule> schedules;
         private readonly List<DtoExporterToTaskBinder> binders;
@@ -59,82 +57,24 @@ namespace ReportService.Core
             reports = new List<DtoReport>();
             tasks = new List<IRTask>();
             exporterConfigs = new List<DtoExporterConfig>();
-            telegramChannels = new ConcurrentDictionary<long, DtoTelegramChannel>();
+            telegramChannels = new List<DtoTelegramChannel>();
             this.bot.OnUpdate += OnBotUpd;
-
         } //ctor
 
-        private void UpdateBindersList()
+        private void UpdateDtoEntitiesList<T>(List<T> list) where T : new()
         {
-            var bindersList = repository.GetAllExporterToTaskBinders();
+            var repositoryList = repository.GetListEntitiesByDtoType<T>();
             lock (this)
             {
-                binders.Clear();
-                foreach (var binder in bindersList)
-                    binders.Add(binder);
-            }
-        }
-
-        private void UpdateExporterConfigsList()
-        {
-            var configList = repository.GetAllExporterConfigs();
-            lock (this)
-            {
-                exporterConfigs.Clear();
-                foreach (var config in configList)
-                    exporterConfigs.Add(config);
-            }
-        }
-
-        private void UpdateScheduleList()
-        {
-            var schedList = repository.GetAllSchedules();
-            lock (this)
-            {
-                schedules.Clear();
-                foreach (var sched in schedList)
-                    schedules.Add(sched);
-            }
-        }
-
-        private void UpdateReportsList()
-        {
-            var repList = repository.GetAllReports();
-            lock (this)
-            {
-                reports.Clear();
-                foreach (var rep in repList)
-                    reports.Add(rep);
-            }
-        }
-
-        private void UpdateRecepientGroupsList()
-        {
-            var recepList = repository.GetAllRecepientGroups();
-            lock (this)
-            {
-                recepientGroups.Clear();
-                foreach (var recepGroup in recepList)
-                    recepientGroups.Add(recepGroup);
-            }
-        }
-
-        private void UpdateTelegramChannelsList()
-        {
-            var chanList = repository.GetAllTelegramChannels();
-            lock (this)
-            {
-                telegramChannels.Clear();
-                foreach (var channel in chanList)
-                {
-                    telegramChannels.TryAdd(channel.ChatId, channel);
-                }
+                list.Clear();
+                foreach (var entity in repositoryList)
+                    list.Add(entity);
             }
         }
 
         private void UpdateTaskList()
         {
-            var taskLst = repository.GetAllTasks();
+            var taskLst = repository.GetListEntitiesByDtoType<DtoTask>();
             lock (this)
             {
                 tasks.Clear();
@@ -187,7 +127,7 @@ namespace ReportService.Core
                 {
                     var cronSchedule = CrontabSchedule.TryParse(cronString);
 
-                  if (cronSchedule == null) continue;
+                    if (cronSchedule == null) continue;
 
                     var occurrences =
                         cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
@@ -206,17 +146,10 @@ namespace ReportService.Core
             Task.Factory.StartNew(() => task.Execute());
         }
 
-        private void CreateBase(string connStr)
-        {
-            try
-            {
-                repository.CreateBase(connStr);
-            }
-            catch (Exception e)
-            {
-                monik.ApplicationError(e.Message);
-            }
-        }
+        //private void CreateBase(string connStr)
+        //{
+        //        repository.CreateBase(connStr);
+        //}
 
         public void Start()
         {
@@ -228,6 +161,8 @@ namespace ReportService.Core
             //{
             //    Console.WriteLine(e);
             //}
+
+            //this and next ugly constructions are for desktop app logics
             customDataExecutors = JsonConvert
                 .SerializeObject(autofac
                     .ComponentRegistry
@@ -248,12 +183,14 @@ namespace ReportService.Core
                     .Where(key => key != "commonviewex")
                     .ToList());
 
-            UpdateRecepientGroupsList();
-            UpdateTelegramChannelsList();
-            UpdateScheduleList();
-            UpdateBindersList();
-            UpdateReportsList();
-            UpdateExporterConfigsList();
+            UpdateDtoEntitiesList(recepientGroups);
+            UpdateDtoEntitiesList(schedules);
+            UpdateDtoEntitiesList(binders);
+            UpdateDtoEntitiesList(reports);
+            UpdateDtoEntitiesList(exporterConfigs);
+            UpdateDtoEntitiesList(telegramChannels);
+
+            // UpdateTelegramChannelsList();
             UpdateTaskList();
             bot.StartReceiving();
             checkScheduleAndExecuteScheduler.OnStart();
@@ -264,7 +201,7 @@ namespace ReportService.Core
             checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public string ForceExecute(int taskId, string mail)
+        public string ForceExecute(int taskId, string mail) //todo: remake method with new DB conception
         {
             List<IRTask> currentTasks;
 
@@ -280,7 +217,7 @@ namespace ReportService.Core
             return $"Report {taskId} sent!";
         }
 
-        public string GetTaskList_HtmlPage()
+        public string GetTaskList_HtmlPage() //todo: remake method with new DB conception
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -303,7 +240,7 @@ namespace ReportService.Core
             return tr;
         }
 
-        public string GetFullInstanceList_HtmlPage(int taskId)
+        public string GetFullInstanceList_HtmlPage(int taskId)  //todo: remake method with new DB conception
         {
             List<DtoFullInstance> instancesByteData = repository.GetFullInstancesByTaskId(taskId);
             var instances = new List<RFullInstance>();
@@ -337,12 +274,19 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(
                 mapper.Map<ApiFullTask>(currentTasks.First(t => t.Id == id)));
         }
-
+        
         public void DeleteTask(int taskId)
         {
             repository.DeleteEntity<DtoTask>(taskId);
             UpdateTaskList();
             monik.ApplicationInfo($"Удалена задача {taskId}");
+        }
+
+        public void DeleteInstance(int instanceId)
+        {
+            repository.DeleteEntity<DtoInstance>(instanceId);
+            UpdateTaskList();
+            monik.ApplicationInfo($"Удалена запись {instanceId}");
         }
 
         public int CreateTask(ApiTask task)
@@ -365,7 +309,7 @@ namespace ReportService.Core
         public int CreateExporterConfig(DtoExporterConfig exporter)
         {
             var newExporterId = repository.CreateEntity(exporter);
-            UpdateExporterConfigsList();
+            UpdateDtoEntitiesList(exporterConfigs);
             monik.ApplicationInfo($"Создана конфигурация экспортёра данных {newExporterId}");
             return newExporterId;
         }
@@ -373,14 +317,14 @@ namespace ReportService.Core
         public void UpdateExporterConfig(DtoExporterConfig exporter)
         {
             repository.UpdateEntity(exporter);
-            UpdateExporterConfigsList();
+            UpdateDtoEntitiesList(exporterConfigs);
             monik.ApplicationInfo($"Обновлена конфигурация экспортёра данных {exporter.Id}");
         }
 
         public int CreateExporterToTaskBinder(DtoExporterToTaskBinder binder)
         {
             var newBinderId = repository.CreateEntity(binder);
-            UpdateExporterConfigsList();
+            UpdateDtoEntitiesList(exporterConfigs);
             monik.ApplicationInfo($"В задачу {binder.TaskId} добавлен экспортёр {binder.ConfigId}");
             return newBinderId;
         }
@@ -388,7 +332,7 @@ namespace ReportService.Core
         public int CreateSchedule(DtoSchedule schedule)
         {
             var newScheduleId = repository.CreateEntity(schedule);
-            UpdateScheduleList();
+            UpdateDtoEntitiesList(schedules);
             monik.ApplicationInfo($"Создано расписание {newScheduleId}");
             return newScheduleId;
         }
@@ -396,14 +340,14 @@ namespace ReportService.Core
         public void UpdateSchedule(DtoSchedule schedule)
         {
             repository.UpdateEntity(schedule);
-            UpdateScheduleList();
+            UpdateDtoEntitiesList(schedules);
             monik.ApplicationInfo($"Обновлено расписание {schedule.Id}");
         }
 
         public int CreateRecepientGroup(DtoRecepientGroup group)
         {
             var newGroupId = repository.CreateEntity(group);
-            UpdateRecepientGroupsList();
+            UpdateDtoEntitiesList(recepientGroups);
             monik.ApplicationInfo($"Создана группа получателей {newGroupId}");
             return newGroupId;
         }
@@ -411,13 +355,24 @@ namespace ReportService.Core
         public void UpdateRecepientGroup(DtoRecepientGroup group)
         {
             repository.UpdateEntity(group);
-            UpdateRecepientGroupsList();
+            UpdateDtoEntitiesList(recepientGroups);
             monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
         }
 
-        public string GetAllInstancesJson()
+        public int CreateReport(DtoReport report)
         {
-            return JsonConvert.SerializeObject(repository.GetAllInstances());
+            var reportId = repository.CreateEntity(report);
+            UpdateDtoEntitiesList(reports);
+            monik.ApplicationInfo($"Добавлен отчёт {reportId}");
+            return reportId;
+        }
+
+        public void UpdateReport(DtoReport report)
+        {
+            repository.UpdateEntity(report);
+            UpdateDtoEntitiesList(reports);
+            UpdateTaskList();
+            monik.ApplicationInfo($"Обновлён отчёт {report.Id}");
         }
 
         public string GetAllInstancesByTaskIdJson(int taskId)
@@ -434,37 +389,19 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(rinstance);
         }
 
-        public void DeleteInstance(int instanceId)
-        {
-            repository.DeleteEntity<DtoInstance>(instanceId);
-            UpdateTaskList();
-            monik.ApplicationInfo($"Удалена запись {instanceId}");
-        }
-
-        public int CreateReport(DtoReport report)
-        {
-            var reportId = repository.CreateEntity(report);
-            UpdateReportsList();
-            monik.ApplicationInfo($"Добавлен отчёт {reportId}");
-            return reportId;
-        }
-
-        public void UpdateReport(DtoReport report)
-        {
-            repository.UpdateEntity(report);
-            UpdateReportsList();
-            UpdateTaskList();
-            monik.ApplicationInfo($"Обновлён отчёт {report.Id}");
-        }
-
         public string GetAllSchedulesJson()
         {
             return JsonConvert.SerializeObject(schedules);
         }
 
+        public string GetAllInstancesJson()
+        {
+            return JsonConvert.SerializeObject(repository.GetListEntitiesByDtoType<DtoInstance>());
+        }
+
         public string GetAllExporterToTaskBindersJson()
         {
-            return JsonConvert.SerializeObject(repository.GetAllExporterToTaskBinders());
+            return JsonConvert.SerializeObject(binders);
         }
 
         public string GetAllReportsJson()
@@ -504,7 +441,9 @@ namespace ReportService.Core
             long chatId = 0;
             string chatName = "";
             ChatType chatType = ChatType.Private;
+
             UpdateType updType = e.Update.Type;
+
             switch (updType)
             {
                 case UpdateType.ChannelPost:
@@ -530,23 +469,19 @@ namespace ReportService.Core
                     break;
             }
 
-             if (chatId != 0 && !telegramChannels.ContainsKey(chatId))
-                {
-                    DtoTelegramChannel channel =
-                        new DtoTelegramChannel
-                        {
-                            ChatId = chatId,
-                            Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
-                            Type = (int)chatType
-                        };
-
-                    channel.Id = repository.CreateEntity(channel);
-
-                    lock (this)
+            if (chatId != 0 && !telegramChannels.Select(channel => channel.ChatId).Contains(chatId))
+            {
+                DtoTelegramChannel channel =
+                    new DtoTelegramChannel
                     {
-                        telegramChannels.TryAdd(channel.ChatId, channel);
-                    }
-                }
+                        ChatId = chatId,
+                        Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
+                        Type = (int) chatType
+                    };
+
+                channel.Id = repository.CreateEntity(channel);
+                UpdateDtoEntitiesList(telegramChannels);
+            }
         }
 
     } //class

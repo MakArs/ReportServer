@@ -147,6 +147,7 @@
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="DataExporters\CommonDataExporter.cs" />
+    <Compile Include="DataExporters\DbExporter.cs" />
     <Compile Include="DataExporters\ExporterConfigs.cs" />
     <Compile Include="DataExporters\TelegramDataSender.cs" />
     <Compile Include="Extensions\ExcelRangeExtension.cs" />

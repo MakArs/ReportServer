@@ -96,21 +96,28 @@ namespace ReportService.Interfaces
 
     public interface IRepository
     {
-        List<DtoRecepientGroup> GetAllRecepientGroups();
-        List<DtoTelegramChannel> GetAllTelegramChannels();
-        List<DtoExporterToTaskBinder> GetAllExporterToTaskBinders();
-        List<DtoSchedule> GetAllSchedules();
-        List<DtoReport> GetAllReports();
-        List<DtoExporterConfig> GetAllExporterConfigs();
-        List<DtoTask> GetAllTasks();
-        List<DtoInstance> GetAllInstances();
         List<DtoInstance> GetInstancesByTaskId(int taskId);
         List<DtoFullInstance> GetFullInstancesByTaskId(int taskId);
-
         DtoFullInstance GetFullInstanceById(int id);
 
+        /// <summary>
+        /// Obtains list of generic-type entities from repository.
+        /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// </summary>
+        List<T> GetListEntitiesByDtoType<T>() where T : new();
+
+        /// <summary>
+        /// Creates generic-type entity in repository.
+        /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// </summary>
         int CreateEntity<T>(T entity);
+
+        /// <summary>
+        /// Updates generic-type entity in repository.
+        /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// </summary>
         void UpdateEntity<T>(T entity);
+
         void DeleteEntity<T>(int id);
 
         void CreateBase(string baseConnStr);

@@ -72,6 +72,16 @@ namespace ReportService.Core
             Id = id;
             Exporters=new List<IDataExporter>();
 
+            var conf = JsonConvert.SerializeObject(new EmailExporterConfig
+            {
+                Name = "someExporter",
+                DataTypes = new List<string> {"Html", "JsonBase"},
+                Addresses = new RecepientAddresses
+                {
+                    To = new[] {"makarov.a@smartdriving.io"},
+                    Bcc = new[] {"makarov.a@smartdriving.io"}
+                }
+            });
 
             foreach (var config in dataExporterConfigs)
                 Exporters.Add(autofac.ResolveNamed<IDataExporter>(config.ExporterType,
@@ -188,7 +198,6 @@ namespace ReportService.Core
                     monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                     Console.WriteLine($"Отчёт {Id} успешно выслан");
                 }
-
             }
 
 

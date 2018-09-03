@@ -10,58 +10,26 @@ namespace ReportService.Core
     {
         private readonly string connStr;
 
-        public List<DtoRecepientGroup> GetAllRecepientGroups()
-        {
-            return SimpleCommand.ExecuteQuery<DtoRecepientGroup>(connStr,
-                "select * from RecepientGroup").ToList();
-        }
-
         public Repository(string connStr)
         {
             this.connStr = connStr;
         } //ctor
 
-        List<DtoExporterToTaskBinder> IRepository.GetAllExporterToTaskBinders()
+        public List<T> GetListEntitiesByDtoType<T>() where T : new()
         {
-            return SimpleCommand.ExecuteQuery<DtoExporterToTaskBinder>(connStr,
-                    "select * from ExporterToTaskBinder")
-                .ToList();
+            var tableName = typeof(T).Name.Remove(0, 3);
+            try
+            {
+                return SimpleCommand.ExecuteQuery<T>(connStr, $"select * from {tableName}")
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
         }
-
-        public List<DtoSchedule> GetAllSchedules()
-        {
-            return SimpleCommand.ExecuteQuery<DtoSchedule>(connStr,
-                    "select * from Schedule")
-                .ToList();
-        }
-
-        public List<DtoReport> GetAllReports()
-        {
-            return SimpleCommand.ExecuteQuery<DtoReport>(connStr,
-                    "select * from Report")
-                .ToList();
-        }
-
-        public List<DtoTask> GetAllTasks()
-        {
-            return SimpleCommand.ExecuteQuery<DtoTask>(connStr, "select * from task")
-                .ToList();
-        }
-
-        List<DtoExporterConfig> IRepository.GetAllExporterConfigs()
-        {
-            return SimpleCommand
-                .ExecuteQuery<DtoExporterConfig>(connStr, "select * from ExporterConfig")
-                .ToList();
-        }
-
-        public List<DtoInstance> GetAllInstances()
-        {
-            return SimpleCommand.ExecuteQuery<DtoInstance>(connStr,
-                    "select * from Instance")
-                .ToList();
-        }
-
+        
         public List<DtoInstance> GetInstancesByTaskId(int taskId)
         {
             return SimpleCommand.ExecuteQuery<DtoInstance>(connStr,
@@ -84,87 +52,46 @@ namespace ReportService.Core
                 from Instance i join instancedata idat on id=instanceid where id={id}")
                 .ToList().First();
         }
-
-        public List<DtoTelegramChannel> GetAllTelegramChannels()
-        {
-            return SimpleCommand.ExecuteQuery<DtoTelegramChannel>(connStr,
-                "select * from TelegramChannel").ToList();
-        }
-
+        
         public int CreateEntity<T>(T entity)
         {
-            switch (entity)
+            if (entity is DtoInstanceData instanceData)
             {
-                case DtoRecepientGroup recepgroup:
-                    return (int)MappedCommand.InsertAndGetId(connStr, "RecepientGroup", recepgroup, "Id");
+                MappedCommand.Insert(connStr, "InstanceData", instanceData);
+                       return 0;
+            }
 
-                case DtoExporterConfig exporterConfig: //todo: test
-                    return (int) MappedCommand.InsertAndGetId(connStr, "ExporterConfig", exporterConfig, "Id");
+            var tableName = typeof(T).Name.Remove(0, 3);
 
-                case DtoSchedule sched:
-                    return (int) MappedCommand.InsertAndGetId(connStr, "Schedule", sched, "Id");
+            try
+            {
+            return (int)MappedCommand.InsertAndGetId(connStr, $"{tableName}", entity, "Id");
+            }
 
-                case DtoReport rep:
-                    return (int) MappedCommand.InsertAndGetId(connStr, "Report", rep, "Id");
-
-                case DtoTask task:
-                    return (int) MappedCommand.InsertAndGetId(connStr, "Task", task, "Id");
-
-                case DtoInstance instance:
-                    return (int) MappedCommand.InsertAndGetId(connStr, "Instance", instance, "Id");
-
-                case DtoTelegramChannel channel:
-                    return (int)MappedCommand.InsertAndGetId(connStr, "TelegramChannel", channel, "Id");
-
-                case DtoInstanceData instanceData:
-                {
-                    MappedCommand.Insert(connStr, "InstanceData", instanceData);
-                    return 0;
-                }
-
-                case DtoExporterToTaskBinder binder: //todo: test
-                    return (int)MappedCommand.InsertAndGetId(connStr, "ExporterToTaskBinder", binder, "Id");
-
-                default:
-                    return 0;
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return 0;
             }
         }
 
         public void UpdateEntity<T>(T entity)
         {
-            switch (entity)
+            if (entity is DtoInstanceData instanceData)
             {
-                case DtoRecepientGroup recepgroup:
-                    MappedCommand.Update(connStr, "RecepientGroup", recepgroup, "Id");
-                    break;
+                MappedCommand.Update(connStr, "InstanceData", instanceData, "InstanceId");
+            }
 
-                case DtoSchedule sched:
-                    MappedCommand.Update(connStr, "Schedule", sched, "Id");
-                    break;
+            var tableName = typeof(T).Name.Remove(0, 3);
 
-                case DtoReport rep:
-                    MappedCommand.Update(connStr, "Report", rep, "Id");
-                    break;
+            try
+            {
+                MappedCommand.Update(connStr, $"{tableName}", entity, "Id");
+            }
 
-                case DtoTask task:
-                    MappedCommand.Update(connStr, "Task", task, "Id");
-                    break;
-
-                case DtoInstance instance:
-                    MappedCommand.Update(connStr, "Instance", instance, "Id");
-                    break;
-
-                case DtoInstanceData instanceData:
-                    MappedCommand.Update(connStr, "InstanceData", instanceData, "InstanceId");
-                    break;
-
-                case DtoTelegramChannel channel:
-                    MappedCommand.Update(connStr, "TelegramChannel", channel, "Id");
-                    break;
-
-                case DtoExporterConfig exporterConfig:  //todo: test
-                    MappedCommand.Update(connStr, "DtoExporterConfig", exporterConfig, "Id");
-                    break;
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
 
