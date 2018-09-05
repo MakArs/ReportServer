@@ -240,15 +240,14 @@ namespace ReportService
                 .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));
 
             CreateMap<ApiTask, DtoTask>();
-            CreateMap<ApiFullTask, DtoReport>();
+            CreateMap<ApiFullTask, DtoOper>();
 
             CreateMap<RTask, ApiTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
 
-            CreateMap<DtoFullInstance, DtoTaskInstance>();
-            CreateMap<DtoFullInstance, DtoInstanceData>()
-                .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
-            CreateMap<DtoFullInstance, RFullInstance>()
+            CreateMap<DtoOperInstance, DtoTaskInstance>();
+
+            CreateMap<DtoOperInstance, RFullInstance>()
                 .ForMember("Data", opt => opt.Ignore())
                 .ForMember("ViewData", opt => opt.Ignore());
         }

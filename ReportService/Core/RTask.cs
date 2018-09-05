@@ -65,8 +65,8 @@ namespace ReportService.Core
             Exporters=new List<IDataExporter>();
 
            foreach (var config in dataExporterConfigs)
-                Exporters.Add(autofac.ResolveNamed<IDataExporter>(config.ExporterType,
-                   new NamedParameter("jsonConfig", config.JsonConfig)));
+                Exporters.Add(autofac.ResolveNamed<IDataExporter>(config.Type,
+                   new NamedParameter("jsonConfig", config.Name)));
 
             ReportName = reportName;
             Query = query;
@@ -90,7 +90,7 @@ namespace ReportService.Core
 
         public void Execute(string address = null)
         {
-            var dtoInstance = new DtoFullInstance()
+            var dtoInstance = new DtoTaskInstance()
             {
                 StartTime = DateTime.Now,
                 TaskId = Id,
@@ -100,7 +100,7 @@ namespace ReportService.Core
             dtoInstance.Id =
                 repository.CreateEntity(mapper.Map<DtoTaskInstance>(dtoInstance));
 
-            repository.CreateEntity(mapper.Map<DtoInstanceData>(dtoInstance));
+            repository.CreateEntity(mapper.Map<DtoOperInstance>(dtoInstance));
 
             Stopwatch duration = new Stopwatch();
             duration.Start();
@@ -184,15 +184,14 @@ namespace ReportService.Core
 
 
             duration.Stop();
-            dtoInstance.Data = archiver.CompressString(sendData.JsonBaseData);
-            dtoInstance.ViewData = archiver.CompressString(sendData.HtmlData);
-            dtoInstance.TryNumber = i - 1;
+         //   dtoInstance.Data = archiver.CompressString(sendData.JsonBaseData);
+         //   dtoInstance.ViewData = archiver.CompressString(sendData.HtmlData);
             dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoInstance.State =
                 dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
             repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoInstance));
-            repository.UpdateEntity(mapper.Map<DtoInstanceData>(dtoInstance));
+            repository.UpdateEntity(mapper.Map<DtoOperInstance>(dtoInstance));
         } //method
 
         public string GetCurrentView()

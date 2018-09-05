@@ -29,7 +29,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetFullTaskByIdJson(parameters.id);
+                    var response = (Response) logic.GetTaskList_HtmlPage();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -99,7 +99,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    logic.DeleteInstance(parameters.id);
+                    logic.DeleteTaskInstanceById(parameters.id);
                     return HttpStatusCode.OK;
                 }
                 catch
@@ -112,7 +112,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllInstancesByTaskIdJson(parameters.taskid);
+                    var response = (Response) logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -141,7 +141,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllInstancesJson();
+                    var response = (Response) logic.GetAllTaskInstancesJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -155,7 +155,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetFullInstanceByIdJson(parameters.id);
+                    var response = (Response) logic.GetFullOperInstanceByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -292,7 +292,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllReportsJson();
+                    var response = (Response) logic.GetAllOperationsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -334,8 +334,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var newReport = this.Bind<DtoReport>();
-                    var id = logic.CreateReport(newReport);
+                    var newReport = this.Bind<DtoOper>();
+                    var id = logic.CreateOperation(newReport);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -350,12 +350,12 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingReport = this.Bind<DtoReport>();
+                    var existingReport = this.Bind<DtoOper>();
 
                     if (parameters.id != existingReport.Id)
                         return HttpStatusCode.BadRequest;
 
-                    logic.UpdateReport(existingReport);
+                    logic.UpdateOperation(existingReport);
                     return HttpStatusCode.OK;
                 }
                 catch

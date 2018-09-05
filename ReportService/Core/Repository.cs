@@ -36,7 +36,7 @@ namespace ReportService.Core
                 .ToList().First();
         }
 
-        public List<T> GetListEntitiesByDtoType<T>() where T : new()
+        public List<T> GetListEntitiesByDtoType<T>() where T : IDtoEntity, new()
         {
             var tableName = typeof(T).Name.Remove(0, 3);
             try
@@ -51,13 +51,13 @@ namespace ReportService.Core
             }
         }
 
-        public int CreateEntity<T>(T entity)
+        public int CreateEntity<T>(T entity) where T : IDtoEntity
         {
             var tableName = typeof(T).Name.Remove(0, 3);
 
             try
             {
-            return (int)MappedCommand.InsertAndGetId(connStr, $"{tableName}", entity, "Id");
+                return (int) MappedCommand.InsertAndGetId(connStr, $"{tableName}", entity, "Id");
             }
 
             catch (Exception e)
@@ -67,7 +67,7 @@ namespace ReportService.Core
             }
         }
 
-        public void UpdateEntity<T>(T entity)
+        public void UpdateEntity<T>(T entity) where T : IDtoEntity
         {
             var tableName = typeof(T).Name.Remove(0, 3);
 
@@ -106,14 +106,16 @@ namespace ReportService.Core
                     break;
 
                 case bool _ when type == typeof(DtoTaskInstance):
-                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete OperInstance where TaskInstanceId={id}");
+                    SimpleCommand.ExecuteNonQuery(connStr,
+                        $@"delete OperInstance where TaskInstanceId={id}");
                     SimpleCommand.ExecuteNonQuery(connStr, $@"delete TaskInstance where id={id}");
                     break;
 
                 case bool _ when type == typeof(DtoTask):
                     SimpleCommand.ExecuteNonQuery(connStr,
                         $@"delete OperInstance where TaskInstanceId in (select id from TaskInstance where TaskId={id})");
-                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete TaskInstance where TaskID={id}");
+                    SimpleCommand.ExecuteNonQuery(connStr,
+                        $@"delete TaskInstance where TaskID={id}");
                     SimpleCommand.ExecuteNonQuery(connStr, $@"delete Task where id={id}");
                     break;
             }
@@ -122,9 +124,6 @@ namespace ReportService.Core
         public void CreateBase(string baseConnStr)
         {
             // TODO: check db exists ~find way to cut redundant code 
-            // TODO: refactoring
-            // Task table refac (new base-creating uses)
-            // 4. ConnStr => DataSource table
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('Oper') IS NULL
@@ -161,7 +160,7 @@ namespace ReportService.Core
                 var schedules = new[]
                 {
                     new DtoSchedule {Name = "workDaysEvening", Schedule = "30 22 * * 1-5"},
-                    new DtoSchedule {Name = "sundayEvening", Schedule   = "30 22 * * 0"}
+                    new DtoSchedule {Name = "sundayEvening", Schedule = "30 22 * * 0"}
                 };
                 SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 CREATE TABLE Schedule
@@ -186,9 +185,9 @@ namespace ReportService.Core
                 IF OBJECT_ID('TaskOper') IS NULL
                 CREATE TABLE TaskOper
                 (Id INT PRIMARY KEY IDENTITY,
-                Number TINYINT NOT NULL,
                 TaskId INT NOT NULL,
                 OperId INT NOT NULL,
+                Number TINYINT NOT NULL,
                 CONSTRAINT FK_TaskOper_Task FOREIGN KEY(TaskId) 
                 REFERENCES Task(Id),
                 CONSTRAINT FK_TaskOper_Oper FOREIGN KEY(OperId) 

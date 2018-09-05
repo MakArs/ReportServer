@@ -3,7 +3,11 @@ using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
-    public class DtoOper
+    public interface IDtoEntity
+    {
+    }
+
+    public class DtoOper : IDtoEntity
     {
         public int Id { get; set; }
         public string Type { get; set; }
@@ -11,7 +15,7 @@ namespace ReportService.Interfaces
         public string Config { get; set; }
     }
 
-    public class DtoRecepientGroup
+    public class DtoRecepientGroup : IDtoEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -19,7 +23,7 @@ namespace ReportService.Interfaces
         public string AddressesBcc { get; set; }
     }
 
-    public class DtoTelegramChannel
+    public class DtoTelegramChannel : IDtoEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -28,7 +32,7 @@ namespace ReportService.Interfaces
         public int Type { get; set; } //from nuget types enum
     }
 
-    public class DtoSchedule
+    public class DtoSchedule : IDtoEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -37,22 +41,22 @@ namespace ReportService.Interfaces
 
     // public int    QueryTimeOut     { get; set; } //seconds
 
-    public class DtoTask
+    public class DtoTask : IDtoEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public int? ScheduleId { get; set; }
     }
 
-    public class DtoTaskOper
+    public class DtoTaskOper : IDtoEntity
     {
         public int Id { get; set; }
         public int Number { get; set; }
         public int TaskId { get; set; }
-        public int ConfigId { get; set; }
+        public int OperId { get; set; }
     }
 
-    public class DtoTaskInstance
+    public class DtoTaskInstance : IDtoEntity
     {
         public int Id { get; set; }
         public int TaskId { get; set; }
@@ -61,7 +65,7 @@ namespace ReportService.Interfaces
         public int State { get; set; }
     }
 
-    public class DtoOperInstance
+    public class DtoOperInstance : IDtoEntity
     {
         public int Id { get; set; }
         public int TaskInstanceId { get; set; }
@@ -80,19 +84,19 @@ namespace ReportService.Interfaces
         /// Obtains list of generic-type entities from repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
-        List<T> GetListEntitiesByDtoType<T>() where T : new();
+        List<T> GetListEntitiesByDtoType<T>() where T : IDtoEntity, new();
 
         /// <summary>
         /// Creates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
-        int CreateEntity<T>(T entity);
+        int CreateEntity<T>(T entity) where T : IDtoEntity;
 
         /// <summary>
         /// Updates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
-        void UpdateEntity<T>(T entity);
+        void UpdateEntity<T>(T entity) where T : IDtoEntity;
 
         void DeleteEntity<T>(int id);
 
