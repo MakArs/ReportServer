@@ -6,8 +6,6 @@ namespace ReportService.Extensions
     {
         public string[] To;
         public string[] Bcc;
-
-        public bool HaveRecepients => To?.Length > 0;
     }
 
     public static class MailMessageExtension

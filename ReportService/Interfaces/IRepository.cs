@@ -70,6 +70,9 @@ namespace ReportService.Interfaces
         public int Id { get; set; }
         public int TaskInstanceId { get; set; }
         public int OperId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
         public byte[] DataSet { get; set; }
         public string ErrorMessage { get; set; }
     }

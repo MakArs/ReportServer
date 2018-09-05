@@ -211,6 +211,9 @@ namespace ReportService.Core
                 Id INT PRIMARY KEY IDENTITY,
 	            TaskInstanceId INT NOT NULL,
                 OperId INT NOT NULL,
+                StartTime DATETIME NOT NULL,
+                Duration INT NOT NULL,
+                State INT NOT NULL,
 	            DataSet VARBINARY(MAX) NULL,
                 ErrorMessage NVARCHAR(511) NULL,
                 CONSTRAINT FK_OperInstance_Oper FOREIGN KEY(OperId) 

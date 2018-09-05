@@ -31,30 +31,37 @@ namespace ReportService.DataExporters
         }
     } //saving at disk
 
-    public class EmailDataSender : CommonDataExporter 
+    public class EmailDataSender : CommonDataExporter
     {
         private readonly RecepientAddresses addresses;
-        private readonly string name;
+        private readonly bool hasHtmlBody;
+        private readonly bool hasXlsxAttachment;
+        private readonly bool hasJsonAttachment;
+        private readonly IViewExecutor viewExecutor;
+        private readonly string viewTemplate;
+        private readonly string reportName;
 
-        public EmailDataSender(string jsonConfig)
+        public EmailDataSender(ILogic logic, IViewExecutor executor, string jsonConfig)
         {
             var emailConfig = JsonConvert
                 .DeserializeObject<EmailExporterConfig>(jsonConfig);
 
-            name = emailConfig.Name;
-            DataTypes = emailConfig.DataTypes;
-            addresses = emailConfig.Addresses;
+            DataSetName = emailConfig.DataSetName;
+            hasHtmlBody = emailConfig.HasHtmlBody;
+            hasJsonAttachment = emailConfig.HasJsonAttachment;
+            hasXlsxAttachment = emailConfig.HasXlsxAttachment;
+            addresses = logic.GetRecepientAddressesByGroupId(emailConfig.RecepientGroupId);
+            viewTemplate = emailConfig.ViewTemplate;
+            viewExecutor = executor;
+            reportName = emailConfig.ReportName;
         }
 
-        public override void Send(SendData sendData)
+        public override void Send(string dataSet)
         {
-            string filename = name + $" {DateTime.Now:dd.MM.yy HHmmss}";
+            string filename = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
-            bool hasHtml = DataTypes.Contains(DataType.Html);
-            bool hasJson = DataTypes.Contains(DataType.Jsonbase);
-            bool hasXlsx = DataTypes.Contains(DataType.Xlsx);
 
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())
@@ -65,12 +72,12 @@ namespace ReportService.DataExporters
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
                 msg.AddRecepients(addresses);
 
-                msg.Subject = name + $" {DateTime.Now:dd.MM.yy}";
+                msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
 
-                if (hasHtml)
+                if (hasHtmlBody)
                 {
                     msg.IsBodyHtml = true;
-                    msg.Body = sendData.HtmlData;
+                    msg.Body = viewExecutor.ExecuteHtml(viewTemplate,dataSet);
                 }
 
                 MemoryStream streamJson = null;
@@ -78,19 +85,19 @@ namespace ReportService.DataExporters
 
                 try
                 {
-                    if (hasJson)
+                    if (hasJsonAttachment)
                     {
                         streamJson =
                             new MemoryStream(
-                                System.Text.Encoding.UTF8.GetBytes(sendData.JsonBaseData));
+                                System.Text.Encoding.UTF8.GetBytes(dataSet));
                         msg.Attachments.Add(new Attachment(streamJson, filenameJson,
                             @"application/json"));
                     }
 
-                    if (hasXlsx)
+                    if (hasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        sendData.XlsxData.SaveAs(streamXlsx);
+                        viewExecutor.ExecuteXlsx(dataSet,reportName).SaveAs(streamXlsx);
                         streamXlsx.Position = 0;
                         msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));

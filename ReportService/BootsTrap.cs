@@ -41,7 +41,9 @@ namespace ReportService
         {
             RegisterNamedDataExecutor<CommonDataExecutor>(existingContainer, "commondataex");
 
-            RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
+            existingContainer.RegisterSingleton<IViewExecutor,CommonViewExecutor>();
+         
+            //   RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
 
             RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
 
@@ -235,6 +237,8 @@ namespace ReportService
     {
         public MapperProfile()
         {
+            CreateMap<DtoRecepientGroup, RRecepientGroup>();
+
             CreateMap<RTask, ApiFullTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
                 .ForMember("ReportType", opt => opt.MapFrom(s => (int) s.Type));

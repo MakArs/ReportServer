@@ -1,47 +1,35 @@
-﻿using System;
-using Gerakul.FastSql;
+﻿using Gerakul.FastSql;
 using Newtonsoft.Json;
-using ReportService.Interfaces;
 
 namespace ReportService.DataExporters
 {
     public class DbExporter : CommonDataExporter
     {
-        private readonly string name;
-        private readonly string apiPath;
         private readonly string connectionString;
+        private readonly string tableName;
+        private readonly int dbTimeOut;
+        private readonly bool dropBefore;
 
         public DbExporter(string jsonConfig)
         {
             var config = JsonConvert
                 .DeserializeObject<DbExporterConfig>(jsonConfig);
 
-            DataTypes = config.DataTypes;
-
-            name = config.Name;
-            apiPath = config.ApiPath;
             connectionString = config.ConnectionString;
+            DataSetName = config.DataSetName;
+            tableName = config.TableName;
+            dbTimeOut = config.DbTimeOut;
+            dropBefore = config.DropBefore;
         }
 
-        public override void Send(SendData sendData)
+        public override void Send(string dataSet)
         {
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-                try
-                {
-                    MappedCommand.InsertAndGetId(connectionString, "RecepientGroup", sendData.JsonBaseData, "Id");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }
-        }
+            if (dropBefore)
+                SimpleCommand.ExecuteNonQuery(new QueryOptions(dbTimeOut), 
+                    connectionString, $"delete {tableName}");
 
-        public override void Cleanup(ICleanupSettings cleanUpSettings)
-        {
-
+            
+            await 
         }
     }
 }

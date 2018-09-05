@@ -9,29 +9,30 @@ namespace ReportService.DataExporters
     public class TelegramDataSender : CommonDataExporter
     {
         private readonly ITelegramBotClient bot;
-        private readonly string description;
-        private readonly long chatId;
-        private readonly int type;
-        private readonly string name;
+        private readonly DtoTelegramChannel channel;
+        private readonly IViewExecutor viewExecutor;
+        private readonly string reportName;
 
-        public TelegramDataSender(ITelegramBotClient botClient, string jsonConfig)
+        public TelegramDataSender(ITelegramBotClient botClient, IViewExecutor executor,
+                                  ILogic logic, string jsonConfig)
         {
             var config = JsonConvert
                 .DeserializeObject<TelegramExporterConfig>(jsonConfig);
 
-            name = config.Name;
-            DataTypes.AddRange(config.DataTypes);
+            DataSetName = config.DataSetName;
+            channel = logic.GetTelegramChatIdByChannelId(config.TelegramChannelId);
+            reportName = config.ReportName;
+            viewExecutor = executor;
             bot = botClient;
-            description = config.Description;
-            chatId = config.ChatId;
-            type = config.Type;
         }
 
-        public override void Send(SendData sendData)
+        public override void Send(string dataSet)
         {
             try
             {
-                bot.SendTextMessageAsync(chatId, sendData.TelegramData, ParseMode.Markdown)
+                bot.SendTextMessageAsync(channel.ChatId,
+                        viewExecutor.ExecuteTelegramView(dataSet, reportName),
+                        ParseMode.Markdown)
                     .Wait();
             }
             catch (Exception e)

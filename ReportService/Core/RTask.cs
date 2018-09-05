@@ -78,14 +78,6 @@ namespace ReportService.Core
             QueryTimeOut = timeOut;
             ConnectionString = connStr;
 
-            HasHtmlBody = Exporters
-                .Any(exporter=>exporter.DataTypes.Contains(DataType.Html));
-
-            HasXlsx = Exporters
-                .Any(exporter => exporter.DataTypes.Contains(DataType.Xlsx));
-
-            HasTelegramView = Exporters
-                .Any(exporter => exporter.DataTypes.Contains(DataType.Telegram));
         }
 
         public void Execute(string address = null)
@@ -107,20 +99,20 @@ namespace ReportService.Core
             int i = 1;
             bool dataObtained = false;
 
-            var sendData = new SendData();
+            var sendData = "";
 
             while (!dataObtained && i <= TryCount)
             {
                 try
                 {
-                    sendData.JsonBaseData = dataEx.Execute(this);
+                    sendData = dataEx.Execute(this);
                     dataObtained = true;
                     i++;
                     break;
                 }
                 catch (Exception ex)
                 {
-                    sendData.JsonBaseData = ex.Message;
+                    sendData = ex.Message;
                 }
 
                 i++;
@@ -131,35 +123,35 @@ namespace ReportService.Core
                 if (HasHtmlBody)
                     try
                     {
-                        sendData.HtmlData = viewEx.ExecuteHtml(ViewTemplate, sendData.JsonBaseData);
+                        sendData = viewEx.ExecuteHtml(ViewTemplate, sendData);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
-                        sendData.HtmlData = ex.Message;
+                        sendData = ex.Message;
                     }
 
                 if (HasTelegramView)
                     try
                     {
-                        sendData.TelegramData =
-                            viewEx.ExecuteTelegramView(sendData.JsonBaseData, ReportName);
+                        sendData =
+                            viewEx.ExecuteTelegramView(sendData, ReportName);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
-                        sendData.TelegramData = ex.Message;
+                        sendData = ex.Message;
                     }
 
                 if (HasXlsx)
                     try
                     {
-                        sendData.XlsxData = viewEx.ExecuteXlsx(sendData.JsonBaseData, ReportName);
+                        var t = viewEx.ExecuteXlsx(sendData, ReportName);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
-                        sendData.XlsxData = null;
+                        sendData = null;
                     }
 
                 try
@@ -176,7 +168,7 @@ namespace ReportService.Core
                 finally
                 {
                     if (HasXlsx)
-                        sendData.XlsxData?.Dispose();
+                        //sendData.XlsxData?.Dispose();
                     monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                     Console.WriteLine($"Отчёт {Id} успешно выслан");
                 }

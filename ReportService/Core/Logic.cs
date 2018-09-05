@@ -7,13 +7,13 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Autofac.Core;
-using OfficeOpenXml;
+using Gerakul.FastSql;
+using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -51,6 +51,7 @@ namespace ReportService.Core
 
             checkScheduleAndExecuteScheduler =
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
+
             tableView = this.autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
 
             operations = new List<DtoOper>();
@@ -203,8 +204,7 @@ namespace ReportService.Core
             checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public string
-            ForceExecute(int taskId, string mail) //todo: remake method with new DB conception
+        public string ForceExecute(int taskId, string mail) //todo: remake method with new DB conception
         {
             List<IRTask> currentTasks;
 
@@ -301,6 +301,12 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
         }
 
+        public RecepientAddresses GetRecepientAddressesByGroupId(int groupId)
+        {
+            return mapper.Map<RRecepientGroup>(recepientGroups
+                .FirstOrDefault(group => group.Id == groupId)).GetAddresses();
+        }
+
         public int CreateTelegramChannel(DtoTelegramChannel channel)
         {
             var newChannelId = repository.CreateEntity(channel);
@@ -315,6 +321,12 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(recepientGroups);
             UpdateTaskList();
             monik.ApplicationInfo($"Обновлена телеграм канал  {channel.Id}");
+        }
+
+        public DtoTelegramChannel GetTelegramChatIdByChannelId(int id)
+        {
+            return telegramChannels
+                .FirstOrDefault(channel => channel.Id == id);
         }
 
         public int CreateSchedule(DtoSchedule schedule)

@@ -1,4 +1,5 @@
-﻿using ReportService.Nancy;
+﻿using ReportService.Extensions;
+using ReportService.Nancy;
 
 namespace ReportService.Interfaces
 {
@@ -20,9 +21,11 @@ namespace ReportService.Interfaces
 
         int CreateRecepientGroup(DtoRecepientGroup group);
         void UpdateRecepientGroup(DtoRecepientGroup group);
+        RecepientAddresses GetRecepientAddressesByGroupId(int groupId);
 
         int CreateTelegramChannel(DtoTelegramChannel channel);
         void UpdateTelegramChannel(DtoTelegramChannel channel);
+        DtoTelegramChannel GetTelegramChatIdByChannelId(int id);
 
         int CreateSchedule(DtoSchedule schedule);
         void UpdateSchedule(DtoSchedule schedule);
