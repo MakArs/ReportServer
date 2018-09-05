@@ -52,9 +52,9 @@ namespace ReportService.DataExporters
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
-            bool hasHtml = DataTypes.Contains("Html");
-            bool hasJson = DataTypes.Contains("JsonBase");
-            bool hasXlsx = DataTypes.Contains("Xlsx");
+            bool hasHtml = DataTypes.Contains(DataType.Html);
+            bool hasJson = DataTypes.Contains(DataType.Jsonbase);
+            bool hasXlsx = DataTypes.Contains(DataType.Xlsx);
 
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())

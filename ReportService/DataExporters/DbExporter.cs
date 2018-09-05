@@ -2,7 +2,6 @@
 using Gerakul.FastSql;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
-using Telegram.Bot.Types.Enums;
 
 namespace ReportService.DataExporters
 {
@@ -38,6 +37,11 @@ namespace ReportService.DataExporters
                     throw;
                 }
             }
+        }
+
+        public override void Cleanup(ICleanupSettings cleanUpSettings)
+        {
+
         }
     }
 }

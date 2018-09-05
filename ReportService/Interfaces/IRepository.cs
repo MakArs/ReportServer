@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
+    public class DtoOper
+    {
+        public int Id { get; set; }
+        public string Type { get; set; }
+        public string Name { get; set; }
+        public string Config { get; set; }
+    }
+
     public class DtoRecepientGroup
     {
         public int Id { get; set; }
@@ -17,7 +25,7 @@ namespace ReportService.Interfaces
         public string Name { get; set; }
         public string Description { get; set; }
         public long ChatId { get; set; }
-        public int Type { get; set; }
+        public int Type { get; set; } //from nuget types enum
     }
 
     public class DtoSchedule
@@ -27,78 +35,46 @@ namespace ReportService.Interfaces
         public string Schedule { get; set; }
     }
 
-    public class DtoReport
-    {
-        public int    Id               { get; set; }
-        public string Name             { get; set; }
-        public string ConnectionString { get; set; }
-        public string ViewTemplate     { get; set; }
-        public string Query            { get; set; }
-        public int    ReportType       { get; set; }
-        public int    QueryTimeOut     { get; set; } //seconds
-    }
+    // public int    QueryTimeOut     { get; set; } //seconds
 
     public class DtoTask
     {
         public int Id { get; set; }
-        public int ReportId { get; set; }
+        public string Name { get; set; }
         public int? ScheduleId { get; set; }
-        public int? RecepientGroupId { get; set; }
-        public int? TelegramChannelId { get; set; }
-        public int TryCount { get; set; }
-        public bool HasHtmlBody { get; set; }
-        public bool HasJsonAttachment { get; set; }
-        public bool HasXlsxAttachment { get; set; }
     }
 
-    public class DtoFullInstance
+    public class DtoTaskOper
     {
         public int Id { get; set; }
-        public byte[] Data { get; set; }
-        public byte[] ViewData { get; set; }
-        public int TaskId { get; set; }
-        public DateTime StartTime { get; set; }
-        public int Duration { get; set; }
-        public int State { get; set; }
-        public int TryNumber { get; set; }
-    }
-
-    public class DtoInstance
-    {
-        public int Id { get; set; }
-        public int TaskId { get; set; }
-        public DateTime StartTime { get; set; }
-        public int Duration { get; set; }
-        public int State { get; set; }
-        public int TryNumber { get; set; }
-    }
-
-    public class DtoInstanceData
-    {
-        public int InstanceId { get; set; }
-        public byte[] Data { get; set; }
-        public byte[] ViewData { get; set; }
-    }
-
-    public class DtoExporterToTaskBinder
-    {
-        public int Id { get; set; }
+        public int Number { get; set; }
         public int TaskId { get; set; }
         public int ConfigId { get; set; }
     }
 
-    public class DtoExporterConfig
+    public class DtoTaskInstance
     {
         public int Id { get; set; }
-        public string ExporterType { get; set; } //todo:change with enum?
-        public string JsonConfig { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+    }
+
+    public class DtoOperInstance
+    {
+        public int Id { get; set; }
+        public int TaskInstanceId { get; set; }
+        public int OperId { get; set; }
+        public byte[] DataSet { get; set; }
+        public string ErrorMessage { get; set; }
     }
 
     public interface IRepository
     {
-        List<DtoInstance> GetInstancesByTaskId(int taskId);
-        List<DtoFullInstance> GetFullInstancesByTaskId(int taskId);
-        DtoFullInstance GetFullInstanceById(int id);
+        List<DtoTaskInstance> GetInstancesByTaskId(int taskId);
+        List<DtoOperInstance> GetOperInstancesByTaskInstanceId(int taskInstanceId);
+        DtoOperInstance GetFullOperInstanceById(int operInstanceId);
 
         /// <summary>
         /// Obtains list of generic-type entities from repository.

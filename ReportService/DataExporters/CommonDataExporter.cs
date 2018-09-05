@@ -5,7 +5,7 @@ namespace ReportService.DataExporters
 {
     public class CommonDataExporter : IDataExporter
     {
-        public List<string> DataTypes { get; protected set; }
+        public List<DataType> DataTypes { get; protected set; }
 
         public virtual void Send(SendData sendData)
         {

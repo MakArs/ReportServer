@@ -8,9 +8,11 @@ using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
+using OfficeOpenXml;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -32,7 +34,7 @@ namespace ReportService.Core
         private readonly List<DtoReport> reports;
         private readonly List<DtoSchedule> schedules;
         private readonly List<DtoExporterToTaskBinder> binders;
-        private readonly List<DtoExporterConfig> exporterConfigs;
+        private readonly List<DtoOper> exporterConfigs;
         private readonly List<IRTask> tasks;
         private string customViewExecutors;
         private string customDataExecutors;
@@ -56,7 +58,7 @@ namespace ReportService.Core
             schedules = new List<DtoSchedule>();
             reports = new List<DtoReport>();
             tasks = new List<IRTask>();
-            exporterConfigs = new List<DtoExporterConfig>();
+            exporterConfigs = new List<DtoOper>();
             telegramChannels = new List<DtoTelegramChannel>();
             this.bot.OnUpdate += OnBotUpd;
         } //ctor
@@ -153,6 +155,14 @@ namespace ReportService.Core
 
         public void Start()
         {
+            var fi = new FileInfo(@"C:\ArsMak\1984800643.xlsx");
+            using (var p=new ExcelPackage(fi))
+            {
+                var ws = p.Workbook.Worksheets;
+                var s = ws[1].Cells;
+                var t = s.Select(cell => cell.Value);
+                var classes = JsonConvert.SerializeObject(t);
+            }
             //try
             //{
             //    CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
@@ -190,7 +200,6 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(exporterConfigs);
             UpdateDtoEntitiesList(telegramChannels);
 
-            // UpdateTelegramChannelsList();
             UpdateTaskList();
             bot.StartReceiving();
             checkScheduleAndExecuteScheduler.OnStart();
@@ -284,7 +293,7 @@ namespace ReportService.Core
 
         public void DeleteInstance(int instanceId)
         {
-            repository.DeleteEntity<DtoInstance>(instanceId);
+            repository.DeleteEntity<DtoTaskInstance>(instanceId);
             UpdateTaskList();
             monik.ApplicationInfo($"Удалена запись {instanceId}");
         }
@@ -306,7 +315,7 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }
 
-        public int CreateExporterConfig(DtoExporterConfig exporter)
+        public int CreateExporterConfig(DtoOper exporter)
         {
             var newExporterId = repository.CreateEntity(exporter);
             UpdateDtoEntitiesList(exporterConfigs);
@@ -314,7 +323,7 @@ namespace ReportService.Core
             return newExporterId;
         }
 
-        public void UpdateExporterConfig(DtoExporterConfig exporter)
+        public void UpdateExporterConfig(DtoOper exporter)
         {
             repository.UpdateEntity(exporter);
             UpdateDtoEntitiesList(exporterConfigs);
@@ -396,7 +405,7 @@ namespace ReportService.Core
 
         public string GetAllInstancesJson()
         {
-            return JsonConvert.SerializeObject(repository.GetListEntitiesByDtoType<DtoInstance>());
+            return JsonConvert.SerializeObject(repository.GetListEntitiesByDtoType<DtoTaskInstance>());
         }
 
         public string GetAllExporterToTaskBindersJson()

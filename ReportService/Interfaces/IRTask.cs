@@ -66,9 +66,8 @@ namespace ReportService.Interfaces
         RReportType Type { get; }
         int ReportId { get; }
         bool HasHtmlBody { get; }
-        bool HasJsonAttachment { get; }
-        bool HasJsonEnAttachment { get; }
-        bool HasXlsxAttachment { get; }
+        bool HasJsonEn { get; }
+        bool HasXlsx { get; }
         bool HasTelegramView { get; }
         DateTime LastTime { get; }
         List<IDataExporter> Exporters { get; set; }

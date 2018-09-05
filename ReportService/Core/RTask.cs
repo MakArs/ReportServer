@@ -1,15 +1,11 @@
 ﻿using Autofac;
 using AutoMapper;
 using Monik.Client;
-using ReportService.Extensions;
 using ReportService.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
-using ReportService.DataExporters;
-using Telegram.Bot;
 
 namespace ReportService.Core
 {
@@ -26,9 +22,8 @@ namespace ReportService.Core
         public RReportType Type { get; }
         public int ReportId { get; }
         public bool HasHtmlBody { get; }
-        public bool HasJsonAttachment { get; }
-        public bool HasJsonEnAttachment { get; }
-        public bool HasXlsxAttachment { get; }
+        public bool HasJsonEn { get; }
+        public bool HasXlsx { get; }
         public bool HasTelegramView { get; }
         public DateTime LastTime { get; private set; }
         public List<IDataExporter> Exporters { get; set; }
@@ -39,15 +34,13 @@ namespace ReportService.Core
         private readonly IClientControl monik;
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
-        private readonly ITelegramBotClient bot;
 
         public RTask(ILifetimeScope autofac, IRepository repository,
                      IClientControl monik, IMapper mapper, IArchiver archiver,
-                     ITelegramBotClient botClient,
                      int id, string reportName, string template, DtoSchedule schedule,
                      string connStr, string query,
                      int tryCount, int timeOut, RReportType reportType, int reportId,
-                     List<DtoExporterConfig> dataExporterConfigs)
+                     List<DtoOper> dataExporterConfigs)
         {
             Type = reportType;
 
@@ -68,22 +61,10 @@ namespace ReportService.Core
             this.archiver = archiver;
             this.monik = monik;
             this.mapper = mapper;
-            bot = botClient;
             Id = id;
             Exporters=new List<IDataExporter>();
 
-            var conf = JsonConvert.SerializeObject(new EmailExporterConfig
-            {
-                Name = "someExporter",
-                DataTypes = new List<string> {"Html", "JsonBase"},
-                Addresses = new RecepientAddresses
-                {
-                    To = new[] {"makarov.a@smartdriving.io"},
-                    Bcc = new[] {"makarov.a@smartdriving.io"}
-                }
-            });
-
-            foreach (var config in dataExporterConfigs)
+           foreach (var config in dataExporterConfigs)
                 Exporters.Add(autofac.ResolveNamed<IDataExporter>(config.ExporterType,
                    new NamedParameter("jsonConfig", config.JsonConfig)));
 
@@ -96,14 +77,15 @@ namespace ReportService.Core
             TryCount = tryCount;
             QueryTimeOut = timeOut;
             ConnectionString = connStr;
+
             HasHtmlBody = Exporters
-                .Any(exporter=>exporter.DataTypes.Contains("Html"));
-            HasJsonAttachment = Exporters
-                .Any(exporter => exporter.DataTypes.Contains("JsonBase"));
-            HasXlsxAttachment = Exporters
-                .Any(exporter => exporter.DataTypes.Contains("Xlsx"));
+                .Any(exporter=>exporter.DataTypes.Contains(DataType.Html));
+
+            HasXlsx = Exporters
+                .Any(exporter => exporter.DataTypes.Contains(DataType.Xlsx));
+
             HasTelegramView = Exporters
-                .Any(exporter => exporter.DataTypes.Contains("Telegram"));
+                .Any(exporter => exporter.DataTypes.Contains(DataType.Telegram));
         }
 
         public void Execute(string address = null)
@@ -116,7 +98,7 @@ namespace ReportService.Core
             };
 
             dtoInstance.Id =
-                repository.CreateEntity(mapper.Map<DtoInstance>(dtoInstance));
+                repository.CreateEntity(mapper.Map<DtoTaskInstance>(dtoInstance));
 
             repository.CreateEntity(mapper.Map<DtoInstanceData>(dtoInstance));
 
@@ -169,7 +151,7 @@ namespace ReportService.Core
                         sendData.TelegramData = ex.Message;
                     }
 
-                if (HasXlsxAttachment)
+                if (HasXlsx)
                     try
                     {
                         sendData.XlsxData = viewEx.ExecuteXlsx(sendData.JsonBaseData, ReportName);
@@ -193,7 +175,7 @@ namespace ReportService.Core
                 }
                 finally
                 {
-                    if (HasXlsxAttachment)
+                    if (HasXlsx)
                         sendData.XlsxData?.Dispose();
                     monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
                     Console.WriteLine($"Отчёт {Id} успешно выслан");
@@ -209,7 +191,7 @@ namespace ReportService.Core
             dtoInstance.State =
                 dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
-            repository.UpdateEntity(mapper.Map<DtoInstance>(dtoInstance));
+            repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoInstance));
             repository.UpdateEntity(mapper.Map<DtoInstanceData>(dtoInstance));
         } //method
 

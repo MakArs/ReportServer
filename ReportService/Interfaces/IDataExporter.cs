@@ -5,7 +5,7 @@ namespace ReportService.Interfaces
 {
     public interface IDataExporter
     {
-        List<string> DataTypes { get; }
+        List<DataType> DataTypes { get; }
         void Send(SendData sendData);
         void Cleanup(ICleanupSettings cleanUpSettings);
     }
@@ -17,5 +17,14 @@ namespace ReportService.Interfaces
         public string TelegramData { get; set; }
         public string HtmlData { get; set; }
         public ExcelPackage XlsxData { get; set; }
+    }
+
+    public enum DataType
+    {
+        Jsonbase,
+        JsonEn,
+        Html,
+        Xlsx,
+        Telegram
     }
 }

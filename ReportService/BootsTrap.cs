@@ -245,7 +245,7 @@ namespace ReportService
             CreateMap<RTask, ApiTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
 
-            CreateMap<DtoFullInstance, DtoInstance>();
+            CreateMap<DtoFullInstance, DtoTaskInstance>();
             CreateMap<DtoFullInstance, DtoInstanceData>()
                 .ForMember("InstanceId", opt => opt.MapFrom(s => s.Id));
             CreateMap<DtoFullInstance, RFullInstance>()

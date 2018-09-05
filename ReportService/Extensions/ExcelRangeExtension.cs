@@ -11,14 +11,14 @@ namespace ReportService.Extensions
             switch (token.Type)
             {
                 case JTokenType.Date:
-                    rng.Value = ((DateTime)token).ToOADate();
+                    rng.Value = ((DateTime) token).ToOADate();
                     rng.Style.Numberformat.Format = "dd/mm/yyyy hh:mm:ss";
                     break;
                 case JTokenType.Integer:
-                    rng.Value = (long)token;
+                    rng.Value = (long) token;
                     break;
                 case JTokenType.Float:
-                    rng.Value = (double)token;
+                    rng.Value = (double) token;
                     break;
                 default:
                     rng.Value = token.ToString();

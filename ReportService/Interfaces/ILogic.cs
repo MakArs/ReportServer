@@ -26,8 +26,8 @@ namespace ReportService.Interfaces
         int CreateReport(DtoReport report);
         void UpdateReport(DtoReport report);
 
-        int CreateExporterConfig(DtoExporterConfig exporter);
-        void UpdateExporterConfig(DtoExporterConfig exporter);
+        int CreateExporterConfig(DtoOper exporter);
+        void UpdateExporterConfig(DtoOper exporter);
 
         int CreateExporterToTaskBinder(DtoExporterToTaskBinder binder);
 
