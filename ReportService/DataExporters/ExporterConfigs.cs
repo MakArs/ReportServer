@@ -2,8 +2,9 @@
 
 namespace ReportService.DataExporters
 {
-    public class DbExporterConfig : IExporterConfig
+    public class DbExporterConfig : IOperationConfig
     {
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         public string ConnectionString;
         public string TableName;
@@ -11,8 +12,9 @@ namespace ReportService.DataExporters
         public bool DropBefore;
     }
 
-    public class EmailExporterConfig : IExporterConfig
+    public class EmailExporterConfig : IOperationConfig
     {
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         public bool HasHtmlBody;
         public bool HasJsonAttachment;
@@ -22,8 +24,9 @@ namespace ReportService.DataExporters
         public string ReportName;
     }
 
-    public class TelegramExporterConfig : IExporterConfig
+    public class TelegramExporterConfig : IOperationConfig
     {
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         public int TelegramChannelId;
         public string ReportName;

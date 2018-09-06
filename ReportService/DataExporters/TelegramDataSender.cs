@@ -20,6 +20,7 @@ namespace ReportService.DataExporters
             var config = JsonConvert
                 .DeserializeObject<TelegramExporterConfig>(jsonConfig);
 
+            Number = config.Number;
             DataSetName = config.DataSetName;
             channel = logic.GetTelegramChatIdByChannelId(config.TelegramChannelId);
             reportName = config.ReportName;

@@ -10,6 +10,8 @@ namespace ReportService.DataImporters
 {
     public class ExcelImporter : IDataImporter
     {
+        public int Id { get; set; }
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         private readonly string filePath;
         private readonly string sheetName;
@@ -23,6 +25,8 @@ namespace ReportService.DataImporters
         {
             var excelConfig = JsonConvert
                 .DeserializeObject<ExcelImporterConfig>(jsonConfig);
+
+            Number = excelConfig.Number;
             DataSetName = excelConfig.DataSetName;
             filePath = excelConfig.FilePath;
             sheetName = excelConfig.ScheetName;

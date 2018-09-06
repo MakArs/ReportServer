@@ -47,6 +47,7 @@ namespace ReportService.DataExporters
             var emailConfig = JsonConvert
                 .DeserializeObject<EmailExporterConfig>(jsonConfig);
 
+            Number = emailConfig.Number;
             DataSetName = emailConfig.DataSetName;
             hasHtmlBody = emailConfig.HasHtmlBody;
             hasJsonAttachment = emailConfig.HasJsonAttachment;
@@ -55,7 +56,7 @@ namespace ReportService.DataExporters
             viewTemplate = emailConfig.ViewTemplate;
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
             reportName = emailConfig.ReportName;
-        }
+        } //ctor
 
         public override void Send(string dataSet)
         {
@@ -98,7 +99,9 @@ namespace ReportService.DataExporters
                     if (hasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        viewExecutor.ExecuteXlsx(dataSet,reportName).SaveAs(streamXlsx);
+                        var excel= viewExecutor.ExecuteXlsx(dataSet, reportName);
+                        excel.SaveAs(streamXlsx);
+                        excel.Dispose();
                         streamXlsx.Position = 0;
                         msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -113,6 +116,6 @@ namespace ReportService.DataExporters
                     streamXlsx?.Dispose();
                 }
             }
-        }
+        }//method
     }
 }

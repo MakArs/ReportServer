@@ -5,28 +5,17 @@ using ReportService.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace ReportService.Core
 {
     public class RTask : IRTask
     {
         public int Id { get; }
-        public string ReportName { get; }
-        public string ViewTemplate { get; }
+        public string Name { get; }
         public DtoSchedule Schedule { get; }
-        public string ConnectionString { get; }
-        public string Query { get; }
-        public int TryCount { get; }
-        public int QueryTimeOut { get; }
-        public RReportType Type { get; }
-        public int ReportId { get; }
-        public bool HasHtmlBody { get; }
-        public bool HasJsonEn { get; }
-        public bool HasXlsx { get; }
-        public bool HasTelegramView { get; }
         public DateTime LastTime { get; private set; }
-        public List<IDataExporter> Exporters { get; set; }
+        public Dictionary<string, string> DataSets { get; }
+        public List<IOperation> Operations { get; set; }
 
         private readonly IRepository repository;
         private readonly IClientControl monik;
@@ -34,154 +23,137 @@ namespace ReportService.Core
         private readonly IArchiver archiver;
 
         public RTask(ILifetimeScope autofac, IRepository repository,
-                     IClientControl monik, IMapper mapper, IArchiver archiver,
-                     int id, string reportName, string template, DtoSchedule schedule,
-                     string connStr, string query,
-                     int tryCount, int timeOut, RReportType reportType, int reportId,
-                     List<DtoOper> dataExporterConfigs)
+                     IClientControl monik, IMapper mapper, IArchiver archiver, int id,
+                     string name, DtoSchedule schedule, List<DtoOper> opers)
         {
-            Type = reportType;
-
-            //switch (Type)
-            //{
-            //    case RReportType.Common:
-            //        dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
-            //        viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
-            //        break;
-            //    case RReportType.Custom:
-            //        dataEx = autofac.ResolveNamed<IDataExecutor>(query);
-            //        viewEx = autofac.ResolveNamed<IViewExecutor>(template);
-            //        break;
-            //    default:
-            //        throw new NotImplementedException();
-            //}
-
             this.archiver = archiver;
             this.monik = monik;
             this.mapper = mapper;
             Id = id;
-            Exporters=new List<IDataExporter>();
-
-           foreach (var config in dataExporterConfigs)
-                Exporters.Add(autofac.ResolveNamed<IDataExporter>(config.Type,
-                   new NamedParameter("jsonConfig", config.Name)));
-
-            ReportName = reportName;
-            Query = query;
-            ViewTemplate = template;
-            ReportId = reportId;
+            Name = name;
             Schedule = schedule;
+            DataSets = new Dictionary<string, string>();
+            Operations = new List<IOperation>();
+
+            foreach (var oper in opers)
+            {
+                var newOper = autofac.ResolveNamed<IDataExporter>(oper.Name,
+                    new NamedParameter("jsonConfig", oper.Config));
+                newOper.Id = oper.Id;
+                Operations.Add(newOper);
+            }
+
             this.repository = repository;
-            TryCount = tryCount;
-            QueryTimeOut = timeOut;
-            ConnectionString = connStr;
 
         }
 
-        public void Execute(string address = null)
+        public void Execute()
         {
-            var dtoInstance = new DtoTaskInstance()
+            var dtoTaskInstance = new DtoTaskInstance
             {
-                StartTime = DateTime.Now,
                 TaskId = Id,
+                StartTime = DateTime.Now,
+                Duration = 0,
                 State = (int) InstanceState.InProcess
             };
 
-            dtoInstance.Id =
-                repository.CreateEntity(mapper.Map<DtoTaskInstance>(dtoInstance));
-
-            repository.CreateEntity(mapper.Map<DtoOperInstance>(dtoInstance));
+            dtoTaskInstance.Id =
+                repository.CreateEntity(dtoTaskInstance);
 
             Stopwatch duration = new Stopwatch();
             duration.Start();
-            int i = 1;
-            bool dataObtained = false;
+            var success = true;
 
-            var sendData = "";
-
-            while (!dataObtained && i <= TryCount)
+            try
             {
-                try
+                foreach (var oper in Operations)
                 {
-                   // sendData = dataEx.Execute(this);
-                    dataObtained = true;
-                    i++;
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    sendData = ex.Message;
+                    var dtoOperInstance = new DtoOperInstance
+                    {
+                        TaskInstanceId = dtoTaskInstance.Id,
+                        OperId = oper.Id,
+                        StartTime = DateTime.Now,
+                        Duration = 0,
+                        State = (int) InstanceState.InProcess
+                    };
+
+                    dtoOperInstance.Id =
+                        repository.CreateEntity(dtoOperInstance);
+
+                    Stopwatch operDuration = new Stopwatch();
+                    operDuration.Start();
+
+                    switch (oper)
+                    {
+                        case IDataImporter importer:
+
+                            try
+                            {
+                                var newDataSet = importer.Execute();
+                                DataSets.Add(importer.DataSetName, newDataSet);
+
+                                dtoOperInstance.DataSet = archiver.CompressString(newDataSet);
+                                dtoOperInstance.State = (int) InstanceState.Success;
+                                operDuration.Stop();
+                                dtoOperInstance.Duration =
+                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                                repository.UpdateEntity(dtoOperInstance);
+                            }
+                            catch (Exception e)
+                            {
+                                dtoOperInstance.ErrorMessage = e.Message;
+                                dtoOperInstance.State = (int) InstanceState.Failed;
+                                operDuration.Stop();
+                                dtoOperInstance.Duration =
+                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                                repository.UpdateEntity(dtoOperInstance);
+                            }
+
+                            break;
+
+                        case IDataExporter exporter:
+
+                            try
+                            {
+                                exporter.Send(DataSets[exporter.DataSetName]);
+                                dtoOperInstance.State = (int) InstanceState.Success;
+                                operDuration.Stop();
+                                dtoOperInstance.Duration =
+                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                                repository.UpdateEntity(dtoOperInstance);
+                            }
+                            catch (Exception e)
+                            {
+                                dtoOperInstance.ErrorMessage = e.Message;
+                                dtoOperInstance.State = (int) InstanceState.Failed;
+                                operDuration.Stop();
+                                dtoOperInstance.Duration =
+                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                                repository.UpdateEntity(dtoOperInstance);
+                            }
+
+                            break;
+                    }
                 }
 
-                i++;
+                monik.ApplicationInfo($"Задача {Id} успешно выполнена");
+                Console.WriteLine($"Задача {Id} успешно выполнена");
             }
 
-            if (dataObtained)
+            catch (Exception e)
             {
-                if (HasHtmlBody)
-                    try
-                    {
-                      //  sendData = viewEx.ExecuteHtml(ViewTemplate, sendData);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        sendData = ex.Message;
-                    }
-
-                if (HasTelegramView)
-                    try
-                    {
-                       // sendData =
-                       //     viewEx.ExecuteTelegramView(sendData, ReportName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        sendData = ex.Message;
-                    }
-
-                if (HasXlsx)
-                    try
-                    {
-                     //   var t = viewEx.ExecuteXlsx(sendData, ReportName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        sendData = null;
-                    }
-
-                try
-                {
-                    foreach (var exporter in Exporters)
-                        exporter.Send(sendData);
-                }
-
-                catch (Exception e)
-                {
-                    monik.ApplicationError("Произошла ошибка: " + e.Message);
-                    Console.WriteLine("Произошла ошибка: "      + e.Message);
-                }
-                finally
-                {
-                    if (HasXlsx)
-                        //sendData.XlsxData?.Dispose();
-                    monik.ApplicationInfo($"Отчёт {Id} успешно выслан");
-                    Console.WriteLine($"Отчёт {Id} успешно выслан");
-                }
+                success = false;
+                monik.ApplicationError($"Задача {Id} не выполнена.Возникла ошибка: {e.Message}");
+                Console.WriteLine($"Задача {Id} не выполнена.Возникла ошибка: {e.Message}");
             }
 
 
             duration.Stop();
-         //   dtoInstance.Data = archiver.CompressString(sendData.JsonBaseData);
-         //   dtoInstance.ViewData = archiver.CompressString(sendData.HtmlData);
-            dtoInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
-            dtoInstance.State =
-                dataObtained ? (int) InstanceState.Success : (int) InstanceState.Failed;
+            dtoTaskInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
+            dtoTaskInstance.State =
+                success ? (int) InstanceState.Success : (int) InstanceState.Failed;
 
-            repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoInstance));
-            repository.UpdateEntity(mapper.Map<DtoOperInstance>(dtoInstance));
+            repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoTaskInstance));
         } //method
 
         public string GetCurrentView()
@@ -190,25 +162,21 @@ namespace ReportService.Core
             bool dataObtained = false;
             string htmlReport = "";
 
-            while (!dataObtained && i <= TryCount)
+            try
             {
-                try
-                {
-                 //   var jsonReport = dataEx.Execute(this);
-                  //  htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
-                    dataObtained = true;
-                    i++;
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    htmlReport = ex.Message;
-                }
-
+                //   var jsonReport = dataEx.Execute(this);
+                //  htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
+                dataObtained = true;
                 i++;
             }
+            catch (Exception ex)
+            {
+                htmlReport = ex.Message;
+            }
 
-            return htmlReport;
+            i++;
+
+            return ""; //htmlReport;
         }
 
         public void UpdateLastTime()

@@ -15,6 +15,7 @@ namespace ReportService.DataExporters
             var config = JsonConvert
                 .DeserializeObject<DbExporterConfig>(jsonConfig);
 
+            Number = config.Number;
             connectionString = config.ConnectionString;
             DataSetName = config.DataSetName;
             tableName = config.TableName;

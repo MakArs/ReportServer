@@ -2,8 +2,9 @@
 
 namespace ReportService.DataImporters
 {
-    public class ExcelImporterConfig : IImporterConfig
+    public class ExcelImporterConfig : IOperationConfig
     {
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         public string FilePath;
         public string ScheetName;
@@ -14,8 +15,9 @@ namespace ReportService.DataImporters
         public int MaxRowCount;
     }
 
-    public class DbImporterConfig : IImporterConfig
+    public class DbImporterConfig : IOperationConfig
     {
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         public string ConnectionString;
         public string Query;

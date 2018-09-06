@@ -7,13 +7,10 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
-using Gerakul.FastSql;
-using ReportService.DataExporters;
 using ReportService.DataImporters;
 using ReportService.Extensions;
 using Telegram.Bot;
@@ -151,7 +148,37 @@ namespace ReportService.Core
 
         public void Start()
         {
-            
+            ExcelImporterConfig conf = new ExcelImporterConfig()
+            {
+                DataSetName = "",
+                FilePath = @"",
+                ColumnList = new[] {"A", "D"},
+                SkipEmptyRows = true,
+                FirstDataRow = 3,
+                MaxRowCount = 15
+            };
+
+            DbImporterConfig  confd= new DbImporterConfig()
+            {
+                ConnectionString =
+                    "",
+                DataSetName = "",
+                TimeOut = 150,
+                Query = ""
+            };
+
+            var tt=new DbImporter(JsonConvert.SerializeObject(confd));
+
+            var res1= tt.Execute();
+
+            var serconf = JsonConvert.SerializeObject(conf);
+
+            var t = new ExcelImporter(serconf);
+            var res2=t.Execute();
+
+            var res1vis = tableView.ExecuteHtml("",res1);
+            var res1vis2 = tableView.ExecuteHtml("", res2);
+
             customDataExecutors = JsonConvert
                 .SerializeObject(autofac
                     .ComponentRegistry
@@ -200,7 +227,7 @@ namespace ReportService.Core
             if (task == null) return "No tasks with such Id found..";
             monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
 
-            Task.Factory.StartNew(() => task.Execute(mail));
+            Task.Factory.StartNew(() => task.Execute());
             return $"Report {taskId} sent!";
         }
 
@@ -367,19 +394,8 @@ namespace ReportService.Core
             lock (this)
                 currentTasks = tasks.ToList();
 
-            var tasksView = currentTasks.Select(t => new
-                {
-                    t.Id,
-                    t.ViewTemplate,
-                    Schedule = t.Schedule?.Name,
-                    t.ConnectionString,
-                    t.Query,
-                    t.TryCount,
-                    TimeOut = t.QueryTimeOut,
-                    t.Type
-                })
-                .ToList();
-            var jsonTasks = JsonConvert.SerializeObject(tasksView);
+            
+            var jsonTasks = JsonConvert.SerializeObject("u9oo");
             var tr = tableView.ExecuteHtml("", jsonTasks);
             return tr;
         }

@@ -7,6 +7,8 @@ namespace ReportService.DataImporters
 {
     public class DbImporter : IDataImporter
     {
+        public int Id { get; set; }
+        public int Number { get; set; }
         public string DataSetName { get; set; }
         private readonly string connectionString;
         private readonly string query;
@@ -16,6 +18,8 @@ namespace ReportService.DataImporters
         {
             var dbConfig = JsonConvert
                 .DeserializeObject<DbImporterConfig>(jsonConfig);
+
+            Number = dbConfig.Number;
             DataSetName = dbConfig.DataSetName;
             connectionString = dbConfig.ConnectionString;
             query = dbConfig.Query;

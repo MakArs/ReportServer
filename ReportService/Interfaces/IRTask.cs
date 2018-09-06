@@ -56,23 +56,13 @@ namespace ReportService.Interfaces
     public interface IRTask
     {
         int Id { get; }
-        string ReportName { get; }
-        string ViewTemplate { get; }
+        string Name { get; }
         DtoSchedule Schedule { get; }
-        string ConnectionString { get; }
-        string Query { get; }
-        int TryCount { get; }
-        int QueryTimeOut { get; }
-        RReportType Type { get; }
-        int ReportId { get; }
-        bool HasHtmlBody { get; }
-        bool HasJsonEn { get; }
-        bool HasXlsx { get; }
-        bool HasTelegramView { get; }
         DateTime LastTime { get; }
-        List<IDataExporter> Exporters { get; set; }
+        Dictionary<string, string> DataSets { get; }
+        List<IOperation> Operations { get; set; }
 
-        void Execute(string address = null);
+        void Execute();
         void UpdateLastTime();
         string GetCurrentView();
     }

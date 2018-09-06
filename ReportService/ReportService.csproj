@@ -153,8 +153,7 @@
     <Compile Include="Extensions\ExcelRangeExtension.cs" />
     <Compile Include="Extensions\MailMessageExtension.cs" />
     <Compile Include="Interfaces\IArchiver.cs" />
-    <Compile Include="Interfaces\IDataExporter.cs" />
-    <Compile Include="Interfaces\IDataImporter.cs" />
+    <Compile Include="Interfaces\IOperation.cs" />
     <Compile Include="Nancy\HostHolder.cs" />
     <Compile Include="Nancy\NancyBaseModule.cs" />
     <Compile Include="Nancy\NancyApiModules.cs" />
@@ -167,7 +166,6 @@
     <Compile Include="Interfaces\IRTask.cs" />
     <Compile Include="Interfaces\IViewExecutor.cs" />
     <Compile Include="Core\Repository.cs" />
-    <Compile Include="DataImporters\CommonDataExecutor.cs" />
     <Compile Include="Core\Logic.cs" />
     <Compile Include="Nancy\NancySiteModule.cs" />
     <Compile Include="ViewExecutors\InstanceListViewExecutor.cs" />
