@@ -28,8 +28,6 @@ namespace ReportService.Core
         public DateTime LastTime { get; private set; }
         public List<IDataExporter> Exporters { get; set; }
 
-        private readonly IDataExecutor dataEx;
-        private readonly IViewExecutor viewEx;
         private readonly IRepository repository;
         private readonly IClientControl monik;
         private readonly IMapper mapper;
@@ -44,19 +42,19 @@ namespace ReportService.Core
         {
             Type = reportType;
 
-            switch (Type)
-            {
-                case RReportType.Common:
-                    dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
-                    viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
-                    break;
-                case RReportType.Custom:
-                    dataEx = autofac.ResolveNamed<IDataExecutor>(query);
-                    viewEx = autofac.ResolveNamed<IViewExecutor>(template);
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+            //switch (Type)
+            //{
+            //    case RReportType.Common:
+            //        dataEx = autofac.ResolveNamed<IDataExecutor>("commondataex");
+            //        viewEx = autofac.ResolveNamed<IViewExecutor>("commonviewex");
+            //        break;
+            //    case RReportType.Custom:
+            //        dataEx = autofac.ResolveNamed<IDataExecutor>(query);
+            //        viewEx = autofac.ResolveNamed<IViewExecutor>(template);
+            //        break;
+            //    default:
+            //        throw new NotImplementedException();
+            //}
 
             this.archiver = archiver;
             this.monik = monik;
@@ -105,7 +103,7 @@ namespace ReportService.Core
             {
                 try
                 {
-                    sendData = dataEx.Execute(this);
+                   // sendData = dataEx.Execute(this);
                     dataObtained = true;
                     i++;
                     break;
@@ -123,7 +121,7 @@ namespace ReportService.Core
                 if (HasHtmlBody)
                     try
                     {
-                        sendData = viewEx.ExecuteHtml(ViewTemplate, sendData);
+                      //  sendData = viewEx.ExecuteHtml(ViewTemplate, sendData);
                     }
                     catch (Exception ex)
                     {
@@ -134,8 +132,8 @@ namespace ReportService.Core
                 if (HasTelegramView)
                     try
                     {
-                        sendData =
-                            viewEx.ExecuteTelegramView(sendData, ReportName);
+                       // sendData =
+                       //     viewEx.ExecuteTelegramView(sendData, ReportName);
                     }
                     catch (Exception ex)
                     {
@@ -146,7 +144,7 @@ namespace ReportService.Core
                 if (HasXlsx)
                     try
                     {
-                        var t = viewEx.ExecuteXlsx(sendData, ReportName);
+                     //   var t = viewEx.ExecuteXlsx(sendData, ReportName);
                     }
                     catch (Exception ex)
                     {
@@ -196,8 +194,8 @@ namespace ReportService.Core
             {
                 try
                 {
-                    var jsonReport = dataEx.Execute(this);
-                    htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
+                 //   var jsonReport = dataEx.Execute(this);
+                  //  htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                     dataObtained = true;
                     i++;
                     break;

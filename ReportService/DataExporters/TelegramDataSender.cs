@@ -1,4 +1,5 @@
 ﻿using System;
+using Autofac;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 using Telegram.Bot;
@@ -13,7 +14,7 @@ namespace ReportService.DataExporters
         private readonly IViewExecutor viewExecutor;
         private readonly string reportName;
 
-        public TelegramDataSender(ITelegramBotClient botClient, IViewExecutor executor,
+        public TelegramDataSender(ITelegramBotClient botClient, ILifetimeScope autofac,
                                   ILogic logic, string jsonConfig)
         {
             var config = JsonConvert
@@ -22,7 +23,7 @@ namespace ReportService.DataExporters
             DataSetName = config.DataSetName;
             channel = logic.GetTelegramChatIdByChannelId(config.TelegramChannelId);
             reportName = config.ReportName;
-            viewExecutor = executor;
+            viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
             bot = botClient;
         }
 

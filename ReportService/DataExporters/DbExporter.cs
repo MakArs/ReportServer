@@ -28,8 +28,8 @@ namespace ReportService.DataExporters
                 SimpleCommand.ExecuteNonQuery(new QueryOptions(dbTimeOut), 
                     connectionString, $"delete {tableName}");
 
-            
-            await 
+            string[] someArray = {"dsa", "hksr"}; //todo:parse dataset to table logics here or somwhere else?
+            someArray.WriteToServer(connectionString, "das");
         }
     }
 }

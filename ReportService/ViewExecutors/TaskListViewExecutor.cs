@@ -1,6 +1,6 @@
-﻿namespace ReportService.View
+﻿namespace ReportService.ViewExecutors
 {
-    public class InstanceListViewExecutor : CommonViewExecutor
+    public class TaskListViewExecutor : CommonViewExecutor
     {
         public override string ExecuteHtml(string viewTemplate, string json)
         {
@@ -26,7 +26,7 @@
     </style>
 </head>
 <body>
-    <h3 align=""center"">История выполнения</h3>
+    <h3 align=""center"">Текущий список задач</h3>
     <table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)
@@ -39,7 +39,7 @@
         <tr>
             @foreach(var prop in @props)
             {
-             <td> @prop </td>
+             <td> @prop</td>
             }
         </tr>
         }
@@ -48,3 +48,4 @@
 </html>";
     } //class
 }
+

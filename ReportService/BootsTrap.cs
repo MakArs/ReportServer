@@ -11,9 +11,10 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Core;
 using ReportService.DataExporters;
+using ReportService.DataImporters;
 using ReportService.Interfaces;
 using ReportService.Nancy;
-using ReportService.View;
+using ReportService.ViewExecutors;
 using SevenZip;
 using Telegram.Bot;
 
@@ -39,11 +40,9 @@ namespace ReportService
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-            RegisterNamedDataExecutor<CommonDataExecutor>(existingContainer, "commondataex");
+           // RegisterNamedDataExecutor<CommonDataExecutor>(existingContainer, "commondataex");
 
-            existingContainer.RegisterSingleton<IViewExecutor,CommonViewExecutor>();
-         
-            //   RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
+            RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
 
             RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
 
@@ -166,11 +165,11 @@ namespace ReportService
 
 
         private void RegisterNamedDataExecutor<TImplementation>
-            (ILifetimeScope container, string name) where TImplementation : IDataExecutor
+            (ILifetimeScope container, string name) where TImplementation : IDataImporter
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
-                    .Named<IDataExecutor>(name));
+                    .Named<IDataImporter>(name));
         }
     }
 

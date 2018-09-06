@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.IO;
 using System.Net.Mail;
+using Autofac;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using ReportService.Extensions;
@@ -41,7 +42,7 @@ namespace ReportService.DataExporters
         private readonly string viewTemplate;
         private readonly string reportName;
 
-        public EmailDataSender(ILogic logic, IViewExecutor executor, string jsonConfig)
+        public EmailDataSender(ILogic logic, ILifetimeScope autofac , string jsonConfig)
         {
             var emailConfig = JsonConvert
                 .DeserializeObject<EmailExporterConfig>(jsonConfig);
@@ -52,7 +53,7 @@ namespace ReportService.DataExporters
             hasXlsxAttachment = emailConfig.HasXlsxAttachment;
             addresses = logic.GetRecepientAddressesByGroupId(emailConfig.RecepientGroupId);
             viewTemplate = emailConfig.ViewTemplate;
-            viewExecutor = executor;
+            viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
             reportName = emailConfig.ReportName;
         }
 

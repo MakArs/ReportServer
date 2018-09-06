@@ -38,9 +38,7 @@ namespace ReportService.Interfaces
         public string Name { get; set; }
         public string Schedule { get; set; }
     }
-
-    // public int    QueryTimeOut     { get; set; } //seconds
-
+    
     public class DtoTask : IDtoEntity
     {
         public int Id { get; set; }

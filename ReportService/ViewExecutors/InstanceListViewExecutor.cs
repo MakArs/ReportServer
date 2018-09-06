@@ -1,9 +1,6 @@
-﻿using PagedList;
-using PagedList.Mvc;
-
-namespace ReportService.View
+﻿namespace ReportService.ViewExecutors
 {
-    public class TaskListViewExecutor : CommonViewExecutor
+    public class InstanceListViewExecutor : CommonViewExecutor
     {
         public override string ExecuteHtml(string viewTemplate, string json)
         {
@@ -29,7 +26,7 @@ namespace ReportService.View
     </style>
 </head>
 <body>
-    <h3 align=""center"">Текущий список задач</h3>
+    <h3 align=""center"">История выполнения</h3>
     <table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)
@@ -42,7 +39,7 @@ namespace ReportService.View
         <tr>
             @foreach(var prop in @props)
             {
-             <td> @prop</td>
+             <td> @prop </td>
             }
         </tr>
         }
@@ -51,4 +48,3 @@ namespace ReportService.View
 </html>";
     } //class
 }
-

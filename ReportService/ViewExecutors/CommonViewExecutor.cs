@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
-using PagedList;
 using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
-using ReportService.Interfaces;
 using ReportService.Extensions;
+using ReportService.Interfaces;
 
-namespace ReportService.View
+namespace ReportService.ViewExecutors
 {
     public class CommonViewExecutor : IViewExecutor
     {

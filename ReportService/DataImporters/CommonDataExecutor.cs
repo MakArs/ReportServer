@@ -3,10 +3,11 @@ using Gerakul.FastSql;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 
-namespace ReportService.Core
+namespace ReportService.DataImporters
 {
-    public class CommonDataExecutor : IDataExecutor
+    public class CommonDataExecutor 
     {
+
         public string Execute(IRTask task)
         {
             var queryResult = new List<Dictionary<string, object>>();

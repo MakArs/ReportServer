@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
 using Gerakul.FastSql;
+using ReportService.DataExporters;
+using ReportService.DataImporters;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -149,30 +151,12 @@ namespace ReportService.Core
 
         public void Start()
         {
-            //var fi = new FileInfo(@"C:\ArsMak\1984800643.xlsx");
-            //using (var p=new ExcelPackage(fi))
-            //{
-            //    var ws = p.Workbook.Worksheets;
-            //    var s = ws[1].Cells;
-            //    var t = s.Select(cell => cell.Value);
-            //    var classes = JsonConvert.SerializeObject(t);
-            //}
-
-            //try
-            //{
-            //    CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine(e);
-            //}
-
-            //this and next ugly constructions are for desktop app logics
+            
             customDataExecutors = JsonConvert
                 .SerializeObject(autofac
                     .ComponentRegistry
                     .Registrations
-                    .Where(r => typeof(IDataExecutor)
+                    .Where(r => typeof(IDataImporter)
                         .IsAssignableFrom(r.Activator.LimitType))
                     .Select(r => (r.Services.ToList().First() as KeyedService)?
                         .ServiceKey.ToString())
