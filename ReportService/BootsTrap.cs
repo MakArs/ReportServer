@@ -13,6 +13,7 @@ using ReportService.Core;
 using ReportService.DataExporters;
 using ReportService.DataExporters.ViewExecutors;
 using ReportService.DataImporters;
+using ReportService.Extensions;
 using ReportService.Interfaces;
 using ReportService.Nancy;
 using SevenZip;
@@ -174,76 +175,13 @@ namespace ReportService
         }
     }
 
-    public static class LifeTimeExtension
-    {
-        public static void RegisterSingleton<TInterface, TImplementation>(
-            this ILifetimeScope container)
-        {
-            container.Update(builder => builder
-                .RegisterType<TImplementation>()
-                .As<TInterface>()
-                .SingleInstance());
-        }
-
-        public static void RegisterImplementation<TInterface, TImplementation>(
-            this ILifetimeScope container)
-        {
-            container.Update(builder => builder
-                .RegisterType<TImplementation>()
-                .As<TInterface>());
-        }
-
-        public static void RegisterInstance<TInterface, TImplementation>(
-            this ILifetimeScope container,
-            TImplementation aInstance)
-        {
-            container.Update(builder => builder
-                .Register(x => aInstance)
-                .As<TInterface>());
-        }
-
-        public static void RegisterSingleInstance<TInterface, TImplementation>(
-            this ILifetimeScope container,
-            TImplementation aInstance)
-        {
-            container.Update(builder => builder
-                .Register(x => aInstance)
-                .As<TInterface>()
-                .SingleInstance());
-        }
-
-        public static void RegisterNamedSingleton<TInterface, TImplementation>(
-            this ILifetimeScope container,
-            string name)
-        {
-            container.Update(builder => builder
-                .RegisterType<TImplementation>()
-                .Named<TInterface>(name)
-                .SingleInstance());
-        }
-
-        public static void RegisterNamedImplementation<TInterface, TImplementation>(
-            this ILifetimeScope container,
-            string name)
-        {
-            container.Update(builder => builder
-                .RegisterType<TImplementation>()
-                .Named<TInterface>(name));
-        }
-
-    } //extensions
-
     public class MapperProfile : Profile
     {
         public MapperProfile()
         {
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
 
-            CreateMap<RTask, ApiFullTask>()
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
-
             CreateMap<ApiTask, DtoTask>();
-            CreateMap<ApiFullTask, DtoOper>();
 
             CreateMap<RTask, ApiTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));

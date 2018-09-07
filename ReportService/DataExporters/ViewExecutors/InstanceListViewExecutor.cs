@@ -26,7 +26,7 @@
     </style>
 </head>
 <body>
-    <h3 align=""center"">История выполнения</h3>
+    <h3 align=""center"">История выполнения задачи</h3>
     <table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)

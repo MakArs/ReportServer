@@ -7,13 +7,10 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
-using ReportService.DataExporters;
-using ReportService.DataImporters;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -117,7 +114,7 @@ namespace ReportService.Core
             //};
             //var excconf = JsonConvert.SerializeObject(conf);
             //Type t = Type.GetType("sadf");
-           
+
         }
 
         private void CheckScheduleAndExecute()
@@ -372,14 +369,21 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
-        public string GetTaskList_HtmlPage() //todo: remake method with new DB conception
+        public string GetTaskList_HtmlPage() //todo: change viewexecutor logics for viewing array without brakes
         {
             List<IRTask> currentTasks;
             lock (this)
                 currentTasks = tasks.ToList();
 
-            
-            var jsonTasks = JsonConvert.SerializeObject("u9oo");
+            var tasksData = currentTasks.Select(task => new
+            {
+                task.Id,
+                task.Name,
+                task.Schedule.Schedule,
+                Operations = task.Operations.Select(oper => oper.Id).ToList()
+            }).ToList();
+
+            var jsonTasks = JsonConvert.SerializeObject(tasksData);
             var tr = tableView.ExecuteHtml("", jsonTasks);
             return tr;
         }
@@ -414,18 +418,17 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
         }
 
-        public string GetFullInstanceList_HtmlPage(int taskId) //todo: remake method with new DB conception
+        public string
+            GetFullInstanceList_HtmlPage(int taskId) //todo: add instanceviewexecutor with another header text
         {
-            DtoOperInstance instancesByteData = repository.GetFullOperInstanceById(taskId);
-            var instances = new List<RFullInstance>();
-
-            //foreach (var instance in instancesByteData)
-            //{
-            //    var rinstance = mapper.Map<RFullInstance>(instance);
-            //    rinstance.Data = archiver.ExtractFromByteArchive(instance.Data);
-            //    rinstance.ViewData = archiver.ExtractFromByteArchive(instance.ViewData);
-            //    instances.Add(rinstance);
-            //}
+            var instances = repository.GetInstancesByTaskId(taskId)
+                .Select(instance => new
+                {
+                    instance.Id,
+                    instance.StartTime,
+                    instance.Duration,
+                    State = ((InstanceState)instance.State).ToString()
+                });
 
             var jsonInstances = JsonConvert.SerializeObject(instances);
             return tableView.ExecuteHtml("", jsonInstances);

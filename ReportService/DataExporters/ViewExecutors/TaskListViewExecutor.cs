@@ -26,7 +26,7 @@
     </style>
 </head>
 <body>
-    <h3 align=""center"">Текущий список задач</h3>
+    <h3 align=""center"">Список существующих задач</h3>
     <table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)

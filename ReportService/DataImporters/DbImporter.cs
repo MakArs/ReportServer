@@ -29,6 +29,7 @@ namespace ReportService.DataImporters
         public string Execute()
         {
             var queryResult = new List<Dictionary<string, object>>();
+            var queryres2=new Dictionary<string,List<object>>();
 
             SqlScope.UsingConnection(connectionString, scope =>
             {
@@ -36,12 +37,32 @@ namespace ReportService.DataImporters
                     .CreateSimple(new QueryOptions(timeOut), $"{query}")
                     .ExecuteReader())
                 {
+                    if(reader.Read())
+                    {
+                        var fields = new Dictionary<string, object>();
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            var name = reader.GetName(i);
+                            var val = reader[i];
+                            queryres2[name] = new List<object> {val};
+                            fields.Add(name, val);
+                        }
+
+                        queryResult.Add(fields);
+                    }
+
                     while (reader.Read())
                     {
                         var fields = new Dictionary<string, object>();
 
                         for (int i = 0; i < reader.FieldCount; i++)
-                            fields.Add(reader.GetName(i), reader[i]);
+                        {
+                            var name = reader.GetName(i);
+                            var val = reader[i];
+                            queryres2[name].Add(val);
+                            fields.Add(name, val);
+                        }
 
                         queryResult.Add(fields);
                     }
@@ -49,6 +70,7 @@ namespace ReportService.DataImporters
             });
 
             string jsString = JsonConvert.SerializeObject(queryResult);
+           // string jsString = JsonConvert.SerializeObject(queryres2,Formatting.Indented);
             return jsString;
         }
     }

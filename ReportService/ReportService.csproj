@@ -151,6 +151,7 @@
     <Compile Include="DataImporters\ExcelImporter.cs" />
     <Compile Include="DataImporters\ImporterConfigs.cs" />
     <Compile Include="Extensions\ExcelRangeExtension.cs" />
+    <Compile Include="Extensions\LifeTimeExtensions.cs" />
     <Compile Include="Extensions\MailMessageExtension.cs" />
     <Compile Include="Interfaces\IArchiver.cs" />
     <Compile Include="Interfaces\IOperation.cs" />

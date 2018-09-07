@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Nancy.TinyIoc;
 
 namespace ReportService.Core
 {
@@ -98,7 +97,8 @@ namespace ReportService.Core
                             try
                             {
                                 var newDataSet = importer.Execute();
-                                DataSets.Add(importer.DataSetName, newDataSet);
+                                lock (this)
+                                DataSets[importer.DataSetName]= newDataSet;
 
                                 dtoOperInstance.DataSet = archiver.CompressString(newDataSet);
                                 dtoOperInstance.State = (int) InstanceState.Success;
