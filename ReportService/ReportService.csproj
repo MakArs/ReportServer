@@ -168,9 +168,9 @@
     <Compile Include="Core\Repository.cs" />
     <Compile Include="Core\Logic.cs" />
     <Compile Include="Nancy\NancySiteModule.cs" />
-    <Compile Include="ViewExecutors\InstanceListViewExecutor.cs" />
-    <Compile Include="ViewExecutors\TaskListViewExecutor.cs" />
-    <Compile Include="ViewExecutors\CommonViewExecutor.cs" />
+    <Compile Include="DataExporters\ViewExecutors\InstanceListViewExecutor.cs" />
+    <Compile Include="DataExporters\ViewExecutors\TaskListViewExecutor.cs" />
+    <Compile Include="DataExporters\ViewExecutors\CommonViewExecutor.cs" />
     <!--<Compile Include="PluginFolder\DailyReport.cs" />
     <Compile Include="PluginFolder\WeeklyReport.cs" />
     <Compile Include="PluginFolder\PrivateBootsTrap.cs" />-->

@@ -1,4 +1,4 @@
-﻿namespace ReportService.ViewExecutors
+﻿namespace ReportService.DataExporters.ViewExecutors
 {
     public class InstanceListViewExecutor : CommonViewExecutor
     {
@@ -48,3 +48,4 @@
 </html>";
     } //class
 }
+

@@ -7,10 +7,12 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
+using ReportService.DataExporters;
 using ReportService.DataImporters;
 using ReportService.Extensions;
 using Telegram.Bot;
@@ -35,8 +37,8 @@ namespace ReportService.Core
         private readonly List<DtoSchedule> schedules;
         private readonly List<IRTask> tasks;
         private readonly List<DtoTaskOper> taskOpers;
-        private string customViewExecutors;
-        private string customDataExecutors;
+        private string customExporters;
+        private string customImporters;
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
                      IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
@@ -90,7 +92,7 @@ namespace ReportService.Core
                         new NamedParameter("name", dtoTask.Name),
                         new NamedParameter("schedule", schedules
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                        new NamedParameter("operations", operations
+                        new NamedParameter("opers", operations
                             .Where(oper =>
                                 taskOpers
                                     .Where(taskOper => taskOper.TaskId == dtoTask.Id)
@@ -103,6 +105,19 @@ namespace ReportService.Core
                     tasks.Add(task);
                 }
             } //lock
+
+            //ExcelImporterConfig conf = new ExcelImporterConfig()
+            //{
+            //    DataSetName = "123",
+            //    FilePath = @"",
+            //    ColumnList = new[] { "A", "D" },
+            //    SkipEmptyRows = true,
+            //    FirstDataRow = 3,
+            //    MaxRowCount = 15
+            //};
+            //var excconf = JsonConvert.SerializeObject(conf);
+            //Type t = Type.GetType("sadf");
+           
         }
 
         private void CheckScheduleAndExecute()
@@ -143,43 +158,14 @@ namespace ReportService.Core
 
         //private void CreateBase(string connStr)
         //{
-        //        repository.CreateBase(connStr);
+        //    repository.CreateBase(connStr);
         //}
 
         public void Start()
         {
-            ExcelImporterConfig conf = new ExcelImporterConfig()
-            {
-                DataSetName = "",
-                FilePath = @"",
-                ColumnList = new[] {"A", "D"},
-                SkipEmptyRows = true,
-                FirstDataRow = 3,
-                MaxRowCount = 15
-            };
+           // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
 
-            DbImporterConfig  confd= new DbImporterConfig()
-            {
-                ConnectionString =
-                    "",
-                DataSetName = "",
-                TimeOut = 150,
-                Query = ""
-            };
-
-            var tt=new DbImporter(JsonConvert.SerializeObject(confd));
-
-            var res1= tt.Execute();
-
-            var serconf = JsonConvert.SerializeObject(conf);
-
-            var t = new ExcelImporter(serconf);
-            var res2=t.Execute();
-
-            var res1vis = tableView.ExecuteHtml("",res1);
-            var res1vis2 = tableView.ExecuteHtml("", res2);
-
-            customDataExecutors = JsonConvert
+            customImporters = JsonConvert
                 .SerializeObject(autofac
                     .ComponentRegistry
                     .Registrations
@@ -187,16 +173,14 @@ namespace ReportService.Core
                         .IsAssignableFrom(r.Activator.LimitType))
                     .Select(r => (r.Services.ToList().First() as KeyedService)?
                         .ServiceKey.ToString())
-                    .Where(key => key != "commondataex")
                     .ToList());
 
-            customViewExecutors = JsonConvert
+            customExporters = JsonConvert
                 .SerializeObject(autofac.ComponentRegistry.Registrations
-                    .Where(r => typeof(IViewExecutor)
+                    .Where(r => typeof(IDataExporter)
                         .IsAssignableFrom(r.Activator.LimitType))
                     .Select(r => (r.Services.ToList().First() as KeyedService)?
                         .ServiceKey.ToString())
-                    .Where(key => key != "commonviewex")
                     .ToList());
 
             UpdateDtoEntitiesList(operations);
@@ -468,12 +452,12 @@ namespace ReportService.Core
         
         public string GetAllCustomDataExecutors()
         {
-            return customDataExecutors;
+            return customImporters;
         }
 
         public string GetAllCustomViewExecutors()
         {
-            return customViewExecutors;
+            return customExporters;
         }
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)

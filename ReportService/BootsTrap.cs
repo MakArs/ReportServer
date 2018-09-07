@@ -11,10 +11,10 @@ using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Core;
 using ReportService.DataExporters;
+using ReportService.DataExporters.ViewExecutors;
 using ReportService.DataImporters;
 using ReportService.Interfaces;
 using ReportService.Nancy;
-using ReportService.ViewExecutors;
 using SevenZip;
 using Telegram.Bot;
 
@@ -40,23 +40,17 @@ namespace ReportService
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-           // RegisterNamedDataExecutor<CommonDataExecutor>(existingContainer, "commondataex");
+            RegisterNamedDataImporter<DbImporter>(existingContainer, "CommonDbImporter");
+            RegisterNamedDataImporter<ExcelImporter>(existingContainer, "CommonExcelImporter");
+
+            RegisterNamedDataExporter<EmailDataSender>(existingContainer,"CommonEmailSender");
+            RegisterNamedDataExporter<TelegramDataSender>(existingContainer, "CommonTelegramSender");
+            RegisterNamedDataExporter<DbExporter>(existingContainer, "CommonDbExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
-
             RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
-
             RegisterNamedViewExecutor<InstanceListViewExecutor>(existingContainer,
                 "instancelistviewex");
-
-            existingContainer.RegisterNamedImplementation<IDataExporter,EmailDataSender>
-                    ("emailsender");
-
-            existingContainer.RegisterNamedImplementation<IDataExporter, TelegramDataSender>
-                ("telegramsender");
-
-            //existingContainer.RegisterNamedImplementation<IDataExporter, DbDataExporter>
-            //    ("dbexporter");
 
             existingContainer
                 .RegisterSingleton<ILogic, Logic>();
@@ -163,8 +157,15 @@ namespace ReportService
                 .Named<IViewExecutor>(name));
         }
 
+        private void RegisterNamedDataExporter<TImplementation>
+            (ILifetimeScope container, string name) where TImplementation : IDataExporter
+        {
+            container.Update(builder => builder
+                .RegisterType<TImplementation>()
+                .Named<IDataExporter>(name));
+        }
 
-        private void RegisterNamedDataExecutor<TImplementation>
+        private void RegisterNamedDataImporter<TImplementation>
             (ILifetimeScope container, string name) where TImplementation : IDataImporter
         {
             container.Update(builder => builder

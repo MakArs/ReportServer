@@ -5,6 +5,8 @@ using ReportService.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Nancy.TinyIoc;
 
 namespace ReportService.Core
 {
@@ -37,8 +39,14 @@ namespace ReportService.Core
 
             foreach (var oper in opers)
             {
-                var newOper = autofac.ResolveNamed<IDataExporter>(oper.Name,
+                IOperation newOper;
+                if (oper.Type== "Importer")
+                newOper = autofac.ResolveNamed<IDataImporter>(oper.Name,
                     new NamedParameter("jsonConfig", oper.Config));
+                else
+                    newOper = autofac.ResolveNamed<IDataExporter>(oper.Name,
+                        new NamedParameter("jsonConfig", oper.Config));
+
                 newOper.Id = oper.Id;
                 Operations.Add(newOper);
             }
@@ -66,7 +74,7 @@ namespace ReportService.Core
 
             try
             {
-                foreach (var oper in Operations)
+                foreach (var oper in Operations.OrderBy(oper=>oper.Number))
                 {
                     var dtoOperInstance = new DtoOperInstance
                     {
@@ -156,7 +164,7 @@ namespace ReportService.Core
             repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoTaskInstance));
         } //method
 
-        public string GetCurrentView()
+        public string GetCurrentView() //todo:method
         {
             int i = 1;
             bool dataObtained = false;
@@ -164,7 +172,7 @@ namespace ReportService.Core
 
             try
             {
-                //   var jsonReport = dataEx.Execute(this);
+                ;
                 //  htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
                 dataObtained = true;
                 i++;

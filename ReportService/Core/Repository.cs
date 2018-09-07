@@ -136,7 +136,7 @@ namespace ReportService.Core
             SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF OBJECT_ID('RecepientGroup') IS NULL
                 CREATE TABLE RecepientGroup
-                Name NVARCHAR(127) NOT NULL,
+                (Name NVARCHAR(127) NOT NULL,
                 Addresses NVARCHAR(4000) NOT NULL,
                 AddressesBcc NVARCHAR(4000) NULL
                 ); ");
@@ -207,7 +207,7 @@ namespace ReportService.Core
 
             SimpleCommand.ExecuteNonQuery(baseConnStr, @"
                 IF object_id('OperInstance') IS NULL
-                CREATE TABLE TaskInstance(
+                CREATE TABLE OperInstance(
                 Id INT PRIMARY KEY IDENTITY,
 	            TaskInstanceId INT NOT NULL,
                 OperId INT NOT NULL,

@@ -1,4 +1,4 @@
-﻿namespace ReportService.ViewExecutors
+﻿namespace ReportService.DataExporters.ViewExecutors
 {
     public class TaskListViewExecutor : CommonViewExecutor
     {
