@@ -25,20 +25,6 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/{id:int}"] = parameters =>
-            {
-                try
-                {
-                    var response = (Response) logic.GetTaskList_HtmlPage();
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
             Delete["/{id:int}"] = parameters =>
             {
                 try
@@ -72,7 +58,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingTask = this.Bind<ApiTask>();
+                    var existingTask = this.Bind<ApiTask>
+                        (new BindingConfig{BodyOnly = true}); 
 
                     if (parameters.id != existingTask.Id)
                         return HttpStatusCode.BadRequest;

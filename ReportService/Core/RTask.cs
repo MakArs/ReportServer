@@ -39,9 +39,9 @@ namespace ReportService.Core
             foreach (var oper in opers)
             {
                 IOperation newOper;
-                if (oper.Type== "Importer")
-                newOper = autofac.ResolveNamed<IDataImporter>(oper.Name,
-                    new NamedParameter("jsonConfig", oper.Config));
+                if (oper.Type == "Importer")
+                    newOper = autofac.ResolveNamed<IDataImporter>(oper.Name,
+                        new NamedParameter("jsonConfig", oper.Config));
                 else
                     newOper = autofac.ResolveNamed<IDataExporter>(oper.Name,
                         new NamedParameter("jsonConfig", oper.Config));
@@ -73,7 +73,7 @@ namespace ReportService.Core
 
             try
             {
-                foreach (var oper in Operations.OrderBy(oper=>oper.Number))
+                foreach (var oper in Operations.OrderBy(oper => oper.Number))
                 {
                     var dtoOperInstance = new DtoOperInstance
                     {
@@ -98,7 +98,7 @@ namespace ReportService.Core
                             {
                                 var newDataSet = importer.Execute();
                                 lock (this)
-                                DataSets[importer.DataSetName]= newDataSet;
+                                    DataSets[importer.DataSetName] = newDataSet;
 
                                 dtoOperInstance.DataSet = archiver.CompressString(newDataSet);
                                 dtoOperInstance.State = (int) InstanceState.Success;
@@ -164,7 +164,7 @@ namespace ReportService.Core
             repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoTaskInstance));
         } //method
 
-        public string GetCurrentView() //todo:method
+        public string GetCurrentView() //todo: remake method with new db conception
         {
             int i = 1;
             bool dataObtained = false;

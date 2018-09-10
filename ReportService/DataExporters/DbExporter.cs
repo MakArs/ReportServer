@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using Gerakul.FastSql;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace ReportService.DataExporters
 {
@@ -29,7 +28,7 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-            if (!dropBefore)
+            if (dropBefore)
                 SimpleCommand.ExecuteNonQuery(new QueryOptions(dbTimeOut), 
                     connectionString, $"delete {tableName}");
 
@@ -48,12 +47,16 @@ namespace ReportService.DataExporters
             foreach (var child in children)
             {
                 var values= child.Select(pair => pair.Value).ToList();
+
                 var fullcom=new StringBuilder(comm.ToString());
+
                 for (int i = 0; i < names.Count - 1; i++)
                 {
                     fullcom.Append($"'{values[i]}',");
                 }
+
                 fullcom.Append($"'{values.Last()}')");
+
                 SimpleCommand.ExecuteNonQuery( new QueryOptions(dbTimeOut), connectionString, fullcom.ToString());
             }
         }

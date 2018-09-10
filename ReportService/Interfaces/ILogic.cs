@@ -1,4 +1,5 @@
-﻿using ReportService.Extensions;
+﻿using System;
+using ReportService.Extensions;
 using ReportService.Nancy;
 
 namespace ReportService.Interfaces

@@ -181,10 +181,10 @@ namespace ReportService
         {
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
 
-            CreateMap<ApiTask, DtoTask>();
-
-            CreateMap<RTask, ApiTask>()
+            CreateMap<RTask, DtoTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
+
+            CreateMap<ApiTask, DtoTask>();
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
 

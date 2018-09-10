@@ -161,7 +161,7 @@ namespace ReportService.Core
         public void Start()
         {
            // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-
+           
             customImporters = JsonConvert
                 .SerializeObject(autofac
                     .ComponentRegistry
@@ -245,7 +245,7 @@ namespace ReportService.Core
             lock (this)
                 currentTasks = tasks.ToList();
             var tr = JsonConvert.SerializeObject(currentTasks
-                .Select(t => mapper.Map<ApiTask>(t)));
+                .Select(t => mapper.Map<DtoTask>(t)));
             return tr;
         }
 
@@ -347,8 +347,8 @@ namespace ReportService.Core
 
         public int CreateTask(ApiTask task)
         {
-            var dtoTask = mapper.Map<DtoTask>(task);
-            var newTaskId = repository.CreateEntity(dtoTask);
+            var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task),task.BindedOpers);
+            UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
             monik.ApplicationInfo($"Создана задача {newTaskId}");
             return newTaskId;
@@ -356,8 +356,8 @@ namespace ReportService.Core
 
         public void UpdateTask(ApiTask task)
         {
-            var dtoTask = mapper.Map<DtoTask>(task);
-            repository.UpdateEntity(dtoTask);
+            repository.UpdateTask(mapper.Map<DtoTask>(task),task.BindedOpers);
+            UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
             monik.ApplicationInfo($"Обновлена задача {task.Id}");
         }

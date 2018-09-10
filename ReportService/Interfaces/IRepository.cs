@@ -92,12 +92,14 @@ namespace ReportService.Interfaces
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
         int CreateEntity<T>(T entity) where T : IDtoEntity;
+        int CreateTask(DtoTask task, params DtoTaskOper[] bindedOpers);
 
         /// <summary>
         /// Updates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
         void UpdateEntity<T>(T entity) where T : IDtoEntity;
+        void UpdateTask(DtoTask task, params DtoTaskOper[] bindedOpers);
 
         void DeleteEntity<T>(int id);
 

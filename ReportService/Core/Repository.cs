@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Gerakul.FastSql;
 using ReportService.Interfaces;
+using static System.Int32;
 
 namespace ReportService.Core
 {
@@ -67,6 +68,37 @@ namespace ReportService.Core
             }
         }
 
+        public int CreateTask(DtoTask task, params DtoTaskOper[] bindedOpers)
+        {
+            int newTaskId = 0;
+            SqlScope.UsingTransaction(connStr, scope =>
+            {
+                try
+                {
+                    newTaskId = Parse(scope.CreateInsert("Task", task, true, "Id").ExecuteScalar()
+                        .ToString());
+
+                    if (bindedOpers==null)
+                    return;
+
+                    foreach (var oper in bindedOpers)
+                    {
+                        oper.TaskId = newTaskId;
+                    }
+
+                    bindedOpers.WriteToServer(scope.Transaction, "TaskOper");
+                }
+
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw;
+                }
+            });
+
+            return newTaskId;
+        }
+
         public void UpdateEntity<T>(T entity) where T : IDtoEntity
         {
             var tableName = typeof(T).Name.Remove(0, 3);
@@ -80,6 +112,27 @@ namespace ReportService.Core
             {
                 Console.WriteLine(e);
             }
+        }
+
+        public void UpdateTask(DtoTask task, params DtoTaskOper[] bindedOpers)
+        {
+            SqlScope.UsingTransaction(connStr, scope =>
+            {
+                try
+                {
+                    scope.CreateUpdate("Task", task, "Id").ExecuteNonQuery();
+
+                    scope.CreateCommand($"Delete TaskOper where TaskId={task.Id}").ExecuteNonQuery();
+
+                    bindedOpers.WriteToServer(scope.Transaction, "TaskOper");
+                }
+
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw;
+                }
+            });
         }
 
         public void DeleteEntity<T>(int id)
@@ -112,11 +165,25 @@ namespace ReportService.Core
                     break;
 
                 case bool _ when type == typeof(DtoTask):
-                    SimpleCommand.ExecuteNonQuery(connStr,
-                        $@"delete OperInstance where TaskInstanceId in (select id from TaskInstance where TaskId={id})");
-                    SimpleCommand.ExecuteNonQuery(connStr,
-                        $@"delete TaskInstance where TaskID={id}");
-                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete Task where id={id}");
+                    SqlScope.UsingTransaction(connStr, scope =>
+                    {
+                        try
+                        {
+                        scope.CreateCommand($@"delete OperInstance where TaskInstanceId in
+                                            (select id from TaskInstance where TaskId={id})")
+                            .ExecuteNonQuery();
+                        scope.CreateCommand($@"delete TaskInstance where TaskID={id}")
+                            .ExecuteNonQuery();
+                        scope.CreateCommand($@"delete TaskOper where TaskID={id}")
+                            .ExecuteNonQuery();
+                        scope.CreateCommand( $@"delete Task where id={id}").ExecuteNonQuery();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                            throw;
+                        }
+                    });
                     break;
             }
         }
