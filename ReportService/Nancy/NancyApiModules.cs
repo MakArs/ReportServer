@@ -73,33 +73,11 @@ namespace ReportService.Nancy
                 }
             };
 
-        }
-    } //class
-
-    public class InstancesModule : NancyBaseModule
-    {
-        public InstancesModule(ILogic logic)
-        {
-            ModulePath = "/api/v1";
-
-            Delete["/instances/{id:int}"] = parameters =>
+            Get["/{taskid:int}/instances"] = parameters =>
             {
                 try
                 {
-                    logic.DeleteTaskInstanceById(parameters.id);
-                    return HttpStatusCode.OK;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
-            Get["/tasks/{taskid:int}/instances"] = parameters =>
-            {
-                try
-                {
-                    var response = (Response) logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
+                    var response = (Response)logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -113,7 +91,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetCurrentViewByTaskId(parameters.taskid);
+                    var response = (Response)logic.GetCurrentViewByTaskId(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -122,9 +100,30 @@ namespace ReportService.Nancy
                     return HttpStatusCode.InternalServerError;
                 }
             };
+        }
+    } //TasksModule
+
+    public class InstancesModule : NancyBaseModule
+    {
+        public InstancesModule(ILogic logic)
+        {
+            ModulePath = "/api/v1/instances";
+
+            Delete["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteTaskInstanceById(parameters.id);
+                    return HttpStatusCode.OK;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
 
             // TODO: filter - top, paginations
-            Get["/instances"] = parameters =>
+            Get[""] = parameters =>
             {
                 try
                 {
@@ -138,11 +137,25 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/instances/{id:int}"] = parameters =>
+            Get["/{instanceid:int}/operinstances"] = parameters =>
             {
                 try
                 {
-                    var response = (Response) logic.GetFullOperInstanceByIdJson(parameters.id);
+                    var response = (Response)logic.GetOperInstancesByTaskInstanceIdJson(parameters.instanceid);
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/operinstances/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetFullOperInstanceByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -152,7 +165,7 @@ namespace ReportService.Nancy
                 }
             };
         }
-    } //class
+    } //Instances&OperInstancesModule
 
     public class ScheduleModule : NancyBaseModule
     {
@@ -195,7 +208,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingSchedule = this.Bind<DtoSchedule>();
+                    var existingSchedule = this.Bind<DtoSchedule>
+                        (new BindingConfig { BodyOnly = true });
 
                     if (parameters.id != existingSchedule.Id)
                         return HttpStatusCode.BadRequest;
@@ -210,7 +224,65 @@ namespace ReportService.Nancy
             };
 
         }
-    } //class
+    } //SchedulesModule
+
+    public class TelegramModule : NancyBaseModule
+    {
+        public TelegramModule(ILogic logic)
+        {
+            ModulePath = "/api/v1/telegrams";
+
+            Get[""] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllTelegramChannelsJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Post[""] = parameters =>
+            {
+                try
+                {
+                    var newTelegramChannel = this.Bind<DtoTelegramChannel>();
+                    var id = logic.CreateTelegramChannel(newTelegramChannel);
+                    var response = (Response)$"{id}";
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Put["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    var existingTelegramChannel = this.Bind<DtoTelegramChannel>
+                        (new BindingConfig { BodyOnly = true });
+
+                    if (parameters.id != existingTelegramChannel.Id)
+                        return HttpStatusCode.BadRequest;
+
+                    logic.UpdateTelegramChannel(existingTelegramChannel);
+                    return HttpStatusCode.OK;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+        }
+    } //TelegramModule
 
     public class RecepientGroupsModule : NancyBaseModule
     {
@@ -253,7 +325,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingGroup = this.Bind<DtoRecepientGroup>();
+                    var existingGroup = this.Bind<DtoRecepientGroup>
+                        (new BindingConfig { BodyOnly = true });
 
                     if (parameters.id != existingGroup.Id)
                         return HttpStatusCode.BadRequest;
@@ -267,13 +340,13 @@ namespace ReportService.Nancy
                 }
             };
         }
-    } //class
+    } //RecepientGroupsModule
 
-    public class ReportsModule : NancyBaseModule
+    public class OpersModule : NancyBaseModule
     {
-        public ReportsModule(ILogic logic)
+        public OpersModule(ILogic logic)
         {
-            ModulePath = "/api/v1/reports";
+            ModulePath = "/api/v1/opers";
 
             Get[""] = parameters =>
             {
@@ -289,11 +362,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/customdataexecutors"] = parameters =>
+            Get["/customimporters"] = parameters =>
             {
                 try
                 {
-                    var response = (Response)logic.GetAllCustomDataExecutors();
+                    var response = (Response)logic.GetAllCustomImporters();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -303,11 +376,25 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/customviewexecutors"] = parameters =>
+            Get["/customexporters"] = parameters =>
             {
                 try
                 {
-                    var response = (Response)logic.GetAllCustomViewExecutors();
+                    var response = (Response)logic.GetAllCustomExporters();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/taskopers"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllTaskOpersJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -321,8 +408,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var newReport = this.Bind<DtoOper>();
-                    var id = logic.CreateOperation(newReport);
+                    var newOper = this.Bind<DtoOper>();
+                    var id = logic.CreateOperation(newOper);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -337,12 +424,13 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingReport = this.Bind<DtoOper>();
+                    var existingOper = this.Bind<DtoOper>
+                        (new BindingConfig { BodyOnly = true });
 
-                    if (parameters.id != existingReport.Id)
+                    if (parameters.id != existingOper.Id)
                         return HttpStatusCode.BadRequest;
 
-                    logic.UpdateOperation(existingReport);
+                    logic.UpdateOperation(existingOper);
                     return HttpStatusCode.OK;
                 }
                 catch
@@ -351,6 +439,6 @@ namespace ReportService.Nancy
                 }
             };
         }
-    } //class
+    } //Opers&TaskOpersModule
 }
 

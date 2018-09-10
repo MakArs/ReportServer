@@ -187,10 +187,6 @@ namespace ReportService
             CreateMap<ApiTask, DtoTask>();
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
-
-            CreateMap<DtoOperInstance, RFullInstance>()
-                .ForMember("Data", opt => opt.Ignore())
-                .ForMember("ViewData", opt => opt.Ignore());
         }
     }
 }

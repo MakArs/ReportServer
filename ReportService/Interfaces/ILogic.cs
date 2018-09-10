@@ -46,14 +46,15 @@ namespace ReportService.Interfaces
 
         void DeleteOperInstanceById(int operInstanceId);
         string GetAllOperInstancesByTaskInstanceIdJson(int taskInstanceId);
+        string GetOperInstancesByTaskInstanceIdJson(int id);
         string GetFullOperInstanceByIdJson(int id);
 
         //todo: int CreateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void UpdateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void DeleteEntity<T>(int entityId) or one method for each entity ??
 
-        string GetAllCustomDataExecutors();
-        string GetAllCustomViewExecutors();
+        string GetAllCustomImporters();
+        string GetAllCustomExporters();
     }
 }
 //todo:replace create&update methods with createorupdate?

@@ -445,20 +445,23 @@ namespace ReportService.Core
                 .GetOperInstancesByTaskInstanceId(taskInstanceId));
         }
 
+        public string GetOperInstancesByTaskInstanceIdJson(int id)
+        {
+            return JsonConvert.SerializeObject(repository.GetOperInstancesByTaskInstanceId(id));
+        }
+
         public string GetFullOperInstanceByIdJson(int id)
         {
             var instance = repository.GetFullOperInstanceById(id);
-            var rinstance = mapper.Map<RFullInstance>(instance);
-            rinstance.Data = archiver.ExtractFromByteArchive(instance.DataSet);
-            return JsonConvert.SerializeObject(rinstance);
+            return JsonConvert.SerializeObject(instance);
         }
-        
-        public string GetAllCustomDataExecutors()
+
+        public string GetAllCustomImporters()
         {
             return customImporters;
         }
 
-        public string GetAllCustomViewExecutors()
+        public string GetAllCustomExporters()
         {
             return customExporters;
         }

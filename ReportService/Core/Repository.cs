@@ -26,7 +26,7 @@ namespace ReportService.Core
         public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(int taskInstanceId)
         {
             return SimpleCommand.ExecuteQuery<DtoOperInstance>(connStr,
-                    $"select Id,TaskInstanceId,OperId,ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
+                    $"select Id,TaskInstanceId,OperId,StartTime,Duration,State,null as DataSet,null as ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
                 .ToList();
         }
 
