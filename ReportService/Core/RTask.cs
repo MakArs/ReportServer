@@ -25,7 +25,7 @@ namespace ReportService.Core
 
         public RTask(ILifetimeScope autofac, IRepository repository,
                      IClientControl monik, IMapper mapper, IArchiver archiver, int id,
-                     string name, DtoSchedule schedule, List<DtoOper> opers)
+                     string name, DtoSchedule schedule, List<Tuple<DtoOper,int>> opers)
         {
             this.archiver = archiver;
             this.monik = monik;
@@ -36,9 +36,10 @@ namespace ReportService.Core
             DataSets = new Dictionary<string, string>();
             Operations = new List<IOperation>();
 
-            foreach (var oper in opers)
+            foreach (var opern in opers)
             {
                 IOperation newOper;
+                var oper = opern.Item1;
                 if (oper.Type == "Importer")
                     newOper = autofac.ResolveNamed<IDataImporter>(oper.Name,
                         new NamedParameter("jsonConfig", oper.Config));
@@ -47,6 +48,8 @@ namespace ReportService.Core
                         new NamedParameter("jsonConfig", oper.Config));
 
                 newOper.Id = oper.Id;
+                newOper.Number = opern.Item2;
+
                 Operations.Add(newOper);
             }
 

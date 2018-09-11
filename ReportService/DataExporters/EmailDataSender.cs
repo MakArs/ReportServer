@@ -47,7 +47,6 @@ namespace ReportService.DataExporters
             var emailConfig = JsonConvert
                 .DeserializeObject<EmailExporterConfig>(jsonConfig);
 
-            Number = emailConfig.Number;
             DataSetName = emailConfig.DataSetName;
             hasHtmlBody = emailConfig.HasHtmlBody;
             hasJsonAttachment = emailConfig.HasJsonAttachment;

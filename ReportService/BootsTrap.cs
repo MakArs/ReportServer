@@ -47,6 +47,7 @@ namespace ReportService
             RegisterNamedDataExporter<EmailDataSender>(existingContainer,"CommonEmailSender");
             RegisterNamedDataExporter<TelegramDataSender>(existingContainer, "CommonTelegramSender");
             RegisterNamedDataExporter<DbExporter>(existingContainer, "CommonDbExporter");
+            RegisterNamedDataExporter<ReportInstanceExporter>(existingContainer, "CommonReportInstanceExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
             RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
@@ -185,6 +186,9 @@ namespace ReportService
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
 
             CreateMap<ApiTask, DtoTask>();
+
+            CreateMap<DtoOperInstance, ApiOperInstance>()
+                .ForMember("DataSet", opt => opt.Ignore());
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
         }

@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
+using ReportService.DataExporters;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -89,32 +90,18 @@ namespace ReportService.Core
                         new NamedParameter("name", dtoTask.Name),
                         new NamedParameter("schedule", schedules
                             .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                        new NamedParameter("opers", operations
-                            .Where(oper =>
-                                taskOpers
-                                    .Where(taskOper => taskOper.TaskId == dtoTask.Id)
-                                    .Select(taskOper => taskOper.OperId)
-                                    .Contains(oper.Id))
-                            .ToList()));
+                        new NamedParameter("opers",
+                            taskOpers
+                                .Where(taskOper => taskOper.TaskId == dtoTask.Id)
+                                .Select(taskOper=>Tuple.Create
+                                    (operations.FirstOrDefault(oper=>oper.Id==taskOper.OperId),taskOper.Number))
+                                    .ToList()));
 
                     // might be replaced with saved time from db
                     task.UpdateLastTime();
                     tasks.Add(task);
                 }
             } //lock
-
-            //ExcelImporterConfig conf = new ExcelImporterConfig()
-            //{
-            //    DataSetName = "123",
-            //    FilePath = @"",
-            //    ColumnList = new[] { "A", "D" },
-            //    SkipEmptyRows = true,
-            //    FirstDataRow = 3,
-            //    MaxRowCount = 15
-            //};
-            //var excconf = JsonConvert.SerializeObject(conf);
-            //Type t = Type.GetType("sadf");
-
         }
 
         private void CheckScheduleAndExecute()
@@ -453,7 +440,11 @@ namespace ReportService.Core
         public string GetFullOperInstanceByIdJson(int id)
         {
             var instance = repository.GetFullOperInstanceById(id);
-            return JsonConvert.SerializeObject(instance);
+            var apiInstance = mapper.Map<ApiOperInstance>(instance);
+
+            apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);
+
+            return JsonConvert.SerializeObject(apiInstance);
         }
 
         public string GetAllCustomImporters()

@@ -11,7 +11,6 @@ namespace ReportService.Interfaces
 
     public interface IOperationConfig
     {
-        int Number { get; set; }
         string DataSetName { get; set; }
     }
 

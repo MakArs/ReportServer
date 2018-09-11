@@ -18,7 +18,6 @@ namespace ReportService.DataExporters
             var config = JsonConvert
                 .DeserializeObject<DbExporterConfig>(jsonConfig);
 
-            Number = config.Number;
             connectionString = config.ConnectionString;
             DataSetName = config.DataSetName;
             tableName = config.TableName;
@@ -28,9 +27,15 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-            if (dropBefore)
+            if (!dropBefore)
                 SimpleCommand.ExecuteNonQuery(new QueryOptions(dbTimeOut), 
                     connectionString, $"delete {tableName}");
+
+            SimpleCommand.ExecuteNonQuery(connectionString, $@"
+                IF OBJECT_ID('{tableName}') IS NULL
+                CREATE TABLE {tableName}
+                (Name NVARCHAR(4000) NOT NULL,
+                Amount NVARCHAR(4000) NOT NULL); ");
 
             var children = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(dataSet);
 

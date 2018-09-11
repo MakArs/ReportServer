@@ -1,4 +1,5 @@
-﻿using Nancy;
+﻿using System;
+using Nancy;
 using ReportService.Interfaces;
 
 namespace ReportService.Nancy
@@ -11,6 +12,17 @@ namespace ReportService.Nancy
         public DtoTaskOper[] BindedOpers { get; set; }
     }
 
+    public class ApiOperInstance
+    {
+        public int Id { get; set; }
+        public int TaskInstanceId { get; set; }
+        public int OperId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+        public string DataSet { get; set; }
+        public string ErrorMessage { get; set; }
+    }
 
     public class NancyBaseModule : NancyModule
     {

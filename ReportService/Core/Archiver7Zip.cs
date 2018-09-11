@@ -29,7 +29,7 @@ namespace ReportService.Core
 
         public string ExtractFromByteArchive(byte[] byteData)
         {
-            if (byteData.Length == 0) return null;
+            if (byteData == null || byteData.Length == 0) return null;
 
             using (var compressedStream = new MemoryStream(byteData))
             {

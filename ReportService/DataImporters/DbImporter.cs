@@ -19,7 +19,6 @@ namespace ReportService.DataImporters
             var dbConfig = JsonConvert
                 .DeserializeObject<DbImporterConfig>(jsonConfig);
 
-            Number = dbConfig.Number;
             DataSetName = dbConfig.DataSetName;
             connectionString = dbConfig.ConnectionString;
             query = dbConfig.Query;

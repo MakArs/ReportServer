@@ -146,6 +146,7 @@
     <Compile Include="DataExporters\CommonDataExporter.cs" />
     <Compile Include="DataExporters\DbExporter.cs" />
     <Compile Include="DataExporters\ExporterConfigs.cs" />
+    <Compile Include="DataExporters\ReportInstanceExporter.cs" />
     <Compile Include="DataExporters\TelegramDataSender.cs" />
     <Compile Include="DataImporters\DbImporter.cs" />
     <Compile Include="DataImporters\ExcelImporter.cs" />

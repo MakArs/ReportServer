@@ -26,7 +26,6 @@ namespace ReportService.DataImporters
             var excelConfig = JsonConvert
                 .DeserializeObject<ExcelImporterConfig>(jsonConfig);
 
-            Number = excelConfig.Number;
             DataSetName = excelConfig.DataSetName;
             filePath = excelConfig.FilePath;
             sheetName = excelConfig.ScheetName;
