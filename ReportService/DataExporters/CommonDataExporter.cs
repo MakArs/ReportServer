@@ -1,4 +1,5 @@
-﻿using ReportService.Interfaces;
+﻿using AutoMapper;
+using ReportService.Interfaces;
 
 namespace ReportService.DataExporters
 {

@@ -24,11 +24,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/customimporters"] = parameters =>
+            Get["/registeredimporters"] = parameters =>
             {
                 try
                 {
-                    var response = (Response)logic.GetAllCustomImporters();
+                    var response = (Response)logic.GetAllRegisteredImporters();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -38,11 +38,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/customexporters"] = parameters =>
+            Get["/registeredexporters"] = parameters =>
             {
                 try
                 {
-                    var response = (Response)logic.GetAllCustomExporters();
+                    var response = (Response)logic.GetAllRegisteredExporters();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

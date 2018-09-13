@@ -1,6 +1,6 @@
 ﻿using System;
 using Autofac;
-using Newtonsoft.Json;
+using AutoMapper;
 using ReportService.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -12,17 +12,14 @@ namespace ReportService.DataExporters
         private readonly ITelegramBotClient bot;
         private readonly DtoTelegramChannel channel;
         private readonly IViewExecutor viewExecutor;
-        private readonly string reportName;
+        public string ReportName;
 
-        public TelegramDataSender(ITelegramBotClient botClient, ILifetimeScope autofac,
-                                  ILogic logic, string jsonConfig)
+        public TelegramDataSender(IMapper mapper, ITelegramBotClient botClient, ILifetimeScope autofac,
+                                  ILogic logic, TelegramExporterConfig config)
         {
-            var config = JsonConvert
-                .DeserializeObject<TelegramExporterConfig>(jsonConfig);
+            mapper.Map(config, this);
 
-            DataSetName = config.DataSetName;
             channel = logic.GetTelegramChatIdByChannelId(config.TelegramChannelId);
-            reportName = config.ReportName;
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
             bot = botClient;
         }
@@ -32,7 +29,7 @@ namespace ReportService.DataExporters
             try
             {
                 bot.SendTextMessageAsync(channel.ChatId,
-                        viewExecutor.ExecuteTelegramView(dataSet, reportName),
+                        viewExecutor.ExecuteTelegramView(dataSet, ReportName),
                         ParseMode.Markdown)
                     .Wait();
             }

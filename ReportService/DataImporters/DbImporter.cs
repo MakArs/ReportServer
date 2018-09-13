@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AutoMapper;
 using Gerakul.FastSql;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
@@ -10,19 +11,13 @@ namespace ReportService.DataImporters
         public int Id { get; set; }
         public int Number { get; set; }
         public string DataSetName { get; set; }
-        private readonly string connectionString;
-        private readonly string query;
-        private readonly int timeOut;
+        public string ConnectionString;
+        public string Query;
+        public int TimeOut;
 
-        public DbImporter(string jsonConfig)
+        public DbImporter(IMapper mapper, DbImporterConfig config)
         {
-            var dbConfig = JsonConvert
-                .DeserializeObject<DbImporterConfig>(jsonConfig);
-
-            DataSetName = dbConfig.DataSetName;
-            connectionString = dbConfig.ConnectionString;
-            query = dbConfig.Query;
-            timeOut = dbConfig.TimeOut;
+            mapper.Map(config, this);
         }
 
         public string Execute()
@@ -30,10 +25,10 @@ namespace ReportService.DataImporters
             var queryResult = new List<Dictionary<string, object>>();
             var queryres2=new Dictionary<string,List<object>>();
 
-            SqlScope.UsingConnection(connectionString, scope =>
+            SqlScope.UsingConnection(ConnectionString, scope =>
             {
                 using (var reader = scope
-                    .CreateSimple(new QueryOptions(timeOut), $"{query}")
+                    .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
                     .ExecuteReader())
                 {
                     if(reader.Read())

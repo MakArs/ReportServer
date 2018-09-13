@@ -3,7 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.Net.Mail;
 using Autofac;
-using Newtonsoft.Json;
+using AutoMapper;
 using OfficeOpenXml;
 using ReportService.Extensions;
 using ReportService.Interfaces;
@@ -35,31 +35,24 @@ namespace ReportService.DataExporters
     public class EmailDataSender : CommonDataExporter
     {
         private readonly RecepientAddresses addresses;
-        private readonly bool hasHtmlBody;
-        private readonly bool hasXlsxAttachment;
-        private readonly bool hasJsonAttachment;
+        public bool HasHtmlBody;
+        public bool HasXlsxAttachment;
+        public bool HasJsonAttachment;
         private readonly IViewExecutor viewExecutor;
-        private readonly string viewTemplate;
-        private readonly string reportName;
+        public string ViewTemplate;
+        public string ReportName;
 
-        public EmailDataSender(ILogic logic, ILifetimeScope autofac , string jsonConfig)
+        public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac, EmailExporterConfig config)
         {
-            var emailConfig = JsonConvert
-                .DeserializeObject<EmailExporterConfig>(jsonConfig);
+            mapper.Map(config, this);
 
-            DataSetName = emailConfig.DataSetName;
-            hasHtmlBody = emailConfig.HasHtmlBody;
-            hasJsonAttachment = emailConfig.HasJsonAttachment;
-            hasXlsxAttachment = emailConfig.HasXlsxAttachment;
-            addresses = logic.GetRecepientAddressesByGroupId(emailConfig.RecepientGroupId);
-            viewTemplate = emailConfig.ViewTemplate;
+            addresses = logic.GetRecepientAddressesByGroupId(config.RecepientGroupId);
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
-            reportName = emailConfig.ReportName;
         } //ctor
 
         public override void Send(string dataSet)
         {
-            string filename = reportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
+            string filename = ReportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
@@ -73,12 +66,12 @@ namespace ReportService.DataExporters
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
                 msg.AddRecepients(addresses);
 
-                msg.Subject = reportName + $" {DateTime.Now:dd.MM.yy}";
+                msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
 
-                if (hasHtmlBody)
+                if (HasHtmlBody)
                 {
                     msg.IsBodyHtml = true;
-                    msg.Body = viewExecutor.ExecuteHtml(viewTemplate,dataSet);
+                    msg.Body = viewExecutor.ExecuteHtml(ViewTemplate,dataSet);
                 }
 
                 MemoryStream streamJson = null;
@@ -86,7 +79,7 @@ namespace ReportService.DataExporters
 
                 try
                 {
-                    if (hasJsonAttachment)
+                    if (HasJsonAttachment)
                     {
                         streamJson =
                             new MemoryStream(
@@ -95,10 +88,10 @@ namespace ReportService.DataExporters
                             @"application/json"));
                     }
 
-                    if (hasXlsxAttachment)
+                    if (HasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        var excel= viewExecutor.ExecuteXlsx(dataSet, reportName);
+                        var excel= viewExecutor.ExecuteXlsx(dataSet, ReportName);
                         excel.SaveAs(streamXlsx);
                         excel.Dispose();
                         streamXlsx.Position = 0;

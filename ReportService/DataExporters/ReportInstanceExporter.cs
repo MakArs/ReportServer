@@ -1,34 +1,30 @@
 ﻿using System;
+using AutoMapper;
 using Gerakul.FastSql;
-using Newtonsoft.Json;
+using ReportService.Interfaces;
 
 namespace ReportService.DataExporters
 {
     public class ReportInstanceExporter : CommonDataExporter
     {
-        private readonly string connectionString;
-        private readonly string tableName;
-        private readonly int dbTimeOut;
-        private readonly string reportName;
+        public string ConnectionString;
+        public string TableName;
+        public int DbTimeOut;
+        private readonly IArchiver archiver;
+        public string ReportName;
 
-        public ReportInstanceExporter(string jsonConfig)
+        public ReportInstanceExporter(IMapper mapper, IArchiver archiver, ReportInstanceExporterConfig config)
         {
-            var config = JsonConvert
-                .DeserializeObject<ReportInstanceExporterConfig>(jsonConfig);
-
-            reportName = config.ReportName;
-            connectionString = config.ConnectionString;
-            DataSetName = config.DataSetName;
-            tableName = config.TableName;
-            dbTimeOut = config.DbTimeOut;
+            this.archiver = archiver;
+            mapper.Map(config, this);
         }
 
         public override void Send(string dataSet)
         {
 
-            SimpleCommand.ExecuteNonQuery(connectionString, $@"
-                IF OBJECT_ID('{tableName}') IS NULL
-                CREATE TABLE {tableName}
+            SimpleCommand.ExecuteNonQuery(ConnectionString, $@"
+                IF OBJECT_ID('{TableName}') IS NULL
+                CREATE TABLE {TableName}
                 (Id INT IDENTITY,
                 ReportName NVARCHAR(255) NOT NULL,
                 ExecuteTime DATETIME NOT NULL,
@@ -39,13 +35,13 @@ namespace ReportService.DataExporters
 
             var newInstance = new
             {
-                ReportName = reportName,
+                ReportName = ReportName,
                 ExecuteTime = DateTime.Now,
-                Data = dataSet
+                Data = dataSet //archiver.CompressString(dataSet)
             };
 
-            MappedCommand.Insert(new QueryOptions(dbTimeOut), connectionString,
-                tableName, newInstance, "Id");
+            MappedCommand.Insert(new QueryOptions(DbTimeOut), ConnectionString,
+                TableName, newInstance, "Id");
         }
     }
 }

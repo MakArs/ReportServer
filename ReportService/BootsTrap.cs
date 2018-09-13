@@ -41,13 +41,23 @@ namespace ReportService
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-            RegisterNamedDataImporter<DbImporter>(existingContainer, "CommonDbImporter");
-            RegisterNamedDataImporter<ExcelImporter>(existingContainer, "CommonExcelImporter");
+            RegisterNamedDataImporter<DbImporter,DbImporterConfig>
+                (existingContainer, "CommonDbImporter");
 
-            RegisterNamedDataExporter<EmailDataSender>(existingContainer,"CommonEmailSender");
-            RegisterNamedDataExporter<TelegramDataSender>(existingContainer, "CommonTelegramSender");
-            RegisterNamedDataExporter<DbExporter>(existingContainer, "CommonDbExporter");
-            RegisterNamedDataExporter<ReportInstanceExporter>(existingContainer, "CommonReportInstanceExporter");
+            RegisterNamedDataImporter<ExcelImporter,ExcelImporterConfig>
+                (existingContainer, "CommonExcelImporter");
+
+            RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
+                (existingContainer, "CommonEmailSender");
+
+            RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>
+                (existingContainer, "CommonTelegramSender");
+
+            RegisterNamedDataExporter<DbExporter, DbExporterConfig>
+                (existingContainer, "CommonDbExporter");
+
+            RegisterNamedDataExporter<ReportInstanceExporter, ReportInstanceExporterConfig>
+                (existingContainer, "CommonReportInstanceExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
             RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
@@ -64,10 +74,8 @@ namespace ReportService
                 .RegisterInstance<IRepository, Repository>(repository);
 
             // Partial bootstrapper for private named implementations registration
-            IPrivateBootstrapper privboots = this as IPrivateBootstrapper;
-            if (privboots != null)
-                privboots
-                    .PrivateConfigureApplicationContainer(existingContainer);
+            (this as IPrivateBootstrapper)?
+                .PrivateConfigureApplicationContainer(existingContainer);
 
             #region ConfigureMonik
 
@@ -159,20 +167,26 @@ namespace ReportService
                 .Named<IViewExecutor>(name));
         }
 
-        private void RegisterNamedDataExporter<TImplementation>
-            (ILifetimeScope container, string name) where TImplementation : IDataExporter
+        private void RegisterNamedDataExporter<TImplementation, TConfigType>
+            (ILifetimeScope container, string name)
+            where TImplementation : IDataExporter
+            where TConfigType : IExporterConfig
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
-                .Named<IDataExporter>(name));
+                .Named<IDataExporter>(name)
+                .Keyed<IDataExporter>(typeof(TConfigType)));
         }
 
-        private void RegisterNamedDataImporter<TImplementation>
-            (ILifetimeScope container, string name) where TImplementation : IDataImporter
+        private void RegisterNamedDataImporter<TImplementation, TConfigType>
+            (ILifetimeScope container, string name) 
+            where TImplementation : IDataImporter
+            where TConfigType : IImporterConfig
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
-                    .Named<IDataImporter>(name));
+                .Named<IDataImporter>(name)
+                .Keyed<IDataImporter>(typeof(TConfigType)));
         }
     }
 
@@ -191,6 +205,13 @@ namespace ReportService
                 .ForMember("DataSet", opt => opt.Ignore());
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
+
+            CreateMap<DbExporterConfig, DbExporter>();
+            CreateMap<EmailExporterConfig, EmailDataSender>();
+            CreateMap<TelegramExporterConfig, TelegramDataSender>();
+            CreateMap<ReportInstanceExporterConfig, ReportInstanceExporter>();
+            CreateMap<DbImporterConfig, DbImporter>();
+            CreateMap<ExcelImporterConfig, ExcelImporter>();
         }
     }
 }

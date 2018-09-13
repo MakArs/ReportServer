@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
-using ReportService.DataExporters;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -35,8 +34,8 @@ namespace ReportService.Core
         private readonly List<DtoSchedule> schedules;
         private readonly List<IRTask> tasks;
         private readonly List<DtoTaskOper> taskOpers;
-        private string customExporters;
-        private string customImporters;
+        public Dictionary<string, Type> RegisteredExporters { get; set; }
+        public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
                      IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
@@ -93,9 +92,10 @@ namespace ReportService.Core
                         new NamedParameter("opers",
                             taskOpers
                                 .Where(taskOper => taskOper.TaskId == dtoTask.Id)
-                                .Select(taskOper=>Tuple.Create
-                                    (operations.FirstOrDefault(oper=>oper.Id==taskOper.OperId),taskOper.Number))
-                                    .ToList()));
+                                .Select(taskOper => Tuple.Create
+                                (operations.FirstOrDefault(oper => oper.Id == taskOper.OperId),
+                                    taskOper.Number))
+                                .ToList()));
 
                     // might be replaced with saved time from db
                     task.UpdateLastTime();
@@ -137,7 +137,7 @@ namespace ReportService.Core
         {
             task.UpdateLastTime();
             monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
-            Task.Factory.StartNew(() => task.Execute());
+            Task.Factory.StartNew(task.Execute);
         }
 
         //private void CreateBase(string connStr)
@@ -147,25 +147,29 @@ namespace ReportService.Core
 
         public void Start()
         {
-           // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-           
-            customImporters = JsonConvert
-                .SerializeObject(autofac
-                    .ComponentRegistry
-                    .Registrations
-                    .Where(r => typeof(IDataImporter)
-                        .IsAssignableFrom(r.Activator.LimitType))
-                    .Select(r => (r.Services.ToList().First() as KeyedService)?
-                        .ServiceKey.ToString())
-                    .ToList());
+            // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
 
-            customExporters = JsonConvert
-                .SerializeObject(autofac.ComponentRegistry.Registrations
-                    .Where(r => typeof(IDataExporter)
-                        .IsAssignableFrom(r.Activator.LimitType))
-                    .Select(r => (r.Services.ToList().First() as KeyedService)?
-                        .ServiceKey.ToString())
-                    .ToList());
+            RegisteredImporters = autofac
+                .ComponentRegistry
+                .Registrations
+                .Where(r => typeof(IDataImporter)
+                    .IsAssignableFrom(r.Activator.LimitType))
+                .Select(r =>
+                    new KeyValuePair<string, Type>(
+                        (r.Services.ToList().First() as KeyedService)?.ServiceKey.ToString(),
+                        (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
+                ).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            RegisteredExporters = autofac
+                .ComponentRegistry
+                .Registrations
+                .Where(r => typeof(IDataExporter)
+                    .IsAssignableFrom(r.Activator.LimitType))
+                .Select(r =>
+                    new KeyValuePair<string, Type>(
+                        (r.Services.ToList().First() as KeyedService)?.ServiceKey.ToString(),
+                        (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
+                ).ToDictionary(pair => pair.Key, pair => pair.Value);
 
             UpdateDtoEntitiesList(operations);
             UpdateDtoEntitiesList(recepientGroups);
@@ -183,7 +187,8 @@ namespace ReportService.Core
             checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public string ForceExecute(int taskId, string mail) //todo: remake method with new DB conception
+        public string
+            ForceExecute(int taskId, string mail) //todo: remake method with new DB conception
         {
             List<IRTask> currentTasks;
 
@@ -328,13 +333,14 @@ namespace ReportService.Core
             var newtaskOperId = repository.CreateEntity(taskOper);
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
-            monik.ApplicationInfo($"В задачу {taskOper.TaskId} добавлен экспортёр {taskOper.OperId}");
+            monik.ApplicationInfo(
+                $"В задачу {taskOper.TaskId} добавлен экспортёр {taskOper.OperId}");
             return newtaskOperId;
         }
 
         public int CreateTask(ApiTask task)
         {
-            var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task),task.BindedOpers);
+            var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
             UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
             monik.ApplicationInfo($"Создана задача {newTaskId}");
@@ -343,7 +349,7 @@ namespace ReportService.Core
 
         public void UpdateTask(ApiTask task)
         {
-            repository.UpdateTask(mapper.Map<DtoTask>(task),task.BindedOpers);
+            repository.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
             UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
             monik.ApplicationInfo($"Обновлена задача {task.Id}");
@@ -356,7 +362,8 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
-        public string GetTaskList_HtmlPage() //todo: change viewexecutor logics for viewing array without brakes
+        public string
+            GetTaskList_HtmlPage() //todo: change viewexecutor logics for viewing array without brakes
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -406,7 +413,8 @@ namespace ReportService.Core
         }
 
         public string
-            GetFullInstanceList_HtmlPage(int taskId) //todo: add instanceviewexecutor with another header text
+            GetFullInstanceList_HtmlPage(
+            int taskId) //todo: add instanceviewexecutor with another header text
         {
             var instances = repository.GetInstancesByTaskId(taskId)
                 .Select(instance => new
@@ -414,7 +422,7 @@ namespace ReportService.Core
                     instance.Id,
                     instance.StartTime,
                     instance.Duration,
-                    State = ((InstanceState)instance.State).ToString()
+                    State = ((InstanceState) instance.State).ToString()
                 });
 
             var jsonInstances = JsonConvert.SerializeObject(instances);
@@ -447,14 +455,14 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(apiInstance);
         }
 
-        public string GetAllCustomImporters()
+        public string GetAllRegisteredImporters()
         {
-            return customImporters;
+            return  JsonConvert.SerializeObject(RegisteredImporters);
         }
 
-        public string GetAllCustomExporters()
+        public string GetAllRegisteredExporters()
         {
-            return customExporters;
+            return JsonConvert.SerializeObject(RegisteredExporters);
         }
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)

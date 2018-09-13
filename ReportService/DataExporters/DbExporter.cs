@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AutoMapper;
 using Gerakul.FastSql;
 using Newtonsoft.Json;
 
@@ -8,32 +9,25 @@ namespace ReportService.DataExporters
 {
     public class DbExporter : CommonDataExporter
     {
-        private readonly string connectionString;
-        private readonly string tableName;
-        private readonly int dbTimeOut;
-        private readonly bool dropBefore;
+        public string ConnectionString;
+        public string TableName;
+        public int DbTimeOut;
+        public bool DropBefore;
 
-        public DbExporter(string jsonConfig)
+        public DbExporter(IMapper mapper, DbExporterConfig config)
         {
-            var config = JsonConvert
-                .DeserializeObject<DbExporterConfig>(jsonConfig);
-
-            connectionString = config.ConnectionString;
-            DataSetName = config.DataSetName;
-            tableName = config.TableName;
-            dbTimeOut = config.DbTimeOut;
-            dropBefore = config.DropBefore;
+            mapper.Map(config, this);
         }
 
         public override void Send(string dataSet)
         {
-            if (!dropBefore)
-                SimpleCommand.ExecuteNonQuery(new QueryOptions(dbTimeOut), 
-                    connectionString, $"delete {tableName}");
+            if (!DropBefore)
+                SimpleCommand.ExecuteNonQuery(new QueryOptions(DbTimeOut),
+                    ConnectionString, $"delete {TableName}");
 
-            SimpleCommand.ExecuteNonQuery(connectionString, $@"
-                IF OBJECT_ID('{tableName}') IS NULL
-                CREATE TABLE {tableName}
+            SimpleCommand.ExecuteNonQuery(ConnectionString, $@"
+                IF OBJECT_ID('{TableName}') IS NULL
+                CREATE TABLE {TableName}
                 (Name NVARCHAR(4000) NOT NULL,
                 Amount NVARCHAR(4000) NOT NULL); ");
 
@@ -41,7 +35,7 @@ namespace ReportService.DataExporters
 
             var names = children.First().Select(pair => pair.Key).ToList();
 
-            StringBuilder comm = new StringBuilder($"INSERT INTO {tableName} (");
+            StringBuilder comm = new StringBuilder($"INSERT INTO {TableName} (");
             for (int i = 0; i < names.Count-1; i++)
             {
                 comm.Append($"[{names[i]}],");
@@ -62,7 +56,7 @@ namespace ReportService.DataExporters
 
                 fullcom.Append($"'{values.Last()}')");
 
-                SimpleCommand.ExecuteNonQuery( new QueryOptions(dbTimeOut), connectionString, fullcom.ToString());
+                SimpleCommand.ExecuteNonQuery( new QueryOptions(DbTimeOut), ConnectionString, fullcom.ToString());
             }
         }
     }

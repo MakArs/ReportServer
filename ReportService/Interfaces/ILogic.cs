@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ReportService.Extensions;
 using ReportService.Nancy;
 
@@ -6,6 +7,9 @@ namespace ReportService.Interfaces
 {
     public interface ILogic
     {
+        Dictionary<string, Type> RegisteredExporters { get; set; }
+        Dictionary<string, Type> RegisteredImporters { get; set; }
+
         void Start();
         void Stop();
         string ForceExecute(int taskId, string mail);
@@ -53,8 +57,8 @@ namespace ReportService.Interfaces
         //todo: void UpdateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void DeleteEntity<T>(int entityId) or one method for each entity ??
 
-        string GetAllCustomImporters();
-        string GetAllCustomExporters();
+        string GetAllRegisteredImporters();
+        string GetAllRegisteredExporters();
     }
 }
 //todo:replace create&update methods with createorupdate?

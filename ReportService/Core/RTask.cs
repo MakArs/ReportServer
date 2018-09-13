@@ -3,9 +3,11 @@ using AutoMapper;
 using Monik.Client;
 using ReportService.Interfaces;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace ReportService.Core
 {
@@ -23,7 +25,7 @@ namespace ReportService.Core
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
 
-        public RTask(ILifetimeScope autofac, IRepository repository,
+        public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
                      IClientControl monik, IMapper mapper, IArchiver archiver, int id,
                      string name, DtoSchedule schedule, List<Tuple<DtoOper,int>> opers)
         {
@@ -40,12 +42,17 @@ namespace ReportService.Core
             {
                 IOperation newOper;
                 var oper = opern.Item1;
+                var operName = oper.Name;
+
                 if (oper.Type == "Importer")
-                    newOper = autofac.ResolveNamed<IDataImporter>(oper.Name,
-                        new NamedParameter("jsonConfig", oper.Config));
+                    newOper = autofac.ResolveNamed<IDataImporter>(operName,
+                        new NamedParameter("config",
+                            JsonConvert.DeserializeObject(oper.Config, logic.RegisteredImporters[operName])));
+                
                 else
-                    newOper = autofac.ResolveNamed<IDataExporter>(oper.Name,
-                        new NamedParameter("jsonConfig", oper.Config));
+                    newOper = autofac.ResolveNamed<IDataExporter>(operName,
+                        new NamedParameter("config", 
+                            JsonConvert.DeserializeObject(oper.Config, logic.RegisteredExporters[operName])));
 
                 newOper.Id = oper.Id;
                 newOper.Number = opern.Item2;
@@ -54,7 +61,6 @@ namespace ReportService.Core
             }
 
             this.repository = repository;
-
         }
 
         public void Execute()
