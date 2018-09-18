@@ -1,6 +1,7 @@
 ﻿using System;
 using Autofac;
 using Monik.Client;
+using Monik.Common;
 using Nancy.Hosting.Self;
 using ReportService.Interfaces;
 
@@ -8,7 +9,7 @@ namespace ReportService.Nancy
 {
     public class HostHolder : IHostHolder
     {
-        private readonly IClientControl monik;
+        private readonly IMonik monik;
         private readonly NancyHost      nancyHost;
 
         public HostHolder()
@@ -18,7 +19,7 @@ namespace ReportService.Nancy
                 new Bootstrapper(),
                 HostConfigs);
 
-            monik = Bootstrapper.Global.Resolve<IClientControl>();
+            monik = Bootstrapper.Global.Resolve<IMonik>();
             monik.ApplicationInfo("HostHolder.ctor");
         }
 

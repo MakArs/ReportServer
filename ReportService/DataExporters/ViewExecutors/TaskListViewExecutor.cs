@@ -2,7 +2,7 @@
 {
     public class TaskListViewExecutor : CommonViewExecutor
     {
-        public override string ExecuteHtml(string viewTemplate, string json)
+        public override string ExecuteHtml(string _, string json)
         {
             return base.ExecuteHtml(_tableTemplate, json);
         }

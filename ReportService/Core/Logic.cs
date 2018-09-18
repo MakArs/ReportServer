@@ -14,6 +14,7 @@ using Autofac.Core;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
+using Monik.Common;
 
 namespace ReportService.Core
 {
@@ -21,7 +22,7 @@ namespace ReportService.Core
     {
         private readonly ILifetimeScope autofac;
         private readonly IMapper mapper;
-        private readonly IClientControl monik;
+        private readonly IMonik monik;
         private readonly IArchiver archiver;
         private readonly ITelegramBotClient bot;
         private readonly IRepository repository;
@@ -37,7 +38,7 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
-        public Logic(ILifetimeScope autofac, IRepository repository, IClientControl monik,
+        public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
                      IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
         {
             this.autofac = autofac;

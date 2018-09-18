@@ -6,6 +6,7 @@ using System.Reflection;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
+using Monik.Common;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
@@ -16,7 +17,6 @@ using ReportService.DataImporters;
 using ReportService.Extensions;
 using ReportService.Interfaces;
 using ReportService.Nancy;
-using SevenZip;
 using Telegram.Bot;
 
 namespace ReportService
@@ -84,7 +84,7 @@ namespace ReportService
                 "incoming");
 
             existingContainer
-                .RegisterInstance<IClientSender, AzureSender>(logSender);
+                .RegisterInstance<IMonikSender, AzureSender>(logSender);
 
             var monikSettings = new ClientSettings()
             {
@@ -94,10 +94,10 @@ namespace ReportService
             };
 
             existingContainer
-                .RegisterInstance<IClientSettings, ClientSettings>(monikSettings);
+                .RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
 
             existingContainer
-                .RegisterSingleton<IClientControl, MonikInstance>();
+                .RegisterSingleton<IMonik, MonikClient>();
 
             #endregion
 

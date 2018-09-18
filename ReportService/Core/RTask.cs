@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Monik.Common;
 using Newtonsoft.Json;
 
 namespace ReportService.Core
@@ -20,12 +21,12 @@ namespace ReportService.Core
         public List<IOperation> Operations { get; set; }
 
         private readonly IRepository repository;
-        private readonly IClientControl monik;
+        private readonly IMonik monik;
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
 
         public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
-                     IClientControl monik, IMapper mapper, IArchiver archiver, int id,
+                     IMonik monik, IMapper mapper, IArchiver archiver, int id,
                      string name, DtoSchedule schedule, List<Tuple<DtoOper,int>> opers)
         {
             this.archiver = archiver;
