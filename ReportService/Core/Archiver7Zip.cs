@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Reflection;
 using ReportService.Interfaces;
 using SevenZip;
 
@@ -8,9 +10,16 @@ namespace ReportService.Core
     {
         private readonly SevenZipCompressor compressor;
 
-        public Archiver7Zip(SevenZipCompressor compressor)
+        public Archiver7Zip()
         {
-            this.compressor = compressor;
+            var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException(),
+                Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
+            SevenZipBase.SetLibraryPath(path);
+            compressor = new SevenZipCompressor
+            {
+                CompressionMode = CompressionMode.Create,
+                ArchiveFormat = OutArchiveFormat.SevenZip
+            };
         }
 
         public byte[] CompressString(string data)

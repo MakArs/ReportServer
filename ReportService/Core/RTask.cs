@@ -3,7 +3,6 @@ using AutoMapper;
 using Monik.Client;
 using ReportService.Interfaces;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -42,22 +41,33 @@ namespace ReportService.Core
             {
                 IOperation newOper;
                 var oper = opern.Item1;
-                var operName = oper.Name;
+                var operType = oper.Type;
 
-                if (oper.Type == "Importer")
-                    newOper = autofac.ResolveNamed<IDataImporter>(operName,
+                if (logic.RegisteredImporters.ContainsKey(operType))
+                {
+                    newOper = autofac.ResolveNamed<IDataImporter>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(oper.Config, logic.RegisteredImporters[operName])));
-                
+                            JsonConvert.DeserializeObject(oper.Config,
+                                logic.RegisteredImporters[operType])));
+
+                }
+
                 else
-                    newOper = autofac.ResolveNamed<IDataExporter>(operName,
-                        new NamedParameter("config", 
-                            JsonConvert.DeserializeObject(oper.Config, logic.RegisteredExporters[operName])));
+                {
+                    newOper = autofac.ResolveNamed<IDataExporter>(operType,
+                        new NamedParameter("config",
+                            JsonConvert.DeserializeObject(oper.Config,
+                                logic.RegisteredExporters[operType])));
+                }
 
-                newOper.Id = oper.Id;
-                newOper.Number = opern.Item2;
+                if (newOper != null)
+                {
+                    newOper.Id = oper.Id;
+                    newOper.Number = opern.Item2;
+                    newOper.Name = oper.Name;
 
-                Operations.Add(newOper);
+                    Operations.Add(newOper);
+                }
             }
 
             this.repository = repository;

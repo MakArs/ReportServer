@@ -457,12 +457,14 @@ namespace ReportService.Core
 
         public string GetAllRegisteredImporters()
         {
-            return  JsonConvert.SerializeObject(RegisteredImporters);
+            return  JsonConvert.SerializeObject(RegisteredImporters
+                .ToDictionary(pair=>pair.Key,pair=>pair.Value.Name));
         }
 
         public string GetAllRegisteredExporters()
         {
-            return JsonConvert.SerializeObject(RegisteredExporters);
+            return JsonConvert.SerializeObject(RegisteredExporters
+                .ToDictionary(pair => pair.Key, pair => pair.Value.Name));
         }
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)

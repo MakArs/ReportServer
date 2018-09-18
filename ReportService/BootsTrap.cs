@@ -113,20 +113,7 @@ namespace ReportService
 
             #endregion
 
-            #region ConfigureCompressor
-
-            var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
-            SevenZipBase.SetLibraryPath(path);
-            var compressor = new SevenZipCompressor
-            {
-                CompressionMode = CompressionMode.Create,
-                ArchiveFormat = OutArchiveFormat.SevenZip
-            };
-            var archiver = new Archiver7Zip(compressor);
-            existingContainer.RegisterSingleInstance<IArchiver, Archiver7Zip>(archiver);
-
-            #endregion
+            existingContainer.RegisterImplementation<IArchiver,Archiver7Zip>();
 
             #region ConfigureBot
 

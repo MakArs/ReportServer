@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ReportService.Interfaces;
+﻿using ReportService.Interfaces;
 
 namespace ReportService.DataExporters
 {
@@ -7,6 +6,7 @@ namespace ReportService.DataExporters
     {
         public int Id { get; set; }
         public int Number { get; set; }
+        public string Name { get; set; }
         public string DataSetName { get; set; }
 
         public virtual void Send(string dataSet)

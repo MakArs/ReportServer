@@ -6,6 +6,7 @@ namespace ReportService.Interfaces
     {
         int Id { get; set; }
         int Number { get; set; }
+        string Name { get; set; }
         string DataSetName { get; set; }
     }
 
