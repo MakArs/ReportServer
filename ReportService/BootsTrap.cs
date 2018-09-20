@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Configuration;
-using System.IO;
 using System.Net;
-using System.Reflection;
 using Autofac;
 using AutoMapper;
 using Monik.Client;
@@ -60,10 +58,8 @@ namespace ReportService
                 (existingContainer, "CommonReportInstanceExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
-            RegisterNamedViewExecutor<TaskListViewExecutor>(existingContainer, "tasklistviewex");
-            RegisterNamedViewExecutor<InstanceListViewExecutor>(existingContainer,
-                "instancelistviewex");
-
+            RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer, "CommonTableViewEx");
+       
             existingContainer
                 .RegisterSingleton<ILogic, Logic>();
             existingContainer
@@ -112,6 +108,9 @@ namespace ReportService
             existingContainer.RegisterSingleInstance<IMapper, IMapper>(mapper);
 
             #endregion
+
+            existingContainer.Update(builder=>builder
+                .RegisterType<DefaultTaskWorker>());
 
             existingContainer.RegisterImplementation<IArchiver,Archiver7Zip>();
 

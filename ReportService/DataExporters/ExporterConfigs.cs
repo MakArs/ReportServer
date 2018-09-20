@@ -41,5 +41,4 @@ namespace ReportService.DataExporters
         public int TelegramChannelId;
         public string ReportName;
     }
-
 }

@@ -24,7 +24,7 @@ namespace ReportService.DataImporters
         public string Execute()
         {
             var queryResult = new List<Dictionary<string, object>>();
-            var queryres2=new Dictionary<string,List<object>>();
+           // var queryres2=new Dictionary<string,List<object>>();
 
             SqlScope.UsingConnection(ConnectionString, scope =>
             {
@@ -40,7 +40,7 @@ namespace ReportService.DataImporters
                         {
                             var name = reader.GetName(i);
                             var val = reader[i];
-                            queryres2[name] = new List<object> {val};
+                           // queryres2[name] = new List<object> {val};
                             fields.Add(name, val);
                         }
 
@@ -55,7 +55,7 @@ namespace ReportService.DataImporters
                         {
                             var name = reader.GetName(i);
                             var val = reader[i];
-                            queryres2[name].Add(val);
+                          //  queryres2[name].Add(val);
                             fields.Add(name, val);
                         }
 

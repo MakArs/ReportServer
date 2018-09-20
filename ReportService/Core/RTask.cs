@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using AutoMapper;
-using Monik.Client;
 using ReportService.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,6 +18,7 @@ namespace ReportService.Core
         public DateTime LastTime { get; private set; }
         public Dictionary<string, string> DataSets { get; }
         public List<IOperation> Operations { get; set; }
+        private readonly DefaultTaskWorker worker;
 
         private readonly IRepository repository;
         private readonly IMonik monik;
@@ -38,6 +38,7 @@ namespace ReportService.Core
             DataSets = new Dictionary<string, string>();
             Operations = new List<IOperation>();
 
+           // defaultEmailSender = autofac.ResolveNamed<IDataExporter>("");
             foreach (var opern in opers)
             {
                 IOperation newOper;
@@ -50,7 +51,6 @@ namespace ReportService.Core
                         new NamedParameter("config",
                             JsonConvert.DeserializeObject(oper.Config,
                                 logic.RegisteredImporters[operType])));
-
                 }
 
                 else
@@ -71,6 +71,8 @@ namespace ReportService.Core
                 }
             }
 
+            worker = autofac.Resolve<DefaultTaskWorker>();
+            worker.SendError(new List<Tuple<Exception, string>>(), "sa");
             this.repository = repository;
         }
 
@@ -93,6 +95,8 @@ namespace ReportService.Core
 
             try
             {
+                var exceptions = new List<Tuple<Exception, string>>();
+
                 foreach (var oper in Operations.OrderBy(oper => oper.Number))
                 {
                     var dtoOperInstance = new DtoOperInstance
@@ -110,7 +114,7 @@ namespace ReportService.Core
                     Stopwatch operDuration = new Stopwatch();
                     operDuration.Start();
 
-                    switch (oper)
+                     switch (oper)
                     {
                         case IDataImporter importer:
 
@@ -129,6 +133,7 @@ namespace ReportService.Core
                             }
                             catch (Exception e)
                             {
+                                exceptions.Add(new Tuple<Exception, string>(e,importer.Name));
                                 dtoOperInstance.ErrorMessage = e.Message;
                                 dtoOperInstance.State = (int) InstanceState.Failed;
                                 operDuration.Stop();
@@ -152,6 +157,7 @@ namespace ReportService.Core
                             }
                             catch (Exception e)
                             {
+                                exceptions.Add(new Tuple<Exception, string>(e, exporter.Name));
                                 dtoOperInstance.ErrorMessage = e.Message;
                                 dtoOperInstance.State = (int) InstanceState.Failed;
                                 operDuration.Stop();
@@ -159,13 +165,22 @@ namespace ReportService.Core
                                     Convert.ToInt32(operDuration.ElapsedMilliseconds);
                                 repository.UpdateEntity(dtoOperInstance);
                             }
-
                             break;
                     }
                 }
 
-                monik.ApplicationInfo($"Задача {Id} успешно выполнена");
-                Console.WriteLine($"Задача {Id} успешно выполнена");
+                if (exceptions.Count == 0)
+                {
+                    monik.ApplicationInfo($"Задача {Id} успешно выполнена");
+                    Console.WriteLine($"Задача {Id} успешно выполнена");
+                }
+
+                else
+                {
+                    worker.SendError(exceptions,Name);
+                    monik.ApplicationInfo($"Задача {Id} выполнена с ошибками");
+                    Console.WriteLine($"Задача {Id} выполнена с ошибками");
+                }
             }
 
             catch (Exception e)

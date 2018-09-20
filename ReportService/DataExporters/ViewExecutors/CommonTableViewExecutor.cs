@@ -1,13 +1,10 @@
 ﻿namespace ReportService.DataExporters.ViewExecutors
 {
-    public class InstanceListViewExecutor : CommonViewExecutor
+    public class CommonTableViewExecutor : CommonViewExecutor
     {
-        public override string ExecuteHtml(string _, string json)
+        public override string ExecuteHtml(string tableName, string json)
         {
-            return base.ExecuteHtml(_tableTemplate, json);
-        }
-
-        private string _tableTemplate = @"<!DOCTYPE html>
+        string tableTemplate = @"<!DOCTYPE html>
 <html>
 <head>
 <META http-equiv=""Content-Type"" content=""text/html; charset=utf-8"">
@@ -25,9 +22,11 @@
         }
     </style>
 </head>
-<body>
-    <h3 align=""center"">История выполнения задачи</h3>
-    <table class=""table table-bordered table-hover "">
+<body>"
++
+    $@"<h3 align=""center"">{tableName}</h3>"
++
+    @"<table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)
 {
@@ -39,13 +38,15 @@
         <tr>
             @foreach(var prop in @props)
             {
-             <td> @prop </td>
+             <td> @prop</td>
             }
         </tr>
         }
     </table>
 </body>
 </html>";
+            return base.ExecuteHtml(tableTemplate, json);
+        }
     } //class
 }
 

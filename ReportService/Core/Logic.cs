@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using AutoMapper;
-using Monik.Client;
 using NCrontab;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
@@ -51,7 +50,7 @@ namespace ReportService.Core
             checkScheduleAndExecuteScheduler =
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
 
-            tableView = this.autofac.ResolveNamed<IViewExecutor>("tasklistviewex");
+            tableView = this.autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
 
             operations = new List<DtoOper>();
             recepientGroups = new List<DtoRecepientGroup>();
@@ -148,8 +147,7 @@ namespace ReportService.Core
 
         public void Start()
         {
-            // CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-
+             //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
             RegisteredImporters = autofac
                 .ComponentRegistry
                 .Registrations
@@ -364,7 +362,7 @@ namespace ReportService.Core
         }
 
         public string
-            GetTaskList_HtmlPage() //todo: change viewexecutor logics for viewing array without brakes
+            GetTaskList_HtmlPage() 
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -374,12 +372,12 @@ namespace ReportService.Core
             {
                 task.Id,
                 task.Name,
-                task.Schedule.Schedule,
-                Operations = task.Operations.Select(oper => oper.Id).ToList()
+                task.Schedule?.Schedule,
+                Operations = string.Join("=>", task.Operations.Select(oper => oper.Name))
             }).ToList();
 
             var jsonTasks = JsonConvert.SerializeObject(tasksData);
-            var tr = tableView.ExecuteHtml("", jsonTasks);
+            var tr = tableView.ExecuteHtml("Current tasks list", jsonTasks);
             return tr;
         }
 
@@ -411,11 +409,11 @@ namespace ReportService.Core
         public string GetAllTaskInstancesByTaskIdJson(int taskId)
         {
             return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
-        }
+        } 
 
         public string
             GetFullInstanceList_HtmlPage(
-            int taskId) //todo: add instanceviewexecutor with another header text
+            int taskId)
         {
             var instances = repository.GetInstancesByTaskId(taskId)
                 .Select(instance => new
@@ -427,7 +425,7 @@ namespace ReportService.Core
                 });
 
             var jsonInstances = JsonConvert.SerializeObject(instances);
-            return tableView.ExecuteHtml("", jsonInstances);
+            return tableView.ExecuteHtml("История выполнения задачи", jsonInstances);
         }
 
         public void DeleteOperInstanceById(int operInstanceId)
