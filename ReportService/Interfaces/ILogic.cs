@@ -12,7 +12,8 @@ namespace ReportService.Interfaces
 
         void Start();
         void Stop();
-        string ForceExecute(int taskId, string mail);
+        string SendDefault(int taskId, string mail);
+        string ForceExecute(int taskId);
 
         string GetAllOperationsJson();
         string GetAllRecepientGroupsJson();

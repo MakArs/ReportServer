@@ -26,18 +26,10 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-            try
-            {
                 bot.SendTextMessageAsync(channel.ChatId,
                         viewExecutor.ExecuteTelegramView(dataSet, ReportName),
                         ParseMode.Markdown)
                     .Wait();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
         }
     }
 }

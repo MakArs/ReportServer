@@ -29,7 +29,7 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-            string filename = ReportName + $" {DateTime.Now:dd.MM.yy HHmmss}";
+            string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
@@ -75,7 +75,6 @@ namespace ReportService.DataExporters
                         msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
                     }
-
                     client.Send(msg);
                 }
                 finally

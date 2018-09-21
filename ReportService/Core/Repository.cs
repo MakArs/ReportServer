@@ -288,6 +288,6 @@ namespace ReportService.Core
                 CONSTRAINT FK_OperInstance_TaskInstance FOREIGN KEY(TaskInstanceId)
                 REFERENCES TaskInstance(Id)
                 )");
-        }
+        }//database structure creating
     } //class
 }

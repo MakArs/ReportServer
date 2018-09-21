@@ -37,14 +37,29 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/send"] = parameters =>
+            Get["/sendto"] = parameters =>
             {
                 int    id   = Request.Query.id;
                 string mail = Request.Query.address;
                 try
                 {
-                    string sentReps = logic.ForceExecute(id, mail);
+                    string sentReps = logic.SendDefault(id, mail);
                     var    response = (Response) sentReps;
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/send-{id:int}/confirm"] = parameters =>
+            {
+                try
+                {
+                    string sentReps = logic.ForceExecute(parameters.id);
+                    var response = (Response)sentReps;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

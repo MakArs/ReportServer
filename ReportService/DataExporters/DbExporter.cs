@@ -21,27 +21,37 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-            if (!DropBefore)
+            //todo:logic for auto-creating table by user-defined list of columns
+            if (DropBefore)
                 SimpleCommand.ExecuteNonQuery(new QueryOptions(DbTimeOut),
-                    ConnectionString, $"delete {TableName}");
-
-            SimpleCommand.ExecuteNonQuery(ConnectionString, $@"
-                IF OBJECT_ID('{TableName}') IS NULL
-                CREATE TABLE {TableName}
-                (Name NVARCHAR(4000) NOT NULL,
-                Amount NVARCHAR(4000) NOT NULL); ");
+                    ConnectionString, $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}");
 
             var children = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(dataSet);
 
             var names = children.First().Select(pair => pair.Key).ToList();
 
-            StringBuilder comm = new StringBuilder($"INSERT INTO {TableName} (");
-            for (int i = 0; i < names.Count-1; i++)
+            StringBuilder createQueryBuilder = new StringBuilder($@" 
+                IF OBJECT_ID('{TableName}') IS NULL
+                CREATE TABLE {TableName}
+                (");
+
+            foreach (var name in names)
             {
-                comm.Append($"[{names[i]}],");
+                createQueryBuilder.AppendLine($"{name} NVARCHAR(4000) NOT NULL,");
             }
 
-            comm.Append($"[{names.Last()}]) VALUES (");
+            createQueryBuilder.Length--;
+            createQueryBuilder.Append("); ");
+
+            SimpleCommand.ExecuteNonQuery(ConnectionString, createQueryBuilder.ToString()); 
+
+            StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
+            for (int i = 0; i < names.Count-1; i++)
+            {
+                comm.Append($@"[{names[i]}],");
+            }
+
+            comm.Append($@"[{names.Last()}]) VALUES (");
 
             foreach (var child in children)
             {
@@ -51,12 +61,12 @@ namespace ReportService.DataExporters
 
                 for (int i = 0; i < names.Count - 1; i++)
                 {
-                    fullcom.Append($"'{values[i]}',");
+                    fullcom.Append($@"'{values[i]}',");
                 }
 
-                fullcom.Append($"'{values.Last()}')");
-
-                SimpleCommand.ExecuteNonQuery( new QueryOptions(DbTimeOut), ConnectionString, fullcom.ToString());
+                fullcom.Append($@"'{values.Last()}')");
+                var fstr=fullcom.ToString();
+                SimpleCommand.ExecuteNonQuery( new QueryOptions(DbTimeOut), ConnectionString, fstr);
             }
         }
     }

@@ -23,7 +23,7 @@ namespace ReportService.Core
             return executor.ExecuteHtml(reportName, jsonSet);
         }
 
-        public void SendError(List<Tuple<Exception,string>> exceptions, string taskName)
+        public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
         {
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())
@@ -32,14 +32,15 @@ namespace ReportService.Core
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-                
+
                 foreach (var addr in ConfigurationManager.AppSettings["administrativeaddress"]
                     .Split(';'))
                 {
                     msg.To.Add(new MailAddress(addr));
                 }
 
-                msg.Subject = $"Errors occured in task {taskName} at" + $" {DateTime.Now:dd.MM.yy HH:mm}";
+                msg.Subject = $"Errors occured in task {taskName} at" +
+                              $" {DateTime.Now:dd.MM.yy HH:mm}";
 
                 msg.IsBodyHtml = true;
 
@@ -49,13 +50,14 @@ namespace ReportService.Core
                     {"Message", pair.Item1.Message}
                 }).ToList();
 
-                msg.Body = executor.ExecuteHtml("Errors list", JsonConvert.SerializeObject(errorsSet));
+                msg.Body =
+                    executor.ExecuteHtml("Errors list", JsonConvert.SerializeObject(errorsSet));
 
                 client.Send(msg);
             }
         } //method
 
-        public void ForceSend(string dataSet, string taskName,string address)
+        public void ForceSend(string dataSet, string taskName, string address)
         {
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())
@@ -65,7 +67,7 @@ namespace ReportService.Core
 
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
 
-                    msg.To.Add(new MailAddress(address));
+                msg.To.Add(new MailAddress(address));
 
                 msg.Subject = taskName + $" {DateTime.Now:dd.MM.yy}";
 

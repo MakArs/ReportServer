@@ -18,12 +18,13 @@ namespace ReportService.Core
         public DateTime LastTime { get; private set; }
         public Dictionary<string, string> DataSets { get; }
         public List<IOperation> Operations { get; set; }
-        private readonly DefaultTaskWorker worker;
 
+        private readonly DefaultTaskWorker worker;
         private readonly IRepository repository;
         private readonly IMonik monik;
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
+        private readonly int defaultImporter;
 
         public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
                      IMonik monik, IMapper mapper, IArchiver archiver, int id,
@@ -72,7 +73,6 @@ namespace ReportService.Core
             }
 
             worker = autofac.Resolve<DefaultTaskWorker>();
-            worker.SendError(new List<Tuple<Exception, string>>(), "sa");
             this.repository = repository;
         }
 
@@ -117,7 +117,6 @@ namespace ReportService.Core
                      switch (oper)
                     {
                         case IDataImporter importer:
-
                             try
                             {
                                 var newDataSet = importer.Execute();
@@ -201,25 +200,10 @@ namespace ReportService.Core
 
         public string GetCurrentView() //todo: remake method with new db conception
         {
-            int i = 1;
-            bool dataObtained = false;
-            string htmlReport = "";
+            if (defaultImporter == 0 || !(Operations[defaultImporter] is IDataImporter imp))
+                return null;
 
-            try
-            {
-                ;
-                //  htmlReport = viewEx.ExecuteHtml(ViewTemplate, jsonReport);
-                dataObtained = true;
-                i++;
-            }
-            catch (Exception ex)
-            {
-                htmlReport = ex.Message;
-            }
-
-            i++;
-
-            return ""; //htmlReport;
+            return worker.GetDefaultView(imp.Execute(), Name);
         }
 
         public void UpdateLastTime()

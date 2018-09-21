@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using RazorEngine;
@@ -16,16 +17,22 @@ namespace ReportService.DataExporters.ViewExecutors
         {
             string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
 
-            TemplateServiceConfiguration templateConfig = new TemplateServiceConfiguration();
-            templateConfig.DisableTempFileLocking = true;
-            templateConfig.CachingProvider        = new DefaultCachingProvider(t => { });
-            //templateConfig.Namespaces.Add("PagedList");
+            TemplateServiceConfiguration templateConfig =
+                new TemplateServiceConfiguration
+                {
+                    DisableTempFileLocking = true,
+                    CachingProvider = new DefaultCachingProvider(t => { })
+                };
+
             var serv = RazorEngineService.Create(templateConfig);
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
             JArray jObj = JArray.Parse(json);
 
+            if (!jObj.Any()) return "No information obtained by query";
+
             List<string> headers = new List<string>();
+
             foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
                 headers.Add(p.Name);
 
@@ -37,7 +44,6 @@ namespace ReportService.DataExporters.ViewExecutors
 
                 content.Add(prop);
             }
-            //   var pagedList = content.ToPagedList(2,3);
 
             var model = new {Headers = headers, Content = content, Date = date};
 
@@ -46,13 +52,7 @@ namespace ReportService.DataExporters.ViewExecutors
 
         public virtual string ExecuteTelegramView(string json, string reportName = "Отчёт")
         {
-            string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
-
             JArray jObj = JArray.Parse(json);
-
-            List<string> headers = new List<string>();
-            foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
-                headers.Add(p.Name);
 
             List<List<JToken>> content = new List<List<JToken>>();
             foreach (JObject j in jObj.Children<JObject>())
@@ -68,10 +68,8 @@ namespace ReportService.DataExporters.ViewExecutors
             {
                 for (var i = 0; i < prop.Count; ++i)
                 {
-                    if (i == 0)
-                        tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine + $"{prop[i]}");
-                    else
-                        tmRep = tmRep.Insert(tmRep.Length, $"|{prop[i]}");
+                    tmRep = i == 0 ? tmRep.Insert(tmRep.Length, Environment.NewLine + $"{prop[i]}")
+                        : tmRep.Insert(tmRep.Length, $"|{prop[i]}");
                 }
             }
 

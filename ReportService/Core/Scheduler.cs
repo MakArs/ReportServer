@@ -10,7 +10,7 @@ namespace ReportService.Core
         public Action TaskMethod { get; set; } // may be with exceptions
 
         private Task workTask;
-        private bool started = false;
+        private bool started;
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
         private CancellationToken cancelToken;
 
@@ -23,8 +23,10 @@ namespace ReportService.Core
                     if (TaskMethod != null)
                         Task.Factory.StartNew(TaskMethod);
                 }
-                catch
+
+                catch (Exception e)
                 {
+                    Console.WriteLine(e.Message);
                 }
 
                 Task.Delay(Period * 1000).Wait();
