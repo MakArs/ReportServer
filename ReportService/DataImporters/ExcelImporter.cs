@@ -12,6 +12,7 @@ namespace ReportService.DataImporters
     public class ExcelImporter : IDataImporter
     {
         public int Id { get; set; }
+        public bool IsDefault { get; set; }
         public int Number { get; set; }
         public string Name { get; set; }
         public string DataSetName { get; set; }

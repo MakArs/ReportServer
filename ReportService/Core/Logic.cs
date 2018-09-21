@@ -94,7 +94,7 @@ namespace ReportService.Core
                                 .Where(taskOper => taskOper.TaskId == dtoTask.Id)
                                 .Select(taskOper => Tuple.Create
                                 (operations.FirstOrDefault(oper => oper.Id == taskOper.OperId),
-                                    taskOper.Number))
+                                    taskOper.Number, taskOper.IsDefault))
                                 .ToList()));
 
                     // might be replaced with saved time from db
@@ -137,7 +137,7 @@ namespace ReportService.Core
         {
             task.UpdateLastTime();
             monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
-            Task.Factory.StartNew(task.Execute);
+            Task.Factory.StartNew(() => task.Execute());
         }
 
         //private void CreateBase(string connStr)
@@ -147,7 +147,7 @@ namespace ReportService.Core
 
         public void Start()
         {
-             //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
             RegisteredImporters = autofac
                 .ComponentRegistry
                 .Registrations
@@ -186,8 +186,7 @@ namespace ReportService.Core
             checkScheduleAndExecuteScheduler.OnStop();
         }
 
-        public string
-            ForceExecute(int taskId, string mail) //todo: remake method with new DB conception
+        public string SendDefault(int taskId, string mailAddress)
         {
             List<IRTask> currentTasks;
 
@@ -197,10 +196,27 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            monik.ApplicationInfo($"Отсылка отчёта {task.Id} на адрес {mail} (ручной запуск)");
+            monik.ApplicationInfo(
+                $"Отсылка отчёта по умолчанию задачи {task.Id} на адрес {mailAddress} (ручной запуск)");
+
+            Task.Factory.StartNew(() => task.SendDefault(mailAddress));
+            return $"Task {taskId} default dataset sent to {mailAddress}!";
+        }
+
+        public string ForceExecute(int taskId)
+        {
+            List<IRTask> currentTasks;
+
+            lock (this)
+                currentTasks = tasks.ToList();
+
+            var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
+
+            if (task == null) return "No tasks with such Id found..";
+            monik.ApplicationInfo($"Выполнение задачи {task.Id} (ручной запуск)");
 
             Task.Factory.StartNew(() => task.Execute());
-            return $"Report {taskId} sent!";
+            return $"Task {taskId} executed!";
         }
 
         #region getListJson
@@ -361,8 +377,7 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Удалена задача {taskId}");
         }
 
-        public string
-            GetTaskList_HtmlPage() 
+        public async Task<string> GetTaskList_HtmlPage()
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -377,11 +392,11 @@ namespace ReportService.Core
             }).ToList();
 
             var jsonTasks = JsonConvert.SerializeObject(tasksData);
-            var tr = tableView.ExecuteHtml("Current tasks list", jsonTasks);
-            return tr;
+            return await Task.Factory.StartNew(() =>
+                tableView.ExecuteHtml("Current tasks list", jsonTasks));
         }
 
-        public string GetCurrentViewByTaskId(int taskId)
+        public async Task<string> GetCurrentViewByTaskId(int taskId)
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -390,7 +405,7 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            return task.GetCurrentView();
+            return await task.GetCurrentView();
         }
 
         public void DeleteTaskInstanceById(int id)
@@ -409,10 +424,9 @@ namespace ReportService.Core
         public string GetAllTaskInstancesByTaskIdJson(int taskId)
         {
             return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
-        } 
+        }
 
-        public string
-            GetFullInstanceList_HtmlPage(
+        public async Task<string> GetFullInstanceList_HtmlPage(
             int taskId)
         {
             var instances = repository.GetInstancesByTaskId(taskId)
@@ -425,7 +439,8 @@ namespace ReportService.Core
                 });
 
             var jsonInstances = JsonConvert.SerializeObject(instances);
-            return tableView.ExecuteHtml("История выполнения задачи", jsonInstances);
+            return await Task.Factory.StartNew(() =>
+                tableView.ExecuteHtml("История выполнения задачи", jsonInstances));
         }
 
         public void DeleteOperInstanceById(int operInstanceId)
@@ -456,8 +471,8 @@ namespace ReportService.Core
 
         public string GetAllRegisteredImporters()
         {
-            return  JsonConvert.SerializeObject(RegisteredImporters
-                .ToDictionary(pair=>pair.Key,pair=>pair.Value.Name));
+            return JsonConvert.SerializeObject(RegisteredImporters
+                .ToDictionary(pair => pair.Key, pair => pair.Value.Name));
         }
 
         public string GetAllRegisteredExporters()

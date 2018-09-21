@@ -333,7 +333,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingTask = this.Bind<ApiTask>
-                        (new BindingConfig{BodyOnly = true}); 
+                        (new BindingConfig {BodyOnly = true});
 
                     if (parameters.id != existingTask.Id)
                         return HttpStatusCode.BadRequest;
@@ -351,7 +351,8 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
+                    var response =
+                        (Response) logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -361,11 +362,11 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/{taskid:int}/currentviews"] = parameters =>
+            Get["/{taskid:int}/currentviews", runAsync: true] = async (parameters, _) =>
             {
                 try
                 {
-                    var response = (Response)logic.GetCurrentViewByTaskId(parameters.taskid);
+                    var response = (Response) await logic.GetCurrentViewByTaskId(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

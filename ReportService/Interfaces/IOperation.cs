@@ -5,6 +5,7 @@ namespace ReportService.Interfaces
     public interface IOperation
     {
         int Id { get; set; }
+        bool IsDefault { get; set; }
         int Number { get; set; }
         string Name { get; set; }
         string DataSetName { get; set; }

@@ -50,6 +50,7 @@ namespace ReportService.Interfaces
     {
         public int Id { get; set; }
         public int Number { get; set; }
+        public bool IsDefault { get; set; }
         public int TaskId { get; set; }
         public int OperId { get; set; }
     }

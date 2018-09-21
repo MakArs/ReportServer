@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ReportService.Extensions;
 using ReportService.Nancy;
 
@@ -41,13 +42,13 @@ namespace ReportService.Interfaces
         int CreateTask(ApiTask task);
         void UpdateTask(ApiTask task);
         void DeleteTask(int taskId);
-        string GetTaskList_HtmlPage();
-        string GetCurrentViewByTaskId(int id);
+        Task<string> GetTaskList_HtmlPage();
+        Task<string> GetCurrentViewByTaskId(int id);
 
         void DeleteTaskInstanceById(int id);
         string GetAllTaskInstancesJson();
         string GetAllTaskInstancesByTaskIdJson(int taskId);
-        string GetFullInstanceList_HtmlPage(int taskId);
+        Task<string> GetFullInstanceList_HtmlPage(int taskId);
 
         void DeleteOperInstanceById(int operInstanceId);
         string GetAllOperInstancesByTaskInstanceIdJson(int taskInstanceId);

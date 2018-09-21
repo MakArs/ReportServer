@@ -18,9 +18,9 @@ namespace ReportService.Core
             executor = autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
         }
 
-        public string GetDefaultView(string jsonSet, string reportName)
+        public string GetDefaultView(string taskName,string dataSet)
         {
-            return executor.ExecuteHtml(reportName, jsonSet);
+            return executor.ExecuteHtml(taskName,dataSet);
         }
 
         public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
@@ -57,7 +57,7 @@ namespace ReportService.Core
             }
         } //method
 
-        public void ForceSend(string dataSet, string taskName, string address)
+        public void ForceSend(string dataSet, string taskName, string mailAddress)
         {
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())
@@ -67,13 +67,13 @@ namespace ReportService.Core
 
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
 
-                msg.To.Add(new MailAddress(address));
+                msg.To.Add(new MailAddress(mailAddress));
 
                 msg.Subject = taskName + $" {DateTime.Now:dd.MM.yy}";
 
                 msg.IsBodyHtml = true;
 
-                msg.Body = executor.ExecuteHtml("taskName", dataSet);
+                msg.Body = dataSet;
 
                 client.Send(msg);
             }

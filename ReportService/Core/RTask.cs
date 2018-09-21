@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Monik.Common;
 using Newtonsoft.Json;
 
@@ -16,7 +17,6 @@ namespace ReportService.Core
         public string Name { get; }
         public DtoSchedule Schedule { get; }
         public DateTime LastTime { get; private set; }
-        public Dictionary<string, string> DataSets { get; }
         public List<IOperation> Operations { get; set; }
 
         private readonly DefaultTaskWorker worker;
@@ -24,11 +24,11 @@ namespace ReportService.Core
         private readonly IMonik monik;
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
-        private readonly int defaultImporter;
+        private string defaultView;
 
         public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
                      IMonik monik, IMapper mapper, IArchiver archiver, int id,
-                     string name, DtoSchedule schedule, List<Tuple<DtoOper,int>> opers)
+                     string name, DtoSchedule schedule, List<Tuple<DtoOper, int, bool>> opers)
         {
             this.archiver = archiver;
             this.monik = monik;
@@ -36,14 +36,12 @@ namespace ReportService.Core
             Id = id;
             Name = name;
             Schedule = schedule;
-            DataSets = new Dictionary<string, string>();
             Operations = new List<IOperation>();
 
-           // defaultEmailSender = autofac.ResolveNamed<IDataExporter>("");
-            foreach (var opern in opers)
+            foreach (var operTuple in opers)
             {
                 IOperation newOper;
-                var oper = opern.Item1;
+                var oper = operTuple.Item1;
                 var operType = oper.Type;
 
                 if (logic.RegisteredImporters.ContainsKey(operType))
@@ -65,18 +63,21 @@ namespace ReportService.Core
                 if (newOper != null)
                 {
                     newOper.Id = oper.Id;
-                    newOper.Number = opern.Item2;
+                    newOper.Number = operTuple.Item2;
                     newOper.Name = oper.Name;
+                    newOper.IsDefault = operTuple.Item3;
 
                     Operations.Add(newOper);
                 }
             }
 
-            worker = autofac.Resolve<DefaultTaskWorker>();
+            worker = autofac.Resolve<DefaultTaskWorker>
+                (new NamedParameter("task", this));
+
             this.repository = repository;
         }
 
-        public void Execute()
+        public void Execute(bool useDefault = false)
         {
             var dtoTaskInstance = new DtoTaskInstance
             {
@@ -96,8 +97,23 @@ namespace ReportService.Core
             try
             {
                 var exceptions = new List<Tuple<Exception, string>>();
+                List<IOperation> opersToExecute;
+                Dictionary<string, string> dataSets = new Dictionary<string, string>();
 
-                foreach (var oper in Operations.OrderBy(oper => oper.Number))
+                lock (this)
+                    opersToExecute = useDefault
+                        ? Operations.Where(oper => oper.IsDefault)
+                            .OrderBy(oper => oper.Number).ToList()
+                        : Operations.OrderBy(oper => oper.Number).ToList();
+
+                if (!opersToExecute.Any())
+                {
+                    monik.ApplicationInfo($"Задача {Id} не выполнена (не заданы операции)");
+                    Console.WriteLine($"Задача {Id} не выполнена (не заданы операции)");
+                    return;
+                }
+
+                foreach (var oper in opersToExecute)
                 {
                     var dtoOperInstance = new DtoOperInstance
                     {
@@ -114,14 +130,14 @@ namespace ReportService.Core
                     Stopwatch operDuration = new Stopwatch();
                     operDuration.Start();
 
-                     switch (oper)
+                    switch (oper)
                     {
                         case IDataImporter importer:
                             try
                             {
                                 var newDataSet = importer.Execute();
                                 lock (this)
-                                    DataSets[importer.DataSetName] = newDataSet;
+                                    dataSets[importer.DataSetName] = newDataSet;
 
                                 dtoOperInstance.DataSet = archiver.CompressString(newDataSet);
                                 dtoOperInstance.State = (int) InstanceState.Success;
@@ -132,7 +148,7 @@ namespace ReportService.Core
                             }
                             catch (Exception e)
                             {
-                                exceptions.Add(new Tuple<Exception, string>(e,importer.Name));
+                                exceptions.Add(new Tuple<Exception, string>(e, importer.Name));
                                 dtoOperInstance.ErrorMessage = e.Message;
                                 dtoOperInstance.State = (int) InstanceState.Failed;
                                 operDuration.Stop();
@@ -147,7 +163,7 @@ namespace ReportService.Core
 
                             try
                             {
-                                exporter.Send(DataSets[exporter.DataSetName]);
+                                exporter.Send(dataSets[exporter.DataSetName]);
                                 dtoOperInstance.State = (int) InstanceState.Success;
                                 operDuration.Stop();
                                 dtoOperInstance.Duration =
@@ -164,19 +180,22 @@ namespace ReportService.Core
                                     Convert.ToInt32(operDuration.ElapsedMilliseconds);
                                 repository.UpdateEntity(dtoOperInstance);
                             }
+
                             break;
                     }
                 }
 
                 if (exceptions.Count == 0)
                 {
+                    if (useDefault)
+                        defaultView = worker.GetDefaultView(Name, dataSets.Last().Value);
                     monik.ApplicationInfo($"Задача {Id} успешно выполнена");
                     Console.WriteLine($"Задача {Id} успешно выполнена");
                 }
 
                 else
                 {
-                    worker.SendError(exceptions,Name);
+                    worker.SendError(exceptions, Name);
                     monik.ApplicationInfo($"Задача {Id} выполнена с ошибками");
                     Console.WriteLine($"Задача {Id} выполнена с ошибками");
                 }
@@ -189,7 +208,6 @@ namespace ReportService.Core
                 Console.WriteLine($"Задача {Id} не выполнена.Возникла ошибка: {e.Message}");
             }
 
-
             duration.Stop();
             dtoTaskInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
             dtoTaskInstance.State =
@@ -198,12 +216,20 @@ namespace ReportService.Core
             repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoTaskInstance));
         } //method
 
-        public string GetCurrentView() //todo: remake method with new db conception
+        public async Task<string> GetCurrentView()
         {
-            if (defaultImporter == 0 || !(Operations[defaultImporter] is IDataImporter imp))
-                return null;
+            await Task.Factory.StartNew(() => Execute(true));
+            return string.IsNullOrEmpty(defaultView)
+                ? "This task has not default operations.."
+                : defaultView;
+        }
 
-            return worker.GetDefaultView(imp.Execute(), Name);
+        public void SendDefault(string mailAddress)
+        {
+            Execute(true);
+            if (string.IsNullOrEmpty(defaultView)) return;
+
+            worker.ForceSend(defaultView, Name, mailAddress);
         }
 
         public void UpdateLastTime()

@@ -1,6 +1,7 @@
 ﻿using ReportService.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ReportService.Interfaces
 {
@@ -40,11 +41,11 @@ namespace ReportService.Interfaces
         string Name { get; }
         DtoSchedule Schedule { get; }
         DateTime LastTime { get; }
-        Dictionary<string, string> DataSets { get; }
         List<IOperation> Operations { get; set; }
 
-        void Execute();
+        void Execute(bool useDefault=false);
         void UpdateLastTime();
-        string GetCurrentView();
+        Task<string> GetCurrentView();
+        void SendDefault(string mailAddress);
     }
 }

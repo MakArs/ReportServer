@@ -255,6 +255,7 @@ namespace ReportService.Core
                 TaskId INT NOT NULL,
                 OperId INT NOT NULL,
                 Number TINYINT NOT NULL,
+                IsDefault BIT NOT NULL,
                 CONSTRAINT FK_TaskOper_Task FOREIGN KEY(TaskId) 
                 REFERENCES Task(Id),
                 CONSTRAINT FK_TaskOper_Oper FOREIGN KEY(OperId) 

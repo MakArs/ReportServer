@@ -9,11 +9,11 @@ namespace ReportService.Nancy
         {
             ModulePath = "/site";
 
-            Get["/tasks.html"] = parameters =>
+            Get["/tasks.html", runAsync: true] = async (parameters, token) =>
             {
                 try
                 {
-                    var response = (Response) $"{logic.GetTaskList_HtmlPage()}";
+                    var response = (Response) $"{await logic.GetTaskList_HtmlPage()}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -23,11 +23,12 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/tasks-{id:int}.html"] = parameters =>
+            Get["/tasks-{id:int}.html", runAsync: true] = async (parameters, token) =>
             {
                 try
                 {
-                    var response = (Response) $"{logic.GetFullInstanceList_HtmlPage(parameters.id)}";
+                    var response = (Response) $@"{await logic
+                        .GetFullInstanceList_HtmlPage(parameters.id)}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -54,7 +55,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/send-{id:int}/confirm"] = parameters =>
+            Get["/run-{id:int}/confirm"] = parameters =>
             {
                 try
                 {
