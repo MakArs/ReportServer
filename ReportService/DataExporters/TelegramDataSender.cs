@@ -1,5 +1,4 @@
-﻿using System;
-using Autofac;
+﻿using Autofac;
 using AutoMapper;
 using ReportService.Interfaces;
 using Telegram.Bot;
@@ -14,7 +13,8 @@ namespace ReportService.DataExporters
         private readonly IViewExecutor viewExecutor;
         public string ReportName;
 
-        public TelegramDataSender(IMapper mapper, ITelegramBotClient botClient, ILifetimeScope autofac,
+        public TelegramDataSender(IMapper mapper, ITelegramBotClient botClient,
+                                  ILifetimeScope autofac,
                                   ILogic logic, TelegramExporterConfig config)
         {
             mapper.Map(config, this);
@@ -26,10 +26,12 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-                bot.SendTextMessageAsync(channel.ChatId,
-                        viewExecutor.ExecuteTelegramView(dataSet, ReportName),
-                        ParseMode.Markdown)
-                    .Wait();
+            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+                return;
+            bot.SendTextMessageAsync(channel.ChatId,
+                    viewExecutor.ExecuteTelegramView(dataSet, ReportName),
+                    ParseMode.Markdown)
+                .Wait();
         }
     }
 }

@@ -13,7 +13,8 @@ namespace ReportService.DataExporters
         private readonly IArchiver archiver;
         public string ReportName;
 
-        public ReportInstanceExporter(IMapper mapper, IArchiver archiver, ReportInstanceExporterConfig config)
+        public ReportInstanceExporter(IMapper mapper, IArchiver archiver,
+                                      ReportInstanceExporterConfig config)
         {
             this.archiver = archiver;
             mapper.Map(config, this);
@@ -21,7 +22,8 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
-
+            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+                return;
             SimpleCommand.ExecuteNonQuery(ConnectionString, $@"
                 IF OBJECT_ID('{TableName}') IS NULL
                 CREATE TABLE {TableName}

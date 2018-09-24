@@ -4,20 +4,24 @@ namespace ReportService.DataExporters
 {
     public interface IExporterConfig : IOperationConfig
     {
+        bool RunIfVoidDataSet { get; set; }
     }
 
     public class DbExporterConfig : IExporterConfig
     {
         public string DataSetName { get; set; }
+        public bool RunIfVoidDataSet { get; set; }
         public string ConnectionString;
         public string TableName;
         public int DbTimeOut;
         public bool DropBefore;
+        public bool CreateTable;
     }
 
     public class ReportInstanceExporterConfig : IExporterConfig
     {
         public string DataSetName { get; set; }
+        public bool RunIfVoidDataSet { get; set; }
         public string ReportName { get; set; }
         public string ConnectionString;
         public string TableName;
@@ -27,6 +31,7 @@ namespace ReportService.DataExporters
     public class EmailExporterConfig : IExporterConfig
     {
         public string DataSetName { get; set; }
+        public bool RunIfVoidDataSet { get; set; }
         public bool HasHtmlBody;
         public bool HasJsonAttachment;
         public bool HasXlsxAttachment;
@@ -38,6 +43,7 @@ namespace ReportService.DataExporters
     public class TelegramExporterConfig : IExporterConfig
     {
         public string DataSetName { get; set; }
+        public bool RunIfVoidDataSet { get; set; }
         public int TelegramChannelId;
         public string ReportName;
     }

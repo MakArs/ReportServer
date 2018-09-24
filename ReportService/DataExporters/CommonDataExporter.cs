@@ -9,6 +9,7 @@ namespace ReportService.DataExporters
         public int Number { get; set; }
         public string Name { get; set; }
         public string DataSetName { get; set; }
+        public bool RunIfVoidDataSet { get; set; }
 
         public virtual void Send(string dataSet)
         {

@@ -57,7 +57,7 @@ namespace ReportService.Core
             }
         } //method
 
-        public void ForceSend(string dataSet, string taskName, string mailAddress)
+        public void ForceSend(string defaultView, string taskName, string mailAddress)
         {
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())
@@ -69,11 +69,11 @@ namespace ReportService.Core
 
                 msg.To.Add(new MailAddress(mailAddress));
 
-                msg.Subject = taskName + $" {DateTime.Now:dd.MM.yy}";
+                msg.Subject = taskName + $" {DateTime.Now:dd.MM.yy HH:mm}";
 
                 msg.IsBodyHtml = true;
 
-                msg.Body = dataSet;
+                msg.Body = defaultView;
 
                 client.Send(msg);
             }

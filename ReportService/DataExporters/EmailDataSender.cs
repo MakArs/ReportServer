@@ -29,6 +29,9 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
+            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+                return;
+
             string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
 
             string filenameJson = $@"{filename}.json";

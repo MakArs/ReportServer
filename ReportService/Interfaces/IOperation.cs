@@ -18,6 +18,7 @@ namespace ReportService.Interfaces
 
     public interface IDataExporter : IOperation
     {
+        bool RunIfVoidDataSet { get; set; }
         void Send(string dataSet);
         void Cleanup(ICleanupSettings cleanUpSettings);
     }

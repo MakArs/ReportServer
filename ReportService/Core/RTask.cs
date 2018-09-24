@@ -114,7 +114,7 @@ namespace ReportService.Core
                 }
 
                 foreach (var oper in opersToExecute)
-                {
+              {
                     var dtoOperInstance = new DtoOperInstance
                     {
                         TaskInstanceId = dtoTaskInstance.Id,

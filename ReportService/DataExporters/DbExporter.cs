@@ -13,6 +13,7 @@ namespace ReportService.DataExporters
         public string TableName;
         public int DbTimeOut;
         public bool DropBefore;
+        public bool CreateTable;
 
         public DbExporter(IMapper mapper, DbExporterConfig config)
         {
@@ -21,32 +22,38 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
+            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+                return;
             //todo:logic for auto-creating table by user-defined list of columns
             if (DropBefore)
                 SimpleCommand.ExecuteNonQuery(new QueryOptions(DbTimeOut),
-                    ConnectionString, $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}");
+                    ConnectionString,
+                    $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}");
 
             var children = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(dataSet);
 
             var names = children.First().Select(pair => pair.Key).ToList();
 
-            StringBuilder createQueryBuilder = new StringBuilder($@" 
+            if (CreateTable)
+            {
+                StringBuilder createQueryBuilder = new StringBuilder($@" 
                 IF OBJECT_ID('{TableName}') IS NULL
                 CREATE TABLE {TableName}
                 (");
 
-            foreach (var name in names)
-            {
-                createQueryBuilder.AppendLine($"{name} NVARCHAR(4000) NOT NULL,");
+                foreach (var name in names)
+                {
+                    createQueryBuilder.AppendLine($"{name} NVARCHAR(4000) NOT NULL,");
+                }
+
+                createQueryBuilder.Length--;
+                createQueryBuilder.Append("); ");
+
+                SimpleCommand.ExecuteNonQuery(ConnectionString, createQueryBuilder.ToString());
             }
 
-            createQueryBuilder.Length--;
-            createQueryBuilder.Append("); ");
-
-            SimpleCommand.ExecuteNonQuery(ConnectionString, createQueryBuilder.ToString()); 
-
             StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
-            for (int i = 0; i < names.Count-1; i++)
+            for (int i = 0; i < names.Count - 1; i++)
             {
                 comm.Append($@"[{names[i]}],");
             }
@@ -55,9 +62,9 @@ namespace ReportService.DataExporters
 
             foreach (var child in children)
             {
-                var values= child.Select(pair => pair.Value).ToList();
+                var values = child.Select(pair => pair.Value).ToList();
 
-                var fullcom=new StringBuilder(comm.ToString());
+                var fullcom = new StringBuilder(comm.ToString());
 
                 for (int i = 0; i < names.Count - 1; i++)
                 {
@@ -65,8 +72,8 @@ namespace ReportService.DataExporters
                 }
 
                 fullcom.Append($@"'{values.Last()}')");
-                var fstr=fullcom.ToString();
-                SimpleCommand.ExecuteNonQuery( new QueryOptions(DbTimeOut), ConnectionString, fstr);
+                var fstr = fullcom.ToString();
+                SimpleCommand.ExecuteNonQuery(new QueryOptions(DbTimeOut), ConnectionString, fstr);
             }
         }
     }
