@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Gerakul.FastSql;
+using Monik.Common;
 using ReportService.Interfaces;
 using static System.Int32;
 
@@ -10,31 +11,61 @@ namespace ReportService.Core
     public class Repository : IRepository
     {
         private readonly string connStr;
+        private readonly IMonik monik;
 
-        public Repository(string connStr)
+        public Repository(string connStr,IMonik monik)
         {
             this.connStr = connStr;
+            this.monik = monik;
         } //ctor
 
         public List<DtoTaskInstance> GetInstancesByTaskId(int taskId)
         {
-            return SimpleCommand.ExecuteQuery<DtoTaskInstance>(connStr,
-                    $"select * from TaskInstance where TaskId={taskId}")
-                .ToList();
+            try
+            {
+                return SimpleCommand.ExecuteQuery<DtoTaskInstance>(connStr,
+                        $"select * from TaskInstance where TaskId={taskId}")
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                monik.ApplicationWarning("Error occured while getting task instances: " +
+                                       $"({e.Message})");
+                throw;
+            }
         }
+
 
         public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(int taskInstanceId)
         {
+            try
+            {
             return SimpleCommand.ExecuteQuery<DtoOperInstance>(connStr,
                     $"select Id,TaskInstanceId,OperId,StartTime,Duration,State,null as DataSet,null as ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
                 .ToList();
+            }
+            catch (Exception e)
+            {
+                monik.ApplicationWarning("Error occured while getting operation instances: " +
+                                       $"({e.Message})");
+                throw;
+            }
         }
 
         public DtoOperInstance GetFullOperInstanceById(int operInstanceId)
         {
+            try
+            {
             return SimpleCommand.ExecuteQuery<DtoOperInstance>(connStr,
                     $@"select * from OperInstance where Id={operInstanceId}")
                 .ToList().First();
+            }
+            catch (Exception e)
+            {
+                monik.ApplicationWarning("Error occured while getting operation instance data: " +
+                                       $"({e.Message})");
+                throw;
+            }
         }
 
         public List<T> GetListEntitiesByDtoType<T>() where T : IDtoEntity, new()
@@ -47,7 +78,8 @@ namespace ReportService.Core
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                monik.ApplicationError("Error occured while getting " +
+                                         $"{tableName} list: {e.Message}");
                 return null;
             }
         }
@@ -63,7 +95,8 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                monik.ApplicationWarning("Error occured while creating new " +
+                                       $"{tableName} record: {e.Message}");
                 return 0;
             }
         }
@@ -91,7 +124,8 @@ namespace ReportService.Core
 
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    monik.ApplicationWarning("Error occured while creating new Task" +
+                                             $" record: {e.Message}");
                     throw;
                 }
             });
@@ -110,7 +144,8 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                monik.ApplicationWarning("Error occured while updating прои" +
+                                         $"{tableName} record: {e.Message}");
             }
         }
 
@@ -129,7 +164,8 @@ namespace ReportService.Core
 
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    monik.ApplicationWarning("Error occured while updating Task" +
+                                             $" record: {e.Message}");
                     throw;
                 }
             });
@@ -140,28 +176,73 @@ namespace ReportService.Core
             var type = typeof(T);
             switch (true)
             {
-                case bool _ when type == typeof(DtoOper): //todo:method
+                case bool _ when type == typeof(DtoOper): 
+                    try
+                    {
+                        SimpleCommand.ExecuteNonQuery(connStr,
+                            $@"delete Oper where Id={id}");
+                    }
+
+                    catch (Exception e)
+                    {
+                        monik.ApplicationWarning("Error occured while deleting Oper" +
+                                                 $" record: {e.Message}");
+                        throw;
+                    }
                     break;
 
-                case bool _ when type == typeof(DtoSchedule): //todo:method
+                case bool _ when type == typeof(DtoSchedule):
+                    try
+                    {
+                        SimpleCommand.ExecuteNonQuery(connStr,
+                            $@"delete Schedule where Id={id}");
+                    }
+
+                    catch (Exception e)
+                    {
+                        monik.ApplicationWarning("Error occured while deleting Schedule" +
+                                                 $" record: {e.Message}");
+                        throw;
+                    }
                     break;
 
-                case bool _ when type == typeof(DtoTaskOper): //todo:method
+                case bool _ when type == typeof(DtoTaskOper): //todo:do we really need this method?
                     break;
-
-                case bool _ when type == typeof(DtoTaskOper): //todo:method
-                    break;
-
+                    
                 case bool _ when type == typeof(DtoTelegramChannel): //todo:method
                     break;
 
                 case bool _ when type == typeof(DtoRecepientGroup): //todo:method
+                    try
+                    {
+                        SimpleCommand.ExecuteNonQuery(connStr,
+                            $@"delete RecepientGroup where Id={id}");
+                    }
+
+                    catch (Exception e)
+                    {
+                        monik.ApplicationWarning("Error occured while deleting Recepient group" +
+                                                 $" record: {e.Message}");
+                        throw;
+                    }
                     break;
 
                 case bool _ when type == typeof(DtoTaskInstance):
+
+                    try
+                    {
                     SimpleCommand.ExecuteNonQuery(connStr,
                         $@"delete OperInstance where TaskInstanceId={id}");
                     SimpleCommand.ExecuteNonQuery(connStr, $@"delete TaskInstance where id={id}");
+                    }
+
+                    catch (Exception e)
+                    {
+                        monik.ApplicationWarning("Error occured while deleting Task instance" +
+                                                 $" record: {e.Message}");
+                        throw;
+                    }
+
                     break;
 
                 case bool _ when type == typeof(DtoTask):
@@ -180,7 +261,8 @@ namespace ReportService.Core
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e.Message);
+                            monik.ApplicationWarning("Error occured while deleting Task" +
+                                                     $" record: {e.Message}");
                             throw;
                         }
                     });

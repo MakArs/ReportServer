@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Reflection;
 using Autofac;
-using Monik.Client;
 using Monik.Common;
 using Nancy.Hosting.Self;
 using ReportService.Interfaces;
@@ -11,6 +11,7 @@ namespace ReportService.Nancy
     {
         private readonly IMonik monik;
         private readonly NancyHost      nancyHost;
+        private readonly string stringVersion;
 
         public HostHolder()
         {
@@ -19,19 +20,22 @@ namespace ReportService.Nancy
                 new Bootstrapper(),
                 HostConfigs);
 
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            stringVersion = $"v.{version.Major}.{version.Minor}.{version.Build} ";
+
             monik = Bootstrapper.Global.Resolve<IMonik>();
             monik.ApplicationInfo("HostHolder.ctor");
         }
 
         private static readonly HostConfiguration HostConfigs = new HostConfiguration()
         {
-            UrlReservations  = new UrlReservations() {CreateAutomatically = true},
+            UrlReservations  = new UrlReservations {CreateAutomatically = true},
             RewriteLocalhost = true
         };
 
         public void Start()
         {
-            monik.ApplicationWarning("Started");
+            monik.ApplicationWarning(stringVersion+"Started");
 
             try
             {
@@ -54,7 +58,7 @@ namespace ReportService.Nancy
                 monik.ApplicationError(e.Message);
             }
 
-            monik.ApplicationWarning("Stopped");
+            monik.ApplicationWarning(stringVersion+"Stopped");
             monik.OnStop();
         }
     }

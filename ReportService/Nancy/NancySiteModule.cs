@@ -55,6 +55,21 @@ namespace ReportService.Nancy
                 }
             };
 
+            Get["/inwork"] = parameters =>
+            {
+                try
+                {
+                    string entities = logic.GetInWorkEntitiesJson();
+                    var response = (Response)entities;
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
             Get["/run-{id:int}/confirm"] = parameters =>
             {
                 try

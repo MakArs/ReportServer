@@ -65,9 +65,6 @@ namespace ReportService
             existingContainer
                 .RegisterImplementation<IRTask, RTask>();
 
-            var repository = new Repository(ConfigurationManager.AppSettings["DBConnStr"]);
-            existingContainer
-                .RegisterInstance<IRepository, Repository>(repository);
 
             // Partial bootstrapper for private named implementations registration
             (this as IPrivateBootstrapper)?
@@ -96,6 +93,12 @@ namespace ReportService
                 .RegisterSingleton<IMonik, MonikClient>();
 
             #endregion
+
+            var repository = new Repository(ConfigurationManager.AppSettings["DBConnStr"],
+                existingContainer.Resolve<IMonik>());
+
+            existingContainer
+                .RegisterInstance<IRepository, Repository>(repository);
 
             #region ConfigureMapper
 

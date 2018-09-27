@@ -34,6 +34,7 @@ namespace ReportService.Core
         private readonly List<DtoSchedule> schedules;
         private readonly List<IRTask> tasks;
         private readonly List<DtoTaskOper> taskOpers;
+
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
@@ -76,32 +77,39 @@ namespace ReportService.Core
 
         private void UpdateTaskList()
         {
-            var taskList = repository.GetListEntitiesByDtoType<DtoTask>();
-            if (taskList == null) return;
-            lock (this)
+            try
             {
-                tasks.Clear();
-
-                foreach (var dtoTask in taskList)
+                var taskList = repository.GetListEntitiesByDtoType<DtoTask>();
+                if (taskList == null) return;
+                lock (this)
                 {
-                    var task = autofac.Resolve<IRTask>(
-                        new NamedParameter("id", dtoTask.Id),
-                        new NamedParameter("name", dtoTask.Name),
-                        new NamedParameter("schedule", schedules
-                            .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                        new NamedParameter("opers",
-                            taskOpers
-                                .Where(taskOper => taskOper.TaskId == dtoTask.Id)
-                                .Select(taskOper => Tuple.Create
-                                (operations.FirstOrDefault(oper => oper.Id == taskOper.OperId),
-                                    taskOper.Number, taskOper.IsDefault))
-                                .ToList()));
+                    tasks.Clear();
 
-                    // might be replaced with saved time from db
-                    task.UpdateLastTime();
-                    tasks.Add(task);
-                }
-            } //lock
+                    foreach (var dtoTask in taskList)
+                    {
+                        var task = autofac.Resolve<IRTask>(
+                            new NamedParameter("id", dtoTask.Id),
+                            new NamedParameter("name", dtoTask.Name),
+                            new NamedParameter("schedule", schedules
+                                .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
+                            new NamedParameter("opers",
+                                taskOpers
+                                    .Where(taskOper => taskOper.TaskId == dtoTask.Id)
+                                    .Select(taskOper => Tuple.Create
+                                    (operations.FirstOrDefault(oper => oper.Id == taskOper.OperId),
+                                        taskOper.Number, taskOper.IsDefault))
+                                    .ToList()));
+
+                        // might be replaced with saved time from db
+                        task.UpdateLastTime();
+                        tasks.Add(task);
+                    }
+                } //lock
+            }
+            catch (Exception e)
+            {
+                monik.ApplicationError($"Error while updating tasks: {e.Message}");
+            }
         }
 
         private void CheckScheduleAndExecute()
@@ -148,6 +156,7 @@ namespace ReportService.Core
         public void Start()
         {
             //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+
             RegisteredImporters = autofac
                 .ComponentRegistry
                 .Registrations
@@ -223,27 +232,47 @@ namespace ReportService.Core
 
         public string GetAllOperationsJson()
         {
-            return JsonConvert.SerializeObject(operations);
+            List<DtoOper> currentOpers;
+            lock (this)
+                currentOpers = operations.ToList();
+
+            return JsonConvert.SerializeObject(currentOpers);
         }
 
         public string GetAllRecepientGroupsJson()
         {
-            return JsonConvert.SerializeObject(recepientGroups);
+            List<DtoRecepientGroup> currentRecepients;
+            lock (this)
+                currentRecepients = recepientGroups.ToList();
+
+            return JsonConvert.SerializeObject(currentRecepients);
         }
 
         public string GetAllTelegramChannelsJson()
         {
-            return JsonConvert.SerializeObject(telegramChannels);
+            List<DtoTelegramChannel> currentChannels;
+            lock (this)
+                currentChannels = telegramChannels.ToList();
+
+            return JsonConvert.SerializeObject(currentChannels);
         }
 
         public string GetAllSchedulesJson()
         {
-            return JsonConvert.SerializeObject(schedules);
+            List<DtoSchedule> currentSchedules;
+            lock (this)
+                currentSchedules = schedules.ToList();
+
+            return JsonConvert.SerializeObject(currentSchedules);
         }
 
         public string GetAllTaskOpersJson()
         {
-            return JsonConvert.SerializeObject(taskOpers);
+            List<DtoTaskOper> currentTaskOpers;
+            lock (this)
+                currentTaskOpers = taskOpers.ToList();
+
+            return JsonConvert.SerializeObject(currentTaskOpers);
         }
 
         public string GetAllTasksJson()
@@ -254,6 +283,20 @@ namespace ReportService.Core
             var tr = JsonConvert.SerializeObject(currentTasks
                 .Select(t => mapper.Map<DtoTask>(t)));
             return tr;
+        }
+
+        public string GetInWorkEntitiesJson()
+        {
+            var entities = new Dictionary<string, int>
+            {
+                {"operations", operations.Count},
+                {"recepientGroups", recepientGroups.Count},
+                {"telegramChannels", telegramChannels.Count},
+                {"schedules", schedules.Count},
+                {"tasks", tasks.Count},
+                {"taskOpers", taskOpers.Count}
+            };
+            return JsonConvert.SerializeObject(entities);
         }
 
         //public string GetEntitiesListJsonByType<T>()
@@ -284,6 +327,13 @@ namespace ReportService.Core
             monik.ApplicationInfo($"Обновлена настройка операции {oper.Id}");
         }
 
+        public void DeleteOperation(int id)
+        {
+            repository.DeleteEntity<DtoOper>(id);
+            UpdateDtoEntitiesList(operations);
+            monik.ApplicationInfo($"Удалена операция {id}");
+        }
+
         public int CreateRecepientGroup(DtoRecepientGroup group)
         {
             var newGroupId = repository.CreateEntity(group);
@@ -298,6 +348,13 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(recepientGroups);
             UpdateTaskList();
             monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
+        }
+
+        public void DeleteRecepientGroup(int id)
+        {
+            repository.DeleteEntity<DtoRecepientGroup>(id);
+            UpdateDtoEntitiesList(recepientGroups);
+            monik.ApplicationInfo($"Удалена группа получателей {id}");
         }
 
         public RecepientAddresses GetRecepientAddressesByGroupId(int groupId)
@@ -340,7 +397,15 @@ namespace ReportService.Core
         {
             repository.UpdateEntity(schedule);
             UpdateDtoEntitiesList(schedules);
+
             monik.ApplicationInfo($"Обновлено расписание {schedule.Id}");
+        }
+
+        public void DeleteSchedule(int id)
+        {
+            repository.DeleteEntity<DtoSchedule>(id);
+            UpdateDtoEntitiesList(schedules);
+            monik.ApplicationInfo($"Удалено расписание {id}");
         }
 
         public int CreateTaskOper(DtoTaskOper taskOper)
@@ -448,15 +513,10 @@ namespace ReportService.Core
             repository.DeleteEntity<DtoOperInstance>(operInstanceId);
         }
 
-        public string GetAllOperInstancesByTaskInstanceIdJson(int taskInstanceId)
-        {
-            return JsonConvert.SerializeObject(repository
-                .GetOperInstancesByTaskInstanceId(taskInstanceId));
-        }
-
         public string GetOperInstancesByTaskInstanceIdJson(int id)
         {
-            return JsonConvert.SerializeObject(repository.GetOperInstancesByTaskInstanceId(id));
+            return JsonConvert.SerializeObject(repository
+                .GetOperInstancesByTaskInstanceId(id));
         }
 
         public string GetFullOperInstanceByIdJson(int id)
@@ -528,6 +588,5 @@ namespace ReportService.Core
                 UpdateDtoEntitiesList(telegramChannels);
             }
         }
-
     } //class
 }

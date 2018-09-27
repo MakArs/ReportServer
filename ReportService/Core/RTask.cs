@@ -60,15 +60,14 @@ namespace ReportService.Core
                                 logic.RegisteredExporters[operType])));
                 }
 
-                if (newOper != null)
-                {
-                    newOper.Id = oper.Id;
-                    newOper.Number = operTuple.Item2;
-                    newOper.Name = oper.Name;
-                    newOper.IsDefault = operTuple.Item3;
+                if (newOper == null) continue;
 
-                    Operations.Add(newOper);
-                }
+                newOper.Id = oper.Id;
+                newOper.Number = operTuple.Item2;
+                newOper.Name = oper.Name;
+                newOper.IsDefault = operTuple.Item3;
+
+                Operations.Add(newOper);
             }
 
             worker = autofac.Resolve<DefaultTaskWorker>
@@ -195,6 +194,7 @@ namespace ReportService.Core
 
                 else
                 {
+                    success = false;
                     worker.SendError(exceptions, Name);
                     monik.ApplicationInfo($"Задача {Id} выполнена с ошибками");
                     Console.WriteLine($"Задача {Id} выполнена с ошибками");

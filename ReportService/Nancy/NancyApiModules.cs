@@ -24,6 +24,19 @@ namespace ReportService.Nancy
                 }
             };
 
+            Delete["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteOperation(parameters.id);
+                    return HttpStatusCode.OK;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
             Get["/registeredimporters"] = parameters =>
             {
                 try
@@ -116,6 +129,19 @@ namespace ReportService.Nancy
                     var response = (Response) logic.GetAllRecepientGroupsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Delete["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteRecepientGroup(parameters.id);
+                    return HttpStatusCode.OK;
                 }
                 catch
                 {
@@ -232,6 +258,19 @@ namespace ReportService.Nancy
                     var response = (Response) logic.GetAllSchedulesJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Delete["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteSchedule(parameters.id);
+                    return HttpStatusCode.OK;
                 }
                 catch
                 {

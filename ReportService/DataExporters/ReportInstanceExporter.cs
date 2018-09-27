@@ -34,10 +34,9 @@ namespace ReportService.DataExporters
                 CONSTRAINT [PK_Report_Date] PRIMARY KEY CLUSTERED 
                 (ReportName DESC,
               	ExecuteTime DESC));");
-
             var newInstance = new
             {
-                ReportName = ReportName,
+                ReportName,
                 ExecuteTime = DateTime.Now,
                 Data = dataSet //archiver.CompressString(dataSet)
             };

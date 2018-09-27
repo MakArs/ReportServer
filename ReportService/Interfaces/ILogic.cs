@@ -22,12 +22,15 @@ namespace ReportService.Interfaces
         string GetAllSchedulesJson();
         string GetAllTaskOpersJson();
         string GetAllTasksJson();
+        string GetInWorkEntitiesJson();
 
         int CreateOperation(DtoOper oper);
         void UpdateOperation(DtoOper oper);
+        void DeleteOperation(int id);
 
         int CreateRecepientGroup(DtoRecepientGroup group);
         void UpdateRecepientGroup(DtoRecepientGroup group);
+        void DeleteRecepientGroup(int id);
         RecepientAddresses GetRecepientAddressesByGroupId(int groupId);
 
         int CreateTelegramChannel(DtoTelegramChannel channel);
@@ -36,6 +39,7 @@ namespace ReportService.Interfaces
 
         int CreateSchedule(DtoSchedule schedule);
         void UpdateSchedule(DtoSchedule schedule);
+        void DeleteSchedule(int id);
 
         int CreateTaskOper(DtoTaskOper taskOper);
 
@@ -51,7 +55,6 @@ namespace ReportService.Interfaces
         Task<string> GetFullInstanceList_HtmlPage(int taskId);
 
         void DeleteOperInstanceById(int operInstanceId);
-        string GetAllOperInstancesByTaskInstanceIdJson(int taskInstanceId);
         string GetOperInstancesByTaskInstanceIdJson(int id);
         string GetFullOperInstanceByIdJson(int id);
 

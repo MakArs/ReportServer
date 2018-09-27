@@ -21,7 +21,7 @@ namespace ReportService.Core
                 try
                 {
                     if (TaskMethod != null)
-                        Task.Factory.StartNew(TaskMethod);
+                        Task.Factory.StartNew(TaskMethod, cancelToken);
                 }
 
                 catch (Exception e)
@@ -29,7 +29,7 @@ namespace ReportService.Core
                     Console.WriteLine(e.Message);
                 }
 
-                Task.Delay(Period * 1000).Wait();
+                Task.Delay(Period * 1000, cancelToken).Wait(cancelToken);
             }
         }
 
@@ -45,11 +45,10 @@ namespace ReportService.Core
         public void OnStop()
         {
             started = false;
-            Task.Delay(1000).Wait();
+            Task.Delay(1000, cancelToken).Wait(cancelToken);
 
             if (!workTask.IsCanceled)
                 cancelSource.Cancel();
-
         }
     }
 }
