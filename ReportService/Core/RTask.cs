@@ -107,8 +107,9 @@ namespace ReportService.Core
 
                 if (!opersToExecute.Any())
                 {
-                    monik.ApplicationInfo($"Задача {Id} не выполнена (не заданы операции)");
-                    Console.WriteLine($"Задача {Id} не выполнена (не заданы операции)");
+                    var msg = $"Задача {Id} не выполнена (не заданы операции)";
+                    monik.ApplicationInfo(msg);
+                    Console.WriteLine(msg);
                     return;
                 }
 
@@ -188,24 +189,27 @@ namespace ReportService.Core
                 {
                     if (useDefault)
                         defaultView = worker.GetDefaultView(Name, dataSets.Last().Value);
-                    monik.ApplicationInfo($"Задача {Id} успешно выполнена");
-                    Console.WriteLine($"Задача {Id} успешно выполнена");
+                    var msg = $"Задача {Id} успешно выполнена";
+                    monik.ApplicationInfo(msg);
+                    Console.WriteLine(msg);
                 }
 
                 else
                 {
                     success = false;
                     worker.SendError(exceptions, Name);
-                    monik.ApplicationInfo($"Задача {Id} выполнена с ошибками");
-                    Console.WriteLine($"Задача {Id} выполнена с ошибками");
+                    var msg = $"Задача {Id} выполнена с ошибками";
+                    monik.ApplicationInfo(msg);
+                    Console.WriteLine(msg);
                 }
             }
 
             catch (Exception e)
             {
                 success = false;
-                monik.ApplicationError($"Задача {Id} не выполнена.Возникла ошибка: {e.Message}");
-                Console.WriteLine($"Задача {Id} не выполнена.Возникла ошибка: {e.Message}");
+                var msg = $"Задача {Id} не выполнена.Возникла ошибка: {e.Message}";
+                monik.ApplicationError(msg);
+                Console.WriteLine(msg);
             }
 
             duration.Stop();
@@ -223,7 +227,7 @@ namespace ReportService.Core
                 ? "This task has not default operations.."
                 : defaultView;
         }
-
+        
         public void SendDefault(string mailAddress)
         {
             Execute(true);

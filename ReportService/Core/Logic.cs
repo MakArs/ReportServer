@@ -108,7 +108,9 @@ namespace ReportService.Core
             }
             catch (Exception e)
             {
-                monik.ApplicationError($"Error while updating tasks: {e.Message}");
+                var msg = $"Error while updating tasks: {e.Message}";
+                monik.ApplicationError(msg);
+                Console.WriteLine(msg);
             }
         }
 
@@ -144,7 +146,9 @@ namespace ReportService.Core
         private void ExecuteTask(IRTask task)
         {
             task.UpdateLastTime();
-            monik.ApplicationInfo($"Отсылка отчёта {task.Id} по расписанию");
+
+            SendServiceInfo($"Отсылка отчёта {task.Id} по расписанию");
+
             Task.Factory.StartNew(() => task.Execute());
         }
 
@@ -205,8 +209,9 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            monik.ApplicationInfo(
-                $"Отсылка отчёта по умолчанию задачи {task.Id} на адрес {mailAddress} (ручной запуск)");
+
+            SendServiceInfo($"Sending default dataset of task {task.Id} to address" +
+                     $" {mailAddress} (launched manually)");
 
             Task.Factory.StartNew(() => task.SendDefault(mailAddress));
             return $"Task {taskId} default dataset sent to {mailAddress}!";
@@ -222,7 +227,8 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            monik.ApplicationInfo($"Выполнение задачи {task.Id} (ручной запуск)");
+
+            SendServiceInfo( $"Executing task {task.Id} (launched manually)");
 
             Task.Factory.StartNew(() => task.Execute());
             return $"Task {taskId} executed!";
@@ -315,7 +321,9 @@ namespace ReportService.Core
         {
             var newExporterId = repository.CreateEntity(oper);
             UpdateDtoEntitiesList(operations);
-            monik.ApplicationInfo($"Создана настройка операции {newExporterId}");
+
+            SendServiceInfo($"Created operation {newExporterId}");
+
             return newExporterId;
         }
 
@@ -324,21 +332,25 @@ namespace ReportService.Core
             repository.UpdateEntity(oper);
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
-            monik.ApplicationInfo($"Обновлена настройка операции {oper.Id}");
+
+            SendServiceInfo($"Changed operation {oper.Id}");
         }
 
         public void DeleteOperation(int id)
         {
             repository.DeleteEntity<DtoOper>(id);
             UpdateDtoEntitiesList(operations);
-            monik.ApplicationInfo($"Удалена операция {id}");
+
+            SendServiceInfo($"Deleted operation {id}");
         }
 
         public int CreateRecepientGroup(DtoRecepientGroup group)
         {
             var newGroupId = repository.CreateEntity(group);
             UpdateDtoEntitiesList(recepientGroups);
-            monik.ApplicationInfo($"Создана группа получателей {newGroupId}");
+
+            SendServiceInfo($"Created recepient group {newGroupId}");
+
             return newGroupId;
         }
 
@@ -347,14 +359,15 @@ namespace ReportService.Core
             repository.UpdateEntity(group);
             UpdateDtoEntitiesList(recepientGroups);
             UpdateTaskList();
-            monik.ApplicationInfo($"Обновлена группа получателей {group.Id}");
+            SendServiceInfo($"Changed recepient group {group.Id}");
         }
 
         public void DeleteRecepientGroup(int id)
         {
             repository.DeleteEntity<DtoRecepientGroup>(id);
             UpdateDtoEntitiesList(recepientGroups);
-            monik.ApplicationInfo($"Удалена группа получателей {id}");
+
+            SendServiceInfo($"Deleted recepient group {id}");
         }
 
         public RecepientAddresses GetRecepientAddressesByGroupId(int groupId)
@@ -367,7 +380,7 @@ namespace ReportService.Core
         {
             var newChannelId = repository.CreateEntity(channel);
             UpdateDtoEntitiesList(recepientGroups);
-            monik.ApplicationInfo($"Добавлен телеграм канал {newChannelId}");
+            SendServiceInfo($"Created telegram channel {newChannelId}");
             return newChannelId;
         }
 
@@ -376,7 +389,7 @@ namespace ReportService.Core
             repository.UpdateEntity(channel);
             UpdateDtoEntitiesList(recepientGroups);
             UpdateTaskList();
-            monik.ApplicationInfo($"Обновлена телеграм канал  {channel.Id}");
+            SendServiceInfo($"Changed telegram channel  {channel.Id}");
         }
 
         public DtoTelegramChannel GetTelegramChatIdByChannelId(int id)
@@ -389,7 +402,7 @@ namespace ReportService.Core
         {
             var newScheduleId = repository.CreateEntity(schedule);
             UpdateDtoEntitiesList(schedules);
-            monik.ApplicationInfo($"Создано расписание {newScheduleId}");
+            SendServiceInfo($"Created schedule {newScheduleId}");
             return newScheduleId;
         }
 
@@ -398,14 +411,14 @@ namespace ReportService.Core
             repository.UpdateEntity(schedule);
             UpdateDtoEntitiesList(schedules);
 
-            monik.ApplicationInfo($"Обновлено расписание {schedule.Id}");
+            SendServiceInfo($"Changed schedule {schedule.Id}");
         }
 
         public void DeleteSchedule(int id)
         {
             repository.DeleteEntity<DtoSchedule>(id);
             UpdateDtoEntitiesList(schedules);
-            monik.ApplicationInfo($"Удалено расписание {id}");
+            SendServiceInfo($"Deleted schedule {id}");
         }
 
         public int CreateTaskOper(DtoTaskOper taskOper)
@@ -413,8 +426,8 @@ namespace ReportService.Core
             var newtaskOperId = repository.CreateEntity(taskOper);
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
-            monik.ApplicationInfo(
-                $"В задачу {taskOper.TaskId} добавлен экспортёр {taskOper.OperId}");
+            SendServiceInfo(
+                $"Operation {taskOper.OperId} added to task {taskOper.TaskId}");
             return newtaskOperId;
         }
 
@@ -423,7 +436,7 @@ namespace ReportService.Core
             var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
             UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
-            monik.ApplicationInfo($"Создана задача {newTaskId}");
+            SendServiceInfo($"Created task {newTaskId}");
             return newTaskId;
         }
 
@@ -432,14 +445,14 @@ namespace ReportService.Core
             repository.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
             UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
-            monik.ApplicationInfo($"Обновлена задача {task.Id}");
+            SendServiceInfo($"Changed task {task.Id}");
         }
 
         public void DeleteTask(int taskId)
         {
             repository.DeleteEntity<DtoTask>(taskId);
             UpdateTaskList();
-            monik.ApplicationInfo($"Удалена задача {taskId}");
+            SendServiceInfo($"Deleted task {taskId}");
         }
 
         public async Task<string> GetTaskList_HtmlPage()
@@ -477,7 +490,7 @@ namespace ReportService.Core
         {
             repository.DeleteEntity<DtoTaskInstance>(id);
             UpdateTaskList();
-            monik.ApplicationInfo($"Удалена запись {id}");
+            SendServiceInfo($"Deleted task instance {id}");
         }
 
         public string GetAllTaskInstancesJson()
@@ -587,6 +600,12 @@ namespace ReportService.Core
                 channel.Id = repository.CreateEntity(channel);
                 UpdateDtoEntitiesList(telegramChannels);
             }
+        }
+
+        private void SendServiceInfo(string msg)
+        {
+            monik.ApplicationError(msg);
+            Console.WriteLine(msg);
         }
     } //class
 }

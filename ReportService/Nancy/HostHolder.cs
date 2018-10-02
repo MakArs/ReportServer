@@ -25,6 +25,7 @@ namespace ReportService.Nancy
 
             monik = Bootstrapper.Global.Resolve<IMonik>();
             monik.ApplicationInfo("HostHolder.ctor");
+            Console.WriteLine("HostHolder.ctor");
         }
 
         private static readonly HostConfiguration HostConfigs = new HostConfiguration()
@@ -36,6 +37,7 @@ namespace ReportService.Nancy
         public void Start()
         {
             monik.ApplicationWarning(stringVersion+"Started");
+            Console.WriteLine(stringVersion + "Started");
 
             try
             {
@@ -44,6 +46,7 @@ namespace ReportService.Nancy
             catch (Exception e)
             {
                 monik.ApplicationError(e.Message);
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -56,9 +59,11 @@ namespace ReportService.Nancy
             catch (Exception e)
             {
                 monik.ApplicationError(e.Message);
+                Console.WriteLine(e.Message);
             }
 
             monik.ApplicationWarning(stringVersion+"Stopped");
+            Console.WriteLine(stringVersion + "Stopped");
             monik.OnStop();
         }
     }

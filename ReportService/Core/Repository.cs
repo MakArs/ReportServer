@@ -29,7 +29,7 @@ namespace ReportService.Core
             }
             catch (Exception e)
             {
-                monik.ApplicationWarning("Error occured while getting task instances: " +
+                SendAppWarning("Error occured while getting task instances: " +
                                        $"({e.Message})");
                 throw;
             }
@@ -46,7 +46,7 @@ namespace ReportService.Core
             }
             catch (Exception e)
             {
-                monik.ApplicationWarning("Error occured while getting operation instances: " +
+                SendAppWarning("Error occured while getting operation instances: " +
                                        $"({e.Message})");
                 throw;
             }
@@ -62,7 +62,7 @@ namespace ReportService.Core
             }
             catch (Exception e)
             {
-                monik.ApplicationWarning("Error occured while getting operation instance data: " +
+                SendAppWarning("Error occured while getting operation instance data: " +
                                        $"({e.Message})");
                 throw;
             }
@@ -78,7 +78,7 @@ namespace ReportService.Core
             }
             catch (Exception e)
             {
-                monik.ApplicationError("Error occured while getting " +
+                SendAppWarning("Error occured while getting " +
                                          $"{tableName} list: {e.Message}");
                 return null;
             }
@@ -95,7 +95,7 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                monik.ApplicationWarning("Error occured while creating new " +
+                SendAppWarning("Error occured while creating new " +
                                        $"{tableName} record: {e.Message}");
                 return 0;
             }
@@ -124,7 +124,7 @@ namespace ReportService.Core
 
                 catch (Exception e)
                 {
-                    monik.ApplicationWarning("Error occured while creating new Task" +
+                    SendAppWarning("Error occured while creating new Task" +
                                              $" record: {e.Message}");
                     throw;
                 }
@@ -144,7 +144,7 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                monik.ApplicationWarning("Error occured while updating прои" +
+                SendAppWarning("Error occured while updating прои" +
                                          $"{tableName} record: {e.Message}");
             }
         }
@@ -164,7 +164,7 @@ namespace ReportService.Core
 
                 catch (Exception e)
                 {
-                    monik.ApplicationWarning("Error occured while updating Task" +
+                    SendAppWarning("Error occured while updating Task" +
                                              $" record: {e.Message}");
                     throw;
                 }
@@ -185,7 +185,7 @@ namespace ReportService.Core
 
                     catch (Exception e)
                     {
-                        monik.ApplicationWarning("Error occured while deleting Oper" +
+                        SendAppWarning("Error occured while deleting Oper" +
                                                  $" record: {e.Message}");
                         throw;
                     }
@@ -200,7 +200,7 @@ namespace ReportService.Core
 
                     catch (Exception e)
                     {
-                        monik.ApplicationWarning("Error occured while deleting Schedule" +
+                        SendAppWarning("Error occured while deleting Schedule" +
                                                  $" record: {e.Message}");
                         throw;
                     }
@@ -221,7 +221,7 @@ namespace ReportService.Core
 
                     catch (Exception e)
                     {
-                        monik.ApplicationWarning("Error occured while deleting Recepient group" +
+                        SendAppWarning("Error occured while deleting Recepient group" +
                                                  $" record: {e.Message}");
                         throw;
                     }
@@ -238,7 +238,7 @@ namespace ReportService.Core
 
                     catch (Exception e)
                     {
-                        monik.ApplicationWarning("Error occured while deleting Task instance" +
+                        SendAppWarning("Error occured while deleting Task instance" +
                                                  $" record: {e.Message}");
                         throw;
                     }
@@ -261,13 +261,20 @@ namespace ReportService.Core
                         }
                         catch (Exception e)
                         {
-                            monik.ApplicationWarning("Error occured while deleting Task" +
+                            SendAppWarning("Error occured while deleting Task" +
                                                      $" record: {e.Message}");
                             throw;
                         }
                     });
                     break;
             }
+
+        }
+
+        private void SendAppWarning(string msg)
+        {
+            monik.ApplicationWarning(msg);
+            Console.WriteLine(msg);
         }
 
         public void CreateBase(string baseConnStr)
