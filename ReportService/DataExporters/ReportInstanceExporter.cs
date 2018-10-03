@@ -1,6 +1,8 @@
 ﻿using System;
 using AutoMapper;
 using Gerakul.FastSql;
+using Gerakul.FastSql.Common;
+using Gerakul.FastSql.SqlServer;
 using ReportService.Interfaces;
 
 namespace ReportService.DataExporters
@@ -24,7 +26,10 @@ namespace ReportService.DataExporters
         {
             if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
-            SimpleCommand.ExecuteNonQuery(ConnectionString, $@"
+            var context = SqlContextProvider.DefaultInstance
+                .CreateContext(ConnectionString);
+
+            context.CreateSimple($@"
                 IF OBJECT_ID('{TableName}') IS NULL
                 CREATE TABLE {TableName}
                 (Id INT IDENTITY,
@@ -33,7 +38,9 @@ namespace ReportService.DataExporters
                 Data NVARCHAR(MAX) NOT NULL,
                 CONSTRAINT [PK_Report_Date] PRIMARY KEY CLUSTERED 
                 (ReportName DESC,
-              	ExecuteTime DESC));");
+              	ExecuteTime DESC));")
+                .ExecuteNonQuery();
+
             var newInstance = new
             {
                 ReportName,
@@ -41,8 +48,7 @@ namespace ReportService.DataExporters
                 Data = dataSet //archiver.CompressString(dataSet)
             };
 
-            MappedCommand.Insert(new QueryOptions(DbTimeOut), ConnectionString,
-                TableName, newInstance, "Id");
+            context.Insert(TableName, newInstance, new QueryOptions(DbTimeOut), "Id");
         }
     }
 }

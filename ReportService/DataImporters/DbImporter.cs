@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
-using Gerakul.FastSql;
+using Gerakul.FastSql.Common;
+using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
 
@@ -25,48 +26,51 @@ namespace ReportService.DataImporters
         public string Execute()
         {
             var queryResult = new List<Dictionary<string, object>>();
-           // var queryres2=new Dictionary<string,List<object>>();
+            // var queryres2=new Dictionary<string,List<object>>();
 
-            SqlScope.UsingConnection(ConnectionString, scope =>
+            var context = SqlContextProvider.DefaultInstance
+                .CreateContext(ConnectionString);
+            context.UsingConnection(connectionContext =>
             {
-                using (var reader = scope
-                    .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
-                    .ExecuteReader())
-                {
-                    if(reader.Read())
+                var opt = new QueryOptions(TimeOut);
+                connectionContext
+                    .CreateSimple(opt, $"{Query}")
+                    .UseReader(reader =>
                     {
-                        var fields = new Dictionary<string, object>();
-
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        if (reader.Read())
                         {
-                            var name = reader.GetName(i);
-                            var val = reader[i];
-                           // queryres2[name] = new List<object> {val};
-                            fields.Add(name, val);
+                            var fields = new Dictionary<string, object>();
+
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                var name = reader.GetName(i);
+                                var val = reader[i];
+                                // queryres2[name] = new List<object> {val};
+                                fields.Add(name, val);
+                            }
+
+                            queryResult.Add(fields);
                         }
 
-                        queryResult.Add(fields);
-                    }
-
-                    while (reader.Read())
-                    {
-                        var fields = new Dictionary<string, object>();
-
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        while (reader.Read())
                         {
-                            var name = reader.GetName(i);
-                            var val = reader[i];
-                          //  queryres2[name].Add(val);
-                            fields.Add(name, val);
-                        }
+                            var fields = new Dictionary<string, object>();
 
-                        queryResult.Add(fields);
-                    }
-                }
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                var name = reader.GetName(i);
+                                var val = reader[i];
+                                //  queryres2[name].Add(val);
+                                fields.Add(name, val);
+                            }
+
+                            queryResult.Add(fields);
+                        }
+                    });
             });
 
             string jsString = JsonConvert.SerializeObject(queryResult);
-           // string jsString = JsonConvert.SerializeObject(queryres2,Formatting.Indented);
+            // string jsString = JsonConvert.SerializeObject(queryres2,Formatting.Indented);
             return jsString;
         }
     }

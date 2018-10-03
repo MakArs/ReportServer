@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Text;
 using AutoMapper;
-using Gerakul.FastSql;
+using Gerakul.FastSql.Common;
+using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
 
 namespace ReportService.DataExporters
@@ -22,13 +23,17 @@ namespace ReportService.DataExporters
 
         public override void Send(string dataSet)
         {
+            var context = SqlContextProvider.DefaultInstance
+                .CreateContext(ConnectionString);
+
             if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
+
             //todo:logic for auto-creating table by user-defined list of columns
             if (DropBefore)
-                SimpleCommand.ExecuteNonQuery(new QueryOptions(DbTimeOut),
-                    ConnectionString,
-                    $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}");
+                context.CreateSimple(new QueryOptions(DbTimeOut),
+                    $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
+                    .ExecuteNonQuery();
 
             var children = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(dataSet);
 
@@ -49,7 +54,8 @@ namespace ReportService.DataExporters
                 createQueryBuilder.Length--;
                 createQueryBuilder.Append("); ");
 
-                SimpleCommand.ExecuteNonQuery(ConnectionString, createQueryBuilder.ToString());
+                context.CreateSimple(createQueryBuilder.ToString())
+                    .ExecuteNonQuery();
             }
 
             StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
@@ -73,7 +79,7 @@ namespace ReportService.DataExporters
 
                 fullcom.Append($@"'{values.Last()}')");
                 var fstr = fullcom.ToString();
-                SimpleCommand.ExecuteNonQuery(new QueryOptions(DbTimeOut), ConnectionString, fstr);
+                context.CreateSimple(new QueryOptions(DbTimeOut), fstr).ExecuteNonQuery();
             }
         }
     }

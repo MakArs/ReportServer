@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Gerakul.FastSql;
+using Gerakul.FastSql.Common;
+using Gerakul.FastSql.SqlServer;
 using Monik.Common;
 using ReportService.Interfaces;
-using static System.Int32;
 
 namespace ReportService.Core
 {
     public class Repository : IRepository
     {
-        private readonly string connStr;
         private readonly IMonik monik;
+        private readonly ConnectionStringContext context;
 
-        public Repository(string connStr,IMonik monik)
+        public Repository(string connStr, IMonik monik)
         {
-            this.connStr = connStr;
+            context = SqlContextProvider.DefaultInstance.CreateContext(connStr);
             this.monik = monik;
         } //ctor
 
@@ -23,14 +23,13 @@ namespace ReportService.Core
         {
             try
             {
-                return SimpleCommand.ExecuteQuery<DtoTaskInstance>(connStr,
-                        $"select * from TaskInstance where TaskId={taskId}")
-                    .ToList();
+                return context.CreateSimple($"select * from TaskInstance where TaskId={taskId}")
+                    .ExecuteQuery<DtoTaskInstance>().ToList();
             }
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting task instances: " +
-                                       $"({e.Message})");
+                               $"({e.Message})");
                 throw;
             }
         }
@@ -40,14 +39,15 @@ namespace ReportService.Core
         {
             try
             {
-            return SimpleCommand.ExecuteQuery<DtoOperInstance>(connStr,
-                    $"select Id,TaskInstanceId,OperId,StartTime,Duration,State,null as DataSet,null as ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
-                .ToList();
+                return context.CreateSimple
+                    ("select Id,TaskInstanceId,OperId,StartTime,Duration,State,null as DataSet," +
+                     $"null as ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
+                    .ExecuteQuery<DtoOperInstance>().ToList();
             }
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting operation instances: " +
-                                       $"({e.Message})");
+                               $"({e.Message})");
                 throw;
             }
         }
@@ -56,14 +56,15 @@ namespace ReportService.Core
         {
             try
             {
-            return SimpleCommand.ExecuteQuery<DtoOperInstance>(connStr,
-                    $@"select * from OperInstance where Id={operInstanceId}")
-                .ToList().First();
+                return context.CreateSimple
+                        ($@"select * from OperInstance where Id={operInstanceId}")
+                    .ExecuteQuery<DtoOperInstance>()
+                    .ToList().First();
             }
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting operation instance data: " +
-                                       $"({e.Message})");
+                               $"({e.Message})");
                 throw;
             }
         }
@@ -73,13 +74,14 @@ namespace ReportService.Core
             var tableName = typeof(T).Name.Remove(0, 3);
             try
             {
-                return SimpleCommand.ExecuteQuery<T>(connStr, $"select * from {tableName}")
+                return context.CreateSimple($"select * from {tableName}")
+                    .ExecuteQuery<T>()
                     .ToList();
             }
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting " +
-                                         $"{tableName} list: {e.Message}");
+                               $"{tableName} list: {e.Message}");
                 return null;
             }
         }
@@ -90,13 +92,15 @@ namespace ReportService.Core
 
             try
             {
-                return (int) MappedCommand.InsertAndGetId(connStr, $"{tableName}", entity, "Id");
+                return context.CreateInsertWithOutput($"{tableName}", entity,
+                        new List<string> {"Id"}, "Id")
+                    .ExecuteQueryFirstColumn<int>().First();
             }
 
             catch (Exception e)
             {
                 SendAppWarning("Error occured while creating new " +
-                                       $"{tableName} record: {e.Message}");
+                               $"{tableName} record: {e.Message}");
                 return 0;
             }
         }
@@ -104,28 +108,29 @@ namespace ReportService.Core
         public int CreateTask(DtoTask task, params DtoTaskOper[] bindedOpers)
         {
             int newTaskId = 0;
-            SqlScope.UsingTransaction(connStr, scope =>
+            context.UsingTransaction(transContext =>
             {
                 try
                 {
-                    newTaskId = Parse(scope.CreateInsert("Task", task, true, "Id").ExecuteScalar()
-                        .ToString());
+                    newTaskId = transContext.CreateInsertWithOutput("Task", task,
+                            new List<string> {"Id"}, "Id")
+                        .ExecuteQueryFirstColumn<int>().First();
 
-                    if (bindedOpers==null)
-                    return;
+                    if (bindedOpers == null)
+                        return;
 
                     foreach (var oper in bindedOpers)
                     {
                         oper.TaskId = newTaskId;
                     }
 
-                    bindedOpers.WriteToServer(scope.Transaction, "TaskOper");
+                    bindedOpers.WriteToServer(transContext, "TaskOper");
                 }
 
                 catch (Exception e)
                 {
                     SendAppWarning("Error occured while creating new Task" +
-                                             $" record: {e.Message}");
+                                   $" record: {e.Message}");
                     throw;
                 }
             });
@@ -139,136 +144,121 @@ namespace ReportService.Core
 
             try
             {
-                MappedCommand.Update(connStr, $"{tableName}", entity, "Id");
+                context.Update($"{tableName}", entity, "Id");
             }
 
             catch (Exception e)
             {
                 SendAppWarning("Error occured while updating прои" +
-                                         $"{tableName} record: {e.Message}");
+                               $"{tableName} record: {e.Message}");
             }
         }
 
         public void UpdateTask(DtoTask task, params DtoTaskOper[] bindedOpers)
         {
-            SqlScope.UsingTransaction(connStr, scope =>
+            context.UsingTransaction(transContext =>
             {
                 try
                 {
-                    scope.CreateUpdate("Task", task, "Id").ExecuteNonQuery();
+                    transContext.Update("Task", task, "Id");
 
-                    scope.CreateCommand($"Delete TaskOper where TaskId={task.Id}").ExecuteNonQuery();
+                    transContext.CreateSimple($"Delete TaskOper where TaskId={task.Id}")
+                        .ExecuteNonQuery();
 
-                    bindedOpers.WriteToServer(scope.Transaction, "TaskOper");
+                    bindedOpers.WriteToServer(transContext, "TaskOper");
                 }
 
                 catch (Exception e)
                 {
                     SendAppWarning("Error occured while updating Task" +
-                                             $" record: {e.Message}");
+                                   $" record: {e.Message}");
                     throw;
                 }
             });
         }
 
-        public void DeleteEntity<T>(int id)
+        public void DeleteEntity<T>(int id) where T : IDtoEntity
         {
             var type = typeof(T);
+            var tableName = type.Name.Remove(0, 3);
+
             switch (true)
             {
-                case bool _ when type == typeof(DtoOper): 
-                    try
-                    {
-                        SimpleCommand.ExecuteNonQuery(connStr,
-                            $@"delete Oper where Id={id}");
-                    }
-
-                    catch (Exception e)
-                    {
-                        SendAppWarning("Error occured while deleting Oper" +
-                                                 $" record: {e.Message}");
-                        throw;
-                    }
-                    break;
-
-                case bool _ when type == typeof(DtoSchedule):
-                    try
-                    {
-                        SimpleCommand.ExecuteNonQuery(connStr,
-                            $@"delete Schedule where Id={id}");
-                    }
-
-                    catch (Exception e)
-                    {
-                        SendAppWarning("Error occured while deleting Schedule" +
-                                                 $" record: {e.Message}");
-                        throw;
-                    }
-                    break;
-
-                case bool _ when type == typeof(DtoTaskOper): //todo:do we really need this method?
-                    break;
-                    
-                case bool _ when type == typeof(DtoTelegramChannel): //todo:method
-                    break;
-
-                case bool _ when type == typeof(DtoRecepientGroup): //todo:method
-                    try
-                    {
-                        SimpleCommand.ExecuteNonQuery(connStr,
-                            $@"delete RecepientGroup where Id={id}");
-                    }
-
-                    catch (Exception e)
-                    {
-                        SendAppWarning("Error occured while deleting Recepient group" +
-                                                 $" record: {e.Message}");
-                        throw;
-                    }
-                    break;
 
                 case bool _ when type == typeof(DtoTaskInstance):
-
-                    try
-                    {
-                    SimpleCommand.ExecuteNonQuery(connStr,
-                        $@"delete OperInstance where TaskInstanceId={id}");
-                    SimpleCommand.ExecuteNonQuery(connStr, $@"delete TaskInstance where id={id}");
-                    }
-
-                    catch (Exception e)
-                    {
-                        SendAppWarning("Error occured while deleting Task instance" +
-                                                 $" record: {e.Message}");
-                        throw;
-                    }
-
-                    break;
-
-                case bool _ when type == typeof(DtoTask):
-                    SqlScope.UsingTransaction(connStr, scope =>
+                    context.UsingTransaction(transContext =>
                     {
                         try
                         {
-                        scope.CreateCommand($@"delete OperInstance where TaskInstanceId in
-                                            (select id from TaskInstance where TaskId={id})")
-                            .ExecuteNonQuery();
-                        scope.CreateCommand($@"delete TaskInstance where TaskID={id}")
-                            .ExecuteNonQuery();
-                        scope.CreateCommand($@"delete TaskOper where TaskID={id}")
-                            .ExecuteNonQuery();
-                        scope.CreateCommand( $@"delete Task where id={id}").ExecuteNonQuery();
+                            transContext
+                                .CreateCommand($"delete OperInstance where TaskInstanceId={id}")
+                                .ExecuteNonQuery();
+                            transContext.CreateCommand($"delete TaskInstance where id={id}")
+                                .ExecuteNonQuery();
                         }
+
                         catch (Exception e)
                         {
-                            SendAppWarning("Error occured while deleting Task" +
-                                                     $" record: {e.Message}");
+                            SendAppWarning("Error occured while deleting Task instance" +
+                                           $" record: {e.Message}");
                             throw;
                         }
                     });
                     break;
+
+                case bool _ when type == typeof(DtoTask):
+                    context.UsingTransaction(transContext =>
+                    {
+                        try
+                        {
+                            transContext.CreateCommand(
+                                    $@"delete OperInstance where TaskInstanceId in
+                                            (select id from TaskInstance where TaskId={id})")
+                                .ExecuteNonQuery();
+                            transContext.CreateCommand($"delete TaskInstance where TaskID={id}")
+                                .ExecuteNonQuery();
+                            transContext.CreateCommand($"delete TaskOper where TaskID={id}")
+                                .ExecuteNonQuery();
+                            transContext.CreateCommand($"delete Task where id={id}")
+                                .ExecuteNonQuery();
+                        }
+                        catch (Exception e)
+                        {
+                            SendAppWarning("Error occured while deleting Task" +
+                                           $" record: {e.Message}");
+                            throw;
+                        }
+                    });
+                    break;
+
+                default:
+                    try
+                    {
+                        context.CreateSimple($"delete {tableName} where Id={id}").ExecuteNonQuery();
+                    }
+
+                    catch (Exception e)
+                    {
+                        SendAppWarning($"Error occured while deleting {tableName}" +
+                                       $" record: {e.Message}");
+                        throw;
+                    }
+
+                    break;
             }
 
+            //case bool _ when type == typeof(DtoTaskOper): //todo:do we really need this method?
+            //break;
+
+            //case bool _ when type == typeof(DtoTelegramChannel): //todo:method
+            //break;
+
+            //case bool _ when type == typeof(DtoRecepientGroup): //todo:method
+            //try
+            //{
+            //    SimpleCommand.ExecuteNonQuery(connStr,
+            //        $@"delete RecepientGroup where Id={id}");
+            //}
         }
 
         private void SendAppWarning(string msg)
@@ -279,25 +269,28 @@ namespace ReportService.Core
 
         public void CreateBase(string baseConnStr)
         {
+            var createBaseContext = SqlContextProvider.DefaultInstance
+                .CreateContext(baseConnStr);
             // TODO: check db exists ~find way to cut redundant code 
-
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('Oper') IS NULL
                 CREATE TABLE Oper
                 (Id INT PRIMARY KEY IDENTITY,
                 Type NVARCHAR(255) NOT NULL,
                 Name NVARCHAR(255) NOT NULL,
-                Config NVARCHAR(MAX) NOT NULL);");
+                Config NVARCHAR(MAX) NOT NULL);")
+                .ExecuteNonQuery();
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('RecepientGroup') IS NULL
                 CREATE TABLE RecepientGroup
                 (Name NVARCHAR(127) NOT NULL,
                 Addresses NVARCHAR(4000) NOT NULL,
                 AddressesBcc NVARCHAR(4000) NULL
-                ); ");
+                ); ")
+                .ExecuteNonQuery();
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('TelegramChannel') IS NULL
                 CREATE TABLE TelegramChannel
                 (Id INT PRIMARY KEY IDENTITY,
@@ -305,12 +298,15 @@ namespace ReportService.Core
                 Description NVARCHAR(255) NULL,
                 ChatId BIGINT NOT NULL,
                 Type TINYINT NOT NULL
-                );  ");
+                );  ")
+                .ExecuteNonQuery();
 
-            var existScheduleTable = Convert.ToInt64(SimpleCommand
-                .ExecuteQueryFirstColumn<object>(baseConnStr, @"
+            var existScheduleTable = Convert.ToInt64(createBaseContext
+                .CreateSimple(@"
                SELECT ISNULL(OBJECT_ID('Schedule'),0)")
+                .ExecuteQueryFirstColumn<object>()
                 .First());
+
             if (existScheduleTable == 0)
             {
                 var schedules = new[]
@@ -318,16 +314,18 @@ namespace ReportService.Core
                     new DtoSchedule {Name = "workDaysEvening", Schedule = "30 22 * * 1-5"},
                     new DtoSchedule {Name = "sundayEvening", Schedule = "30 22 * * 0"}
                 };
-                SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+
+                createBaseContext.CreateSimple(@"
                 CREATE TABLE Schedule
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
                 Schedule NVARCHAR(255) NOT NULL
-                )");
-                schedules.WriteToServer(baseConnStr, "Schedule");
+                )")
+                    .ExecuteNonQuery();
+                schedules.WriteToServer(createBaseContext, "Schedule");
             }
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('Task') IS NULL
                 CREATE TABLE Task
                 (Id INT PRIMARY KEY IDENTITY,
@@ -335,9 +333,10 @@ namespace ReportService.Core
                 ScheduleId INT NULL
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
                 REFERENCES Schedule(Id)
-                )");
+                )")
+                .ExecuteNonQuery();
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('TaskOper') IS NULL
                 CREATE TABLE TaskOper
                 (Id INT PRIMARY KEY IDENTITY,
@@ -348,9 +347,10 @@ namespace ReportService.Core
                 CONSTRAINT FK_TaskOper_Task FOREIGN KEY(TaskId) 
                 REFERENCES Task(Id),
                 CONSTRAINT FK_TaskOper_Oper FOREIGN KEY(OperId) 
-                REFERENCES Oper(Id));");
+                REFERENCES Oper(Id));")
+                .ExecuteNonQuery();
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('TaskInstance') IS NULL
                 CREATE TABLE TaskInstance
                 (Id INT PRIMARY KEY IDENTITY,
@@ -360,9 +360,10 @@ namespace ReportService.Core
                 State INT NOT NULL,
                 CONSTRAINT FK_TaskInstance_Task FOREIGN KEY(TaskID)
                 REFERENCES Task(Id)
-                )");
+                )")
+                .ExecuteNonQuery();
 
-            SimpleCommand.ExecuteNonQuery(baseConnStr, @"
+            createBaseContext.CreateSimple(@"
                 IF object_id('OperInstance') IS NULL
                 CREATE TABLE OperInstance(
                 Id INT PRIMARY KEY IDENTITY,
@@ -377,7 +378,8 @@ namespace ReportService.Core
                 REFERENCES Oper(Id),
                 CONSTRAINT FK_OperInstance_TaskInstance FOREIGN KEY(TaskInstanceId)
                 REFERENCES TaskInstance(Id)
-                )");
-        }//database structure creating
+                )")
+                .ExecuteNonQuery();
+        } //database structure creating
     } //class
 }

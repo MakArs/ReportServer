@@ -102,7 +102,11 @@ namespace ReportService.Interfaces
         void UpdateEntity<T>(T entity) where T : IDtoEntity;
         void UpdateTask(DtoTask task, params DtoTaskOper[] bindedOpers);
 
-        void DeleteEntity<T>(int id);
+        /// <summary>
+        /// Deletes generic-type entity in repository.
+        /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// </summary>
+        void DeleteEntity<T>(int id) where T : IDtoEntity;
 
         void CreateBase(string baseConnStr);
     }
