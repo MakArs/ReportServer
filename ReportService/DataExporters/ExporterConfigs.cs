@@ -35,6 +35,7 @@ namespace ReportService.DataExporters
         public bool HasHtmlBody;
         public bool HasJsonAttachment;
         public bool HasXlsxAttachment;
+        public string RecepientsDatasetName;
         public int RecepientGroupId;
         public string ViewTemplate;
         public string ReportName;

@@ -5,6 +5,7 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
+using ReportService.Interfaces;
 
 namespace ReportService.DataExporters
 {
@@ -21,17 +22,19 @@ namespace ReportService.DataExporters
             mapper.Map(config, this);
         }
 
-        public override void Send(string dataSet)
+        public override void Send(IRTaskRunContext taskContext)
         {
-            var context = SqlContextProvider.DefaultInstance
+            var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
+
+            var dataSet = taskContext.DataSets[DataSetName];
 
             if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
 
             //todo:logic for auto-creating table by user-defined list of columns
             if (DropBefore)
-                context.CreateSimple(new QueryOptions(DbTimeOut),
+                sqlContext.CreateSimple(new QueryOptions(DbTimeOut),
                     $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
                     .ExecuteNonQuery();
 
@@ -54,7 +57,7 @@ namespace ReportService.DataExporters
                 createQueryBuilder.Length--;
                 createQueryBuilder.Append("); ");
 
-                context.CreateSimple(createQueryBuilder.ToString())
+                sqlContext.CreateSimple(createQueryBuilder.ToString())
                     .ExecuteNonQuery();
             }
 
@@ -79,7 +82,7 @@ namespace ReportService.DataExporters
 
                 fullcom.Append($@"'{values.Last()}')");
                 var fstr = fullcom.ToString();
-                context.CreateSimple(new QueryOptions(DbTimeOut), fstr).ExecuteNonQuery();
+                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fstr).ExecuteNonQuery();
             }
         }
     }

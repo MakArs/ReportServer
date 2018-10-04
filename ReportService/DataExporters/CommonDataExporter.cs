@@ -11,7 +11,7 @@ namespace ReportService.DataExporters
         public string DataSetName { get; set; }
         public bool RunIfVoidDataSet { get; set; }
 
-        public virtual void Send(string dataSet)
+        public virtual void Send(IRTaskRunContext taskContext)
         {
         }
 

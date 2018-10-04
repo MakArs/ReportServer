@@ -19,11 +19,12 @@ namespace ReportService.Core
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
 
-        private readonly DefaultTaskWorker worker;
+        private readonly IDefaultTaskWorker worker;
         private readonly IRepository repository;
         private readonly IMonik monik;
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
+        private readonly ILifetimeScope autofac;
         private string defaultView;
 
         public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
@@ -70,9 +71,8 @@ namespace ReportService.Core
                 Operations.Add(newOper);
             }
 
-            worker = autofac.Resolve<DefaultTaskWorker>
-                (new NamedParameter("task", this));
-
+            worker = autofac.Resolve<IDefaultTaskWorker>();
+            this.autofac = autofac;
             this.repository = repository;
         }
 
@@ -97,7 +97,7 @@ namespace ReportService.Core
             {
                 var exceptions = new List<Tuple<Exception, string>>();
                 List<IOperation> opersToExecute;
-                Dictionary<string, string> dataSets = new Dictionary<string, string>();
+                var context = autofac.Resolve<IRTaskRunContext>();
 
                 lock (this)
                     opersToExecute = useDefault
@@ -114,7 +114,7 @@ namespace ReportService.Core
                 }
 
                 foreach (var oper in opersToExecute)
-              {
+                {
                     var dtoOperInstance = new DtoOperInstance
                     {
                         TaskInstanceId = dtoTaskInstance.Id,
@@ -135,11 +135,10 @@ namespace ReportService.Core
                         case IDataImporter importer:
                             try
                             {
-                                var newDataSet = importer.Execute();
-                                lock (this)
-                                    dataSets[importer.DataSetName] = newDataSet;
+                                importer.Execute(context);
 
-                                dtoOperInstance.DataSet = archiver.CompressString(newDataSet);
+                                dtoOperInstance.DataSet = archiver.CompressString(context
+                                    .DataSets[importer.DataSetName]);
                                 dtoOperInstance.State = (int) InstanceState.Success;
                                 operDuration.Stop();
                                 dtoOperInstance.Duration =
@@ -163,7 +162,7 @@ namespace ReportService.Core
 
                             try
                             {
-                                exporter.Send(dataSets[exporter.DataSetName]);
+                                exporter.Send(context);
                                 dtoOperInstance.State = (int) InstanceState.Success;
                                 operDuration.Stop();
                                 dtoOperInstance.Duration =
@@ -188,7 +187,7 @@ namespace ReportService.Core
                 if (exceptions.Count == 0)
                 {
                     if (useDefault)
-                        defaultView = worker.GetDefaultView(Name, dataSets.Last().Value);
+                        defaultView = worker.GetDefaultView(Name, context.DataSets.Last().Value);
                     var msg = $"Задача {Id} успешно выполнена";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
@@ -227,7 +226,7 @@ namespace ReportService.Core
                 ? "This task has not default operations.."
                 : defaultView;
         }
-        
+
         public void SendDefault(string mailAddress)
         {
             Execute(true);

@@ -19,7 +19,7 @@ namespace ReportService.Interfaces
     public interface IDataExporter : IOperation
     {
         bool RunIfVoidDataSet { get; set; }
-        void Send(string dataSet);
+        void Send(IRTaskRunContext taskContext);
         void Cleanup(ICleanupSettings cleanUpSettings);
     }
 
@@ -30,6 +30,6 @@ namespace ReportService.Interfaces
 
     public interface IDataImporter : IOperation
     {
-        string Execute();
+        void Execute(IRTaskRunContext taskContext);
     }
 }

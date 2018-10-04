@@ -22,8 +22,10 @@ namespace ReportService.DataExporters
             mapper.Map(config, this);
         }
 
-        public override void Send(string dataSet)
+        public override void Send(IRTaskRunContext taskContext)
         {
+            var dataSet = taskContext.DataSets[DataSetName];
+
             if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
             var context = SqlContextProvider.DefaultInstance

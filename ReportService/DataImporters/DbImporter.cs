@@ -23,14 +23,14 @@ namespace ReportService.DataImporters
             mapper.Map(config, this);
         }
 
-        public string Execute()
+        public void Execute(IRTaskRunContext taskContext)
         {
             var queryResult = new List<Dictionary<string, object>>();
             // var queryres2=new Dictionary<string,List<object>>();
 
-            var context = SqlContextProvider.DefaultInstance
+            var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
-            context.UsingConnection(connectionContext =>
+            sqlContext.UsingConnection(connectionContext =>
             {
                 var opt = new QueryOptions(TimeOut);
                 connectionContext
@@ -71,7 +71,7 @@ namespace ReportService.DataImporters
 
             string jsString = JsonConvert.SerializeObject(queryResult);
             // string jsString = JsonConvert.SerializeObject(queryres2,Formatting.Indented);
-            return jsString;
+            taskContext.DataSets[DataSetName] = jsString;
         }
     }
 }

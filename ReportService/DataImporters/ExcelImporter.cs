@@ -29,7 +29,7 @@ namespace ReportService.DataImporters
             mapper.Map(config, this);
         }
 
-        public string Execute()
+        public void Execute(IRTaskRunContext taskContext)
         {
             var fi = new FileInfo(FilePath);
             var queryResult = new List<Dictionary<string, string>>();
@@ -73,11 +73,12 @@ namespace ReportService.DataImporters
                     if (SkipEmptyRows && fields.All(field => string.IsNullOrEmpty(field.Value)))
                         continue;
 
-                        queryResult.Add(fields);
+                    queryResult.Add(fields);
                 }
             }
 
-            return JsonConvert.SerializeObject(queryResult);
+            var jsString = JsonConvert.SerializeObject(queryResult);
+            taskContext.DataSets[DataSetName] = jsString;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ReportService.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ReportService.Interfaces
@@ -29,8 +30,10 @@ namespace ReportService.Interfaces
         {
             return new RecepientAddresses
             {
-                To = Addresses.Split(';'),
-                Bcc = AddressesBcc?.Split(';')
+                To = Addresses.Split(new[] {';'},
+                    StringSplitOptions.RemoveEmptyEntries).ToList(),
+                Bcc = AddressesBcc?.Split(new[] {';'},
+                    StringSplitOptions.RemoveEmptyEntries).ToList()
             };
         }
     }
@@ -43,7 +46,7 @@ namespace ReportService.Interfaces
         DateTime LastTime { get; }
         List<IOperation> Operations { get; set; }
 
-        void Execute(bool useDefault=false);
+        void Execute(bool useDefault = false);
         void UpdateLastTime();
         Task<string> GetCurrentView();
         void SendDefault(string mailAddress);

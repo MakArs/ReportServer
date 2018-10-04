@@ -9,7 +9,7 @@ using ReportService.Interfaces;
 
 namespace ReportService.Core
 {
-    public class DefaultTaskWorker
+    public class DefaultTaskWorker: IDefaultTaskWorker
     {
         private readonly IViewExecutor executor;
 

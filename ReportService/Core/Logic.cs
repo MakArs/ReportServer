@@ -160,7 +160,6 @@ namespace ReportService.Core
         public void Start()
         {
             //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-
             RegisteredImporters = autofac
                 .ComponentRegistry
                 .Registrations
@@ -451,6 +450,7 @@ namespace ReportService.Core
         public void DeleteTask(int taskId)
         {
             repository.DeleteEntity<DtoTask>(taskId);
+            UpdateDtoEntitiesList(taskOpers);
             UpdateTaskList();
             SendServiceInfo($"Deleted task {taskId}");
         }
@@ -604,7 +604,7 @@ namespace ReportService.Core
 
         private void SendServiceInfo(string msg)
         {
-            monik.ApplicationError(msg);
+            monik.ApplicationInfo(msg);
             Console.WriteLine(msg);
         }
     } //class

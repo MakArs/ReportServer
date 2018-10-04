@@ -24,8 +24,9 @@ namespace ReportService.DataExporters
             bot = botClient;
         }
 
-        public override void Send(string dataSet)
+        public override void Send(IRTaskRunContext taskContext)
         {
+            var dataSet = taskContext.DataSets[DataSetName];
             if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
             bot.SendTextMessageAsync(channel.ChatId,
