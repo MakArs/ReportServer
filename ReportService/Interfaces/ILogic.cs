@@ -24,8 +24,8 @@ namespace ReportService.Interfaces
         string GetAllTasksJson();
         string GetInWorkEntitiesJson();
 
-        int CreateOperation(DtoOper oper);
-        void UpdateOperation(DtoOper oper);
+        int CreateOperation(DtoOperTemplate operTemplate);
+        void UpdateOperation(DtoOperTemplate operTemplate);
         void DeleteOperation(int id);
 
         int CreateRecepientGroup(DtoRecepientGroup group);

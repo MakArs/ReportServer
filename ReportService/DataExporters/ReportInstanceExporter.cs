@@ -37,7 +37,7 @@ namespace ReportService.DataExporters
                 (Id INT IDENTITY,
                 ReportName NVARCHAR(255) NOT NULL,
                 ExecuteTime DATETIME NOT NULL,
-                Data NVARCHAR(MAX) NOT NULL,
+                DataSet VARBINARY(MAX) NOT NULL,
                 CONSTRAINT [PK_Report_Date] PRIMARY KEY CLUSTERED 
                 (ReportName DESC,
               	ExecuteTime DESC));")
@@ -47,7 +47,7 @@ namespace ReportService.DataExporters
             {
                 ReportName,
                 ExecuteTime = DateTime.Now,
-                Data = dataSet //archiver.CompressString(dataSet)
+                DataSet = archiver.CompressString(dataSet) //archiver.CompressString(dataSet)
             };
 
             context.Insert(TableName, newInstance, new QueryOptions(DbTimeOut), "Id");

@@ -83,7 +83,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var newOper = this.Bind<DtoOper>();
+                    var newOper = this.Bind<DtoOperTemplate>();
                     var id = logic.CreateOperation(newOper);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
@@ -99,7 +99,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var existingOper = this.Bind<DtoOper>
+                    var existingOper = this.Bind<DtoOperTemplate>
                         (new BindingConfig { BodyOnly = true });
 
                     if (parameters.id != existingOper.Id)

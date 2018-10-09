@@ -29,7 +29,7 @@ namespace ReportService.Core
 
         public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
                      IMonik monik, IMapper mapper, IArchiver archiver, int id,
-                     string name, DtoSchedule schedule, List<Tuple<DtoOper, int, bool>> opers)
+                     string name, DtoSchedule schedule, List<Tuple<DtoOperTemplate, int, bool>> opers)
         {
             this.archiver = archiver;
             this.monik = monik;
@@ -49,7 +49,7 @@ namespace ReportService.Core
                 {
                     newOper = autofac.ResolveNamed<IDataImporter>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(oper.Config,
+                            JsonConvert.DeserializeObject(oper.ConfigTemplate,
                                 logic.RegisteredImporters[operType])));
                 }
 
@@ -57,7 +57,7 @@ namespace ReportService.Core
                 {
                     newOper = autofac.ResolveNamed<IDataExporter>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(oper.Config,
+                            JsonConvert.DeserializeObject(oper.ConfigTemplate,
                                 logic.RegisteredExporters[operType])));
                 }
 
@@ -118,7 +118,7 @@ namespace ReportService.Core
                     var dtoOperInstance = new DtoOperInstance
                     {
                         TaskInstanceId = dtoTaskInstance.Id,
-                        OperId = oper.Id,
+                        OperTemplateId = oper.Id,
                         StartTime = DateTime.Now,
                         Duration = 0,
                         State = (int) InstanceState.InProcess

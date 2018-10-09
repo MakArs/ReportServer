@@ -7,12 +7,13 @@ namespace ReportService.Interfaces
     {
     }
 
-    public class DtoOper : IDtoEntity
+    public class DtoOperTemplate : IDtoEntity
     {
         public int Id { get; set; }
         public string Type { get; set; }
         public string Name { get; set; }
-        public string Config { get; set; }
+        public string ConfigTemplate { get; set; }
+        public bool IsDeleted { get; set; }
     }
 
     public class DtoRecepientGroup : IDtoEntity
@@ -52,7 +53,8 @@ namespace ReportService.Interfaces
         public int Number { get; set; }
         public bool IsDefault { get; set; }
         public int TaskId { get; set; }
-        public int OperId { get; set; }
+        public int OperTemplateId { get; set; }
+        public string Config { get; set; }
     }
 
     public class DtoTaskInstance : IDtoEntity
@@ -68,7 +70,7 @@ namespace ReportService.Interfaces
     {
         public int Id { get; set; }
         public int TaskInstanceId { get; set; }
-        public int OperId { get; set; }
+        public int OperTemplateId { get; set; }
         public DateTime StartTime { get; set; }
         public int Duration { get; set; }
         public int State { get; set; }

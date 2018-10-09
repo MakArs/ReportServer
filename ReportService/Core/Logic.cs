@@ -6,6 +6,7 @@ using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace ReportService.Core
         private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
 
-        private readonly List<DtoOper> operations;
+        private readonly List<DtoOperTemplate> operations;
         private readonly List<DtoRecepientGroup> recepientGroups;
         private readonly List<DtoTelegramChannel> telegramChannels;
         private readonly List<DtoSchedule> schedules;
@@ -53,7 +54,7 @@ namespace ReportService.Core
 
             tableView = this.autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
 
-            operations = new List<DtoOper>();
+            operations = new List<DtoOperTemplate>();
             recepientGroups = new List<DtoRecepientGroup>();
             telegramChannels = new List<DtoTelegramChannel>();
             schedules = new List<DtoSchedule>();
@@ -96,7 +97,7 @@ namespace ReportService.Core
                                 taskOpers
                                     .Where(taskOper => taskOper.TaskId == dtoTask.Id)
                                     .Select(taskOper => Tuple.Create
-                                    (operations.FirstOrDefault(oper => oper.Id == taskOper.OperId),
+                                    (operations.FirstOrDefault(oper => oper.Id == taskOper.OperTemplateId),
                                         taskOper.Number, taskOper.IsDefault))
                                     .ToList()));
 
@@ -237,7 +238,7 @@ namespace ReportService.Core
 
         public string GetAllOperationsJson()
         {
-            List<DtoOper> currentOpers;
+            List<DtoOperTemplate> currentOpers;
             lock (this)
                 currentOpers = operations.ToList();
 
@@ -316,9 +317,9 @@ namespace ReportService.Core
 
         #endregion
 
-        public int CreateOperation(DtoOper oper)
+        public int CreateOperation(DtoOperTemplate operTemplate)
         {
-            var newExporterId = repository.CreateEntity(oper);
+            var newExporterId = repository.CreateEntity(operTemplate);
             UpdateDtoEntitiesList(operations);
 
             SendServiceInfo($"Created operation {newExporterId}");
@@ -326,18 +327,18 @@ namespace ReportService.Core
             return newExporterId;
         }
 
-        public void UpdateOperation(DtoOper oper)
+        public void UpdateOperation(DtoOperTemplate operTemplate)
         {
-            repository.UpdateEntity(oper);
+            repository.UpdateEntity(operTemplate);
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
 
-            SendServiceInfo($"Changed operation {oper.Id}");
+            SendServiceInfo($"Changed operation {operTemplate.Id}");
         }
 
         public void DeleteOperation(int id)
         {
-            repository.DeleteEntity<DtoOper>(id);
+            repository.DeleteEntity<DtoOperTemplate>(id);
             UpdateDtoEntitiesList(operations);
 
             SendServiceInfo($"Deleted operation {id}");
@@ -426,7 +427,7 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
             SendServiceInfo(
-                $"Operation {taskOper.OperId} added to task {taskOper.TaskId}");
+                $"Operation {taskOper.OperTemplateId} added to task {taskOper.TaskId}");
             return newtaskOperId;
         }
 
