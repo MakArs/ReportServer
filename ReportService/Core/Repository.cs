@@ -40,7 +40,7 @@ namespace ReportService.Core
             try
             {
                 return context.CreateSimple
-                    ("select Id,TaskInstanceId,OperTemplateId,StartTime,Duration,State,null as DataSet," +
+                    ("select Id,TaskInstanceId,OperationId,StartTime,Duration,State,null as DataSet," +
                      $"null as ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
                     .ExecuteQuery<DtoOperInstance>().ToList();
             }
@@ -105,7 +105,7 @@ namespace ReportService.Core
             }
         }
 
-        public int CreateTask(DtoTask task, params DtoTaskOper[] bindedOpers)
+        public int CreateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
             int newTaskId = 0;
             context.UsingTransaction(transContext =>
@@ -124,7 +124,7 @@ namespace ReportService.Core
                         oper.TaskId = newTaskId;
                     }
 
-                    bindedOpers.WriteToServer(transContext, "TaskOper");
+                    bindedOpers.WriteToServer(transContext, "Operation");
                 }
 
                 catch (Exception e)
@@ -154,7 +154,7 @@ namespace ReportService.Core
             }
         }
 
-        public void UpdateTask(DtoTask task, params DtoTaskOper[] bindedOpers)
+        public void UpdateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
             context.UsingTransaction(transContext =>
             {
@@ -162,10 +162,10 @@ namespace ReportService.Core
                 {
                     transContext.Update("Task", task, "Id");
 
-                    transContext.CreateSimple($"Delete TaskOper where TaskId={task.Id}")
+                    transContext.CreateSimple($"Delete Operation where TaskId={task.Id}")
                         .ExecuteNonQuery();
 
-                    bindedOpers.WriteToServer(transContext, "TaskOper");
+                    bindedOpers.WriteToServer(transContext, "Operation");
                 }
 
                 catch (Exception e)
@@ -216,7 +216,7 @@ namespace ReportService.Core
                                 .ExecuteNonQuery();
                             transContext.CreateCommand($"delete TaskInstance where TaskID={id}")
                                 .ExecuteNonQuery();
-                            transContext.CreateCommand($"delete TaskOper where TaskID={id}")
+                            transContext.CreateCommand($"delete Operation where TaskID={id}")
                                 .ExecuteNonQuery();
                             transContext.CreateCommand($"delete Task where id={id}")
                                 .ExecuteNonQuery();
@@ -235,13 +235,14 @@ namespace ReportService.Core
                     {
                         try
                         {
-                            context.CreateSimple($"update {tableName} set isdeleted=1 where Id={id}")
+                            context.CreateSimple(
+                                    $"update {tableName} set isdeleted=1 where Id={id}")
                                 .ExecuteNonQuery();
                         }
 
                         catch (Exception e)
                         {
-                            SendAppWarning("Error occured while deleting Operation" +
+                            SendAppWarning("Error occured while deleting operation template" +
                                            $" template instance record: {e.Message}");
                             throw;
                         }
@@ -264,7 +265,7 @@ namespace ReportService.Core
                     break;
             }
 
-            //case bool _ when type == typeof(DtoTaskOper): //todo:do we really need this method?
+            //case bool _ when type == typeof(DtoOperation): //todo:do we really need this method?
             //break;
 
             //case bool _ when type == typeof(DtoTelegramChannel): //todo:method
@@ -293,10 +294,9 @@ namespace ReportService.Core
                 IF OBJECT_ID('OperTemplate') IS NULL
                 CREATE TABLE OperTemplate
                 (Id INT PRIMARY KEY IDENTITY,
-                Type NVARCHAR(255) NOT NULL,
+                ImplementationType NVARCHAR(255) NOT NULL,
                 Name NVARCHAR(255) NOT NULL,
-                ConfigTemplate NVARCHAR(MAX) NOT NULL,
-                IsDeleted BIT NOT NULL DEFAULT 0);")
+                ConfigTemplate NVARCHAR(MAX) NOT NULL);")
                 .ExecuteNonQuery();
 
             createBaseContext.CreateSimple(@"
@@ -355,18 +355,18 @@ namespace ReportService.Core
                 .ExecuteNonQuery();
 
             createBaseContext.CreateSimple(@"
-                IF OBJECT_ID('TaskOper') IS NULL
-                CREATE TABLE TaskOper
+                IF OBJECT_ID('Operation') IS NULL
+                CREATE TABLE Operation
                 (Id INT PRIMARY KEY IDENTITY,
                 TaskId INT NOT NULL,
-                OperTemplateId INT NOT NULL,
                 Number TINYINT NOT NULL,
-                IsDefault BIT NOT NULL,
+                Name NVARCHAR(255) NOT NULL,
+                ImplementationType NVARCHAR(255) NOT NULL,
+                IsDefault BIT NOT NULL DEFAULT 0,
                 Config NVARCHAR(MAX) NOT NULL,
-                CONSTRAINT FK_TaskOper_Task FOREIGN KEY(TaskId) 
-                REFERENCES Task(Id),
-                CONSTRAINT FK_TaskOper_OperTemplate FOREIGN KEY(OperTemplateId) 
-                REFERENCES OperTemplate(Id));")
+                IsDeleted BIT NOT NULL DEFAULT 0,
+                CONSTRAINT FK_Operation_Task FOREIGN KEY(TaskId) 
+                REFERENCES Task(Id));")
                 .ExecuteNonQuery();
 
             createBaseContext.CreateSimple(@"
@@ -387,14 +387,14 @@ namespace ReportService.Core
                 CREATE TABLE OperInstance(
                 Id INT PRIMARY KEY IDENTITY,
 	            TaskInstanceId INT NOT NULL,
-                OperTemplateId INT NOT NULL,
+                OperationId INT NOT NULL,
                 StartTime DATETIME NOT NULL,
                 Duration INT NOT NULL,
                 State INT NOT NULL,
 	            DataSet VARBINARY(MAX) NULL,
                 ErrorMessage NVARCHAR(511) NULL,
-                CONSTRAINT FK_OperInstance_Oper FOREIGN KEY(OperTemplateId) 
-                REFERENCES OperTemplate(Id),
+                CONSTRAINT FK_OperInstance_Operation FOREIGN KEY(OperationId) 
+                REFERENCES Operation(Id),
                 CONSTRAINT FK_OperInstance_TaskInstance FOREIGN KEY(TaskInstanceId)
                 REFERENCES TaskInstance(Id)
                 )")

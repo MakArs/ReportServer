@@ -8,13 +8,13 @@ namespace ReportService.Nancy
     {
         public OpersModule(ILogic logic)
         {
-            ModulePath = "/api/v2/opers";
+            ModulePath = "/api/v2/opertemplates";
 
             Get[""] = parameters =>
             {
                 try
                 {
-                    var response = (Response) logic.GetAllOperationsJson();
+                    var response = (Response) logic.GetAllOperTemplatesJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -28,7 +28,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    logic.DeleteOperation(parameters.id);
+                    logic.DeleteOperationTemplate(parameters.id);
                     return HttpStatusCode.OK;
                 }
                 catch
@@ -69,7 +69,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllTaskOpersJson();
+                    var response = (Response)logic.GetAllOperationsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -84,7 +84,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var newOper = this.Bind<DtoOperTemplate>();
-                    var id = logic.CreateOperation(newOper);
+                    var id = logic.CreateOperationTemplate(newOper);
                     var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -105,7 +105,7 @@ namespace ReportService.Nancy
                     if (parameters.id != existingOper.Id)
                         return HttpStatusCode.BadRequest;
 
-                    logic.UpdateOperation(existingOper);
+                    logic.UpdateOperationTemplate(existingOper);
                     return HttpStatusCode.OK;
                 }
                 catch
@@ -114,7 +114,7 @@ namespace ReportService.Nancy
                 }
             };
         }
-    } //Opers&TaskOpersModule
+    } //OperTemplates&OperationssModule
 
     public class RecepientGroupsModule : NancyBaseModule
     {

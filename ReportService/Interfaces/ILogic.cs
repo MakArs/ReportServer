@@ -16,17 +16,17 @@ namespace ReportService.Interfaces
         string SendDefault(int taskId, string mail);
         string ForceExecute(int taskId);
 
-        string GetAllOperationsJson();
+        string GetAllOperTemplatesJson();
         string GetAllRecepientGroupsJson();
         string GetAllTelegramChannelsJson();
         string GetAllSchedulesJson();
-        string GetAllTaskOpersJson();
+        string GetAllOperationsJson();
         string GetAllTasksJson();
         string GetInWorkEntitiesJson();
 
-        int CreateOperation(DtoOperTemplate operTemplate);
-        void UpdateOperation(DtoOperTemplate operTemplate);
-        void DeleteOperation(int id);
+        int CreateOperationTemplate(DtoOperTemplate operTemplate);
+        void UpdateOperationTemplate(DtoOperTemplate operTemplate);
+        void DeleteOperationTemplate(int id);
 
         int CreateRecepientGroup(DtoRecepientGroup group);
         void UpdateRecepientGroup(DtoRecepientGroup group);
@@ -40,8 +40,6 @@ namespace ReportService.Interfaces
         int CreateSchedule(DtoSchedule schedule);
         void UpdateSchedule(DtoSchedule schedule);
         void DeleteSchedule(int id);
-
-        int CreateTaskOper(DtoTaskOper taskOper);
 
         int CreateTask(ApiTask task);
         void UpdateTask(ApiTask task);
@@ -61,9 +59,9 @@ namespace ReportService.Interfaces
         //todo: int CreateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void UpdateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void DeleteEntity<T>(int entityId) or one method for each entity ??
+        //todo:replace create&update methods with createorupdate?
 
         string GetAllRegisteredImporters();
         string GetAllRegisteredExporters();
     }
 }
-//todo:replace create&update methods with createorupdate?

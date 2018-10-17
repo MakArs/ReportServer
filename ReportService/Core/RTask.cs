@@ -29,7 +29,7 @@ namespace ReportService.Core
 
         public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
                      IMonik monik, IMapper mapper, IArchiver archiver, int id,
-                     string name, DtoSchedule schedule, List<Tuple<DtoOperTemplate, int, bool>> opers)
+                     string name, DtoSchedule schedule, List<DtoOperation> opers)
         {
             this.archiver = archiver;
             this.monik = monik;
@@ -39,17 +39,17 @@ namespace ReportService.Core
             Schedule = schedule;
             Operations = new List<IOperation>();
 
-            foreach (var operTuple in opers)
+            foreach (var operation in opers)
             {
                 IOperation newOper;
-                var oper = operTuple.Item1;
-                var operType = oper.Type;
+                //var oper = operation.Item1;
+                var operType = operation.ImplementationType;
 
                 if (logic.RegisteredImporters.ContainsKey(operType))
                 {
                     newOper = autofac.ResolveNamed<IDataImporter>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(oper.ConfigTemplate,
+                            JsonConvert.DeserializeObject(operation.Config,
                                 logic.RegisteredImporters[operType])));
                 }
 
@@ -57,16 +57,16 @@ namespace ReportService.Core
                 {
                     newOper = autofac.ResolveNamed<IDataExporter>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(oper.ConfigTemplate,
+                            JsonConvert.DeserializeObject(operation.Config,
                                 logic.RegisteredExporters[operType])));
                 }
 
                 if (newOper == null) continue;
 
-                newOper.Id = oper.Id;
-                newOper.Number = operTuple.Item2;
-                newOper.Name = oper.Name;
-                newOper.IsDefault = operTuple.Item3;
+                newOper.Id = operation.Id;
+                newOper.Number = operation.Number;
+                newOper.Name = operation.Name;
+                newOper.IsDefault = operation.IsDefault;
 
                 Operations.Add(newOper);
             }
@@ -118,7 +118,7 @@ namespace ReportService.Core
                     var dtoOperInstance = new DtoOperInstance
                     {
                         TaskInstanceId = dtoTaskInstance.Id,
-                        OperTemplateId = oper.Id,
+                        OperationId = oper.Id,
                         StartTime = DateTime.Now,
                         Duration = 0,
                         State = (int) InstanceState.InProcess

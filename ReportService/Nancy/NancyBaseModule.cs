@@ -9,14 +9,14 @@ namespace ReportService.Nancy
         public int Id { get; set; }
         public string Name { get; set; }
         public int? ScheduleId { get; set; }
-        public DtoTaskOper[] BindedOpers { get; set; }
+        public DtoOperation[] BindedOpers { get; set; }
     }
 
     public class ApiOperInstance
     {
         public int Id { get; set; }
         public int TaskInstanceId { get; set; }
-        public int OperId { get; set; }
+        public int OperationId { get; set; }
         public DateTime StartTime { get; set; }
         public int Duration { get; set; }
         public int State { get; set; }

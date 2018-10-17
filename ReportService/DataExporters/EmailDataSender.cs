@@ -11,7 +11,7 @@ namespace ReportService.DataExporters
 {
     public class EmailDataSender : CommonDataExporter
     {
-        private RecepientAddresses addresses;
+        private readonly RecepientAddresses addresses;
         public bool HasHtmlBody;
         public bool HasXlsxAttachment;
         public bool HasJsonAttachment;

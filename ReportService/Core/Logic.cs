@@ -29,12 +29,12 @@ namespace ReportService.Core
         private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
 
-        private readonly List<DtoOperTemplate> operations;
+        private readonly List<DtoOperTemplate> operTemplates;
         private readonly List<DtoRecepientGroup> recepientGroups;
         private readonly List<DtoTelegramChannel> telegramChannels;
         private readonly List<DtoSchedule> schedules;
         private readonly List<IRTask> tasks;
-        private readonly List<DtoTaskOper> taskOpers;
+        private readonly List<DtoOperation> operations;
 
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
@@ -54,12 +54,12 @@ namespace ReportService.Core
 
             tableView = this.autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
 
-            operations = new List<DtoOperTemplate>();
+            operTemplates = new List<DtoOperTemplate>();
             recepientGroups = new List<DtoRecepientGroup>();
             telegramChannels = new List<DtoTelegramChannel>();
             schedules = new List<DtoSchedule>();
             tasks = new List<IRTask>();
-            taskOpers = new List<DtoTaskOper>();
+            operations = new List<DtoOperation>();
 
             this.bot.OnUpdate += OnBotUpd;
         } //ctor
@@ -93,13 +93,9 @@ namespace ReportService.Core
                             new NamedParameter("name", dtoTask.Name),
                             new NamedParameter("schedule", schedules
                                 .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                            new NamedParameter("opers",
-                                taskOpers
-                                    .Where(taskOper => taskOper.TaskId == dtoTask.Id)
-                                    .Select(taskOper => Tuple.Create
-                                    (operations.FirstOrDefault(oper => oper.Id == taskOper.OperTemplateId),
-                                        taskOper.Number, taskOper.IsDefault))
-                                    .ToList()));
+                            new NamedParameter("opers", operations
+                                .Where(oper => oper.TaskId == dtoTask.Id)
+                                .Where(oper => !oper.IsDeleted).ToList()));
 
                         // might be replaced with saved time from db
                         task.UpdateLastTime();
@@ -113,7 +109,7 @@ namespace ReportService.Core
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
             }
-        }
+        } //taskresolver
 
         private void CheckScheduleAndExecute()
         {
@@ -136,6 +132,7 @@ namespace ReportService.Core
 
                     var occurrences =
                         cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
+
                     if (!occurrences.Any()) continue;
 
                     ExecuteTask(task);
@@ -161,16 +158,18 @@ namespace ReportService.Core
         public void Start()
         {
             //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-            RegisteredImporters = autofac
-                .ComponentRegistry
-                .Registrations
-                .Where(r => typeof(IDataImporter)
-                    .IsAssignableFrom(r.Activator.LimitType))
-                .Select(r =>
-                    new KeyValuePair<string, Type>(
-                        (r.Services.ToList().First() as KeyedService)?.ServiceKey.ToString(),
-                        (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
-                ).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            RegisteredImporters =
+                autofac //todo:maybe change ugly code (gets autofac registration names)
+                    .ComponentRegistry
+                    .Registrations
+                    .Where(r => typeof(IDataImporter)
+                        .IsAssignableFrom(r.Activator.LimitType))
+                    .Select(r =>
+                        new KeyValuePair<string, Type>(
+                            (r.Services.ToList().First() as KeyedService)?.ServiceKey.ToString(),
+                            (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
+                    ).ToDictionary(pair => pair.Key, pair => pair.Value);
 
             RegisteredExporters = autofac
                 .ComponentRegistry
@@ -183,16 +182,16 @@ namespace ReportService.Core
                         (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
                 ).ToDictionary(pair => pair.Key, pair => pair.Value);
 
-            UpdateDtoEntitiesList(operations);
+            UpdateDtoEntitiesList(operTemplates);
             UpdateDtoEntitiesList(recepientGroups);
             UpdateDtoEntitiesList(telegramChannels);
             UpdateDtoEntitiesList(schedules);
-            UpdateDtoEntitiesList(taskOpers);
+            UpdateDtoEntitiesList(operations);
 
             UpdateTaskList();
 
             checkScheduleAndExecuteScheduler.OnStart();
-        }
+        } //start
 
         public void Stop()
         {
@@ -211,7 +210,7 @@ namespace ReportService.Core
             if (task == null) return "No tasks with such Id found..";
 
             SendServiceInfo($"Sending default dataset of task {task.Id} to address" +
-                     $" {mailAddress} (launched manually)");
+                            $" {mailAddress} (launched manually)");
 
             Task.Factory.StartNew(() => task.SendDefault(mailAddress));
             return $"Task {taskId} default dataset sent to {mailAddress}!";
@@ -228,7 +227,7 @@ namespace ReportService.Core
 
             if (task == null) return "No tasks with such Id found..";
 
-            SendServiceInfo( $"Executing task {task.Id} (launched manually)");
+            SendServiceInfo($"Executing task {task.Id} (launched manually)");
 
             Task.Factory.StartNew(() => task.Execute());
             return $"Task {taskId} executed!";
@@ -236,13 +235,13 @@ namespace ReportService.Core
 
         #region getListJson
 
-        public string GetAllOperationsJson()
+        public string GetAllOperTemplatesJson()
         {
-            List<DtoOperTemplate> currentOpers;
+            List<DtoOperTemplate> currentTemplates;
             lock (this)
-                currentOpers = operations.ToList();
+                currentTemplates = operTemplates.ToList();
 
-            return JsonConvert.SerializeObject(currentOpers);
+            return JsonConvert.SerializeObject(currentTemplates);
         }
 
         public string GetAllRecepientGroupsJson()
@@ -272,13 +271,13 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(currentSchedules);
         }
 
-        public string GetAllTaskOpersJson()
+        public string GetAllOperationsJson()
         {
-            List<DtoTaskOper> currentTaskOpers;
+            List<DtoOperation> currentOperations;
             lock (this)
-                currentTaskOpers = taskOpers.ToList();
+                currentOperations = operations.Where(oper => !oper.IsDeleted).ToList();
 
-            return JsonConvert.SerializeObject(currentTaskOpers);
+            return JsonConvert.SerializeObject(currentOperations);
         }
 
         public string GetAllTasksJson()
@@ -295,12 +294,12 @@ namespace ReportService.Core
         {
             var entities = new Dictionary<string, int>
             {
-                {"operations", operations.Count},
+                {"operTemplates", operTemplates.Count},
                 {"recepientGroups", recepientGroups.Count},
                 {"telegramChannels", telegramChannels.Count},
                 {"schedules", schedules.Count},
                 {"tasks", tasks.Count},
-                {"taskOpers", taskOpers.Count}
+                {"operations", operations.Count}
             };
             return JsonConvert.SerializeObject(entities);
         }
@@ -317,31 +316,31 @@ namespace ReportService.Core
 
         #endregion
 
-        public int CreateOperation(DtoOperTemplate operTemplate)
+        public int CreateOperationTemplate(DtoOperTemplate operTemplate)
         {
-            var newExporterId = repository.CreateEntity(operTemplate);
-            UpdateDtoEntitiesList(operations);
+            var newOperId = repository.CreateEntity(operTemplate);
+            UpdateDtoEntitiesList(operTemplates);
 
-            SendServiceInfo($"Created operation {newExporterId}");
+            SendServiceInfo($"Created operation template {newOperId}");
 
-            return newExporterId;
+            return newOperId;
         }
 
-        public void UpdateOperation(DtoOperTemplate operTemplate)
+        public void UpdateOperationTemplate(DtoOperTemplate operTemplate)
         {
             repository.UpdateEntity(operTemplate);
-            UpdateDtoEntitiesList(operations);
+            UpdateDtoEntitiesList(operTemplates);
             UpdateTaskList();
 
-            SendServiceInfo($"Changed operation {operTemplate.Id}");
+            SendServiceInfo($"Changed operation template {operTemplate.Id}");
         }
 
-        public void DeleteOperation(int id)
+        public void DeleteOperationTemplate(int id)
         {
             repository.DeleteEntity<DtoOperTemplate>(id);
-            UpdateDtoEntitiesList(operations);
+            UpdateDtoEntitiesList(operTemplates);
 
-            SendServiceInfo($"Deleted operation {id}");
+            SendServiceInfo($"Deleted operation template {id}");
         }
 
         public int CreateRecepientGroup(DtoRecepientGroup group)
@@ -421,20 +420,11 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted schedule {id}");
         }
 
-        public int CreateTaskOper(DtoTaskOper taskOper)
-        {
-            var newtaskOperId = repository.CreateEntity(taskOper);
-            UpdateDtoEntitiesList(operations);
-            UpdateTaskList();
-            SendServiceInfo(
-                $"Operation {taskOper.OperTemplateId} added to task {taskOper.TaskId}");
-            return newtaskOperId;
-        }
-
         public int CreateTask(ApiTask task)
         {
-            var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
-            UpdateDtoEntitiesList(taskOpers);
+            var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task),
+                task.BindedOpers);
+            UpdateDtoEntitiesList(operations);
             UpdateTaskList();
             SendServiceInfo($"Created task {newTaskId}");
             return newTaskId;
@@ -443,7 +433,7 @@ namespace ReportService.Core
         public void UpdateTask(ApiTask task)
         {
             repository.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
-            UpdateDtoEntitiesList(taskOpers);
+            UpdateDtoEntitiesList(operations);
             UpdateTaskList();
             SendServiceInfo($"Changed task {task.Id}");
         }
@@ -451,7 +441,7 @@ namespace ReportService.Core
         public void DeleteTask(int taskId)
         {
             repository.DeleteEntity<DtoTask>(taskId);
-            UpdateDtoEntitiesList(taskOpers);
+            UpdateDtoEntitiesList(operations);
             UpdateTaskList();
             SendServiceInfo($"Deleted task {taskId}");
         }

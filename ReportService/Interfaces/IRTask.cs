@@ -37,7 +37,7 @@ namespace ReportService.Interfaces
             };
         }
     }
-
+    
     public interface IRTask
     {
         int Id { get; }
