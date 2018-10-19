@@ -57,7 +57,9 @@ namespace ReportService.Core
             try
             {
                 return context.CreateSimple
-                        ($"select * from OperInstance where Id={operInstanceId}")
+                        ("select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName " +
+                         "from OperInstance oi join operation op on oi.OperationId=op.Id " +
+                         $"where oi.id={operInstanceId}")
                     .ExecuteQuery<DtoOperInstance>()
                     .ToList().First();
             }
@@ -160,12 +162,35 @@ namespace ReportService.Core
             {
                 try
                 {
+                    var currentOperIds = context.CreateSimple
+                            ($"select id from operation where taskid={task.Id}")
+                        .ExecuteQueryFirstColumn<int>().ToList();
+
+                    var newOperIds = bindedOpers.Select(oper => oper.Id).ToList();
+
+                    var operIdsToDelete = currentOperIds.Except(newOperIds)
+                        .ToList();
+
+                    var opersToUpdate = bindedOpers.Where(oper =>
+                        newOperIds.Intersect(currentOperIds).Contains(oper.Id)).ToList();
+
+                    var opersToWrite = bindedOpers.Where(oper =>
+                        newOperIds.Except(currentOperIds).Contains(oper.Id));
+
                     transContext.Update("Task", task, "Id");
 
-                    transContext.CreateSimple($"Delete Operation where TaskId={task.Id}")
-                        .ExecuteNonQuery();
+                    if (operIdsToDelete.Any())
+                        transContext.CreateSimple(
+                                $"Update Operation set isDeleted=1 where TaskId={task.Id} and " +
+                                $"id in ({string.Join(",", operIdsToDelete)})")
+                            .ExecuteNonQuery();
 
-                    bindedOpers.WriteToServer(transContext, "Operation");
+                    foreach (var oper in opersToUpdate
+                    ) //no chances of so many  opers will be updated so no losses
+                        transContext.Update("Operation", oper, "Id");
+
+
+                    opersToWrite.WriteToServer(transContext, "Operation");
                 }
 
                 catch (Exception e)
@@ -225,25 +250,6 @@ namespace ReportService.Core
                         {
                             SendAppWarning("Error occured while deleting Task" +
                                            $" record: {e.Message}");
-                            throw;
-                        }
-                    });
-                    break;
-
-                case bool _ when type == typeof(DtoOperTemplate):
-                    context.UsingTransaction(transContext =>
-                    {
-                        try
-                        {
-                            context.CreateSimple(
-                                    $"update {tableName} set isdeleted=1 where Id={id}")
-                                .ExecuteNonQuery();
-                        }
-
-                        catch (Exception e)
-                        {
-                            SendAppWarning("Error occured while deleting operation template" +
-                                           $" template instance record: {e.Message}");
                             throw;
                         }
                     });

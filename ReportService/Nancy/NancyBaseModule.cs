@@ -22,6 +22,7 @@ namespace ReportService.Nancy
         public int State { get; set; }
         public string DataSet { get; set; }
         public string ErrorMessage { get; set; }
+        public string OperName { get; set; }
     }
 
     public class NancyBaseModule : NancyModule

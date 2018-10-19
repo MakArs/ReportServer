@@ -519,8 +519,16 @@ namespace ReportService.Core
 
         public string GetOperInstancesByTaskInstanceIdJson(int id)
         {
-            return JsonConvert.SerializeObject(repository
-                .GetOperInstancesByTaskInstanceId(id));
+            var instances = repository
+                .GetOperInstancesByTaskInstanceId(id);
+
+            var apiInstances = instances.Select(inst =>
+                mapper.Map<ApiOperInstance>(inst)).ToList();
+
+            apiInstances.ForEach(apiinst => apiinst.OperName = operations
+                .FirstOrDefault(op => op.Id == apiinst.OperationId)?.Name);
+
+            return JsonConvert.SerializeObject(apiInstances);
         }
 
         public string GetFullOperInstanceByIdJson(int id)
@@ -529,6 +537,8 @@ namespace ReportService.Core
             var apiInstance = mapper.Map<ApiOperInstance>(instance);
 
             apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);
+            apiInstance.OperName = operations.FirstOrDefault(op =>
+                op.Id == apiInstance.OperationId)?.Name;
 
             return JsonConvert.SerializeObject(apiInstance);
         }
