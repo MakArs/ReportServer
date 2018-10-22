@@ -158,7 +158,6 @@ namespace ReportService.Core
         public void Start()
         {
             //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-
             RegisteredImporters =
                 autofac //todo:maybe change ugly code (gets autofac registration names)
                     .ComponentRegistry
@@ -213,6 +212,7 @@ namespace ReportService.Core
                             $" {mailAddress} (launched manually)");
 
             Task.Factory.StartNew(() => task.SendDefault(mailAddress));
+
             return $"Task {taskId} default dataset sent to {mailAddress}!";
         }
 
@@ -474,7 +474,11 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            return await task.GetCurrentView();
+
+            var view = await task.GetCurrentView();
+            return string.IsNullOrEmpty(view)
+                ? "This task has not default operations or default dataset is empty.."
+                : view;
         }
 
         public void DeleteTaskInstanceById(int id)

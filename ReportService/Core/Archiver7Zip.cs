@@ -12,9 +12,13 @@ namespace ReportService.Core
 
         public Archiver7Zip()
         {
-            var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException(),
+            var path = Path.Combine(
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ??
+                throw new InvalidOperationException(),
                 Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
+
             SevenZipBase.SetLibraryPath(path);
+
             compressor = new SevenZipCompressor
             {
                 CompressionMode = CompressionMode.Create,
@@ -31,6 +35,7 @@ namespace ReportService.Core
                 using (var viewStream = new MemoryStream(dataBytes))
                 {
                     compressor.CompressStream(viewStream, compressedStream);
+
                     return compressedStream.ToArray();
                 }
             }
@@ -43,9 +48,11 @@ namespace ReportService.Core
             using (var compressedStream = new MemoryStream(byteData))
             {
                 var extractor = new SevenZipExtractor(compressedStream);
+
                 using (var extractedStream = new MemoryStream())
                 {
                     extractor.ExtractFile(0, extractedStream);
+
                     return System.Text.Encoding.UTF8.GetString(extractedStream.ToArray());
                 }
             }

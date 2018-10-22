@@ -46,7 +46,7 @@ namespace ReportService.Interfaces
         DateTime LastTime { get; }
         List<IOperation> Operations { get; set; }
 
-        void Execute(bool useDefault = false);
+        void Execute();
         void UpdateLastTime();
         Task<string> GetCurrentView();
         void SendDefault(string mailAddress);

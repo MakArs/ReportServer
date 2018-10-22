@@ -112,11 +112,13 @@ namespace ReportService
 
             #endregion
 
-            existingContainer.RegisterImplementation<IDefaultTaskWorker,DefaultTaskWorker>();
+            existingContainer.RegisterImplementation<IDefaultTaskExporter,DefaultTaskExporter>();
 
             existingContainer.RegisterImplementation<IArchiver,Archiver7Zip>();
 
             existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
+
+            existingContainer.RegisterImplementation<TaskWorker,TaskWorker>();
 
             #region ConfigureBot
 

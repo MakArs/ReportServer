@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ReportService.Interfaces
 {
-    public interface IDefaultTaskWorker
+    public interface IDefaultTaskExporter
     {
         string GetDefaultView(string taskName, string dataSet);
         void SendError(List<Tuple<Exception, string>> exceptions, string taskName);

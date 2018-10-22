@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
+using ProtoBuf.Data;
 using ReportService.Interfaces;
 
 namespace ReportService.DataImporters
@@ -37,7 +41,14 @@ namespace ReportService.DataImporters
                     .CreateSimple(opt, $"{Query}")
                     .UseReader(reader =>
                     {
-                        if (reader.Read())
+                        byte[] buff;
+                        using (var stream = new MemoryStream())
+                        {
+                            DataSerializer.Serialize(stream,reader);
+                            buff = stream.GetBuffer();
+                        }
+
+                       if (reader.Read())
                         {
                             var fields = new Dictionary<string, object>();
 

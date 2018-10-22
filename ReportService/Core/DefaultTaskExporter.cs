@@ -9,18 +9,18 @@ using ReportService.Interfaces;
 
 namespace ReportService.Core
 {
-    public class DefaultTaskWorker: IDefaultTaskWorker
+    public class DefaultTaskExporter : IDefaultTaskExporter
     {
         private readonly IViewExecutor executor;
 
-        public DefaultTaskWorker(ILifetimeScope autofac)
+        public DefaultTaskExporter(ILifetimeScope autofac)
         {
             executor = autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
         }
 
-        public string GetDefaultView(string taskName,string dataSet)
+        public string GetDefaultView(string taskName, string dataSet)
         {
-            return executor.ExecuteHtml(taskName,dataSet);
+            return executor.ExecuteHtml(taskName, dataSet);
         }
 
         public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
