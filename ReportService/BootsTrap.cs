@@ -118,7 +118,7 @@ namespace ReportService
 
             existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
 
-            existingContainer.RegisterImplementation<TaskWorker,TaskWorker>();
+            existingContainer.RegisterImplementation<ITaskWorker,TaskWorker>();
 
             #region ConfigureBot
 

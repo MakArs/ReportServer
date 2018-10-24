@@ -9,7 +9,7 @@ using ReportService.Interfaces;
 
 namespace ReportService.Core
 {
-    public class TaskWorker
+    public class TaskWorker: ITaskWorker
     {
         private readonly IRepository repository;
         private readonly IMapper mapper;

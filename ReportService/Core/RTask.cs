@@ -82,7 +82,7 @@ namespace ReportService.Core
                 return;
             }
 
-            var taskWorker = autofac.Resolve<TaskWorker>();
+            var taskWorker = autofac.Resolve<ITaskWorker>();
             taskWorker.RunOperations(opersToExecute, context);
         }
 
@@ -104,7 +104,7 @@ namespace ReportService.Core
             context.TaskId = Id;
             context.TaskName = Name;
 
-            var taskWorker = autofac.Resolve<TaskWorker>();
+            var taskWorker = autofac.Resolve<ITaskWorker>();
 
             var defaultView =
                 await taskWorker.RunOperationsAndGetLastView(opersToExecute, context);
@@ -132,7 +132,7 @@ namespace ReportService.Core
             context.TaskId = Id;
             context.TaskName = Name;
 
-            var taskWorker = autofac.Resolve<TaskWorker>();
+            var taskWorker = autofac.Resolve<ITaskWorker>();
 
             taskWorker.RunOperationsAndSendLastView(opersToExecute, context, mailAddress);
         }

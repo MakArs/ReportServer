@@ -74,6 +74,9 @@
     <Reference Include="Gerakul.FastSql.SqlServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Gerakul.FastSql.SqlServer.1.0.0\lib\net46\Gerakul.FastSql.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Gerakul.ProtoBufSerializer, Version=1.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gerakul.ProtoBufSerializer.1.2.1\lib\net46\Gerakul.ProtoBufSerializer.dll</HintPath>
+    </Reference>
     <Reference Include="Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Protobuf.3.6.1\lib\net45\Google.Protobuf.dll</HintPath>
     </Reference>
@@ -181,6 +184,7 @@
   <ItemGroup>
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
+    <Compile Include="Core\DataSet.cs" />
     <Compile Include="Core\DefaultTaskExporter.cs" />
     <Compile Include="Core\RTaskRunContext.cs" />
     <Compile Include="Core\TaskWorker.cs" />
@@ -199,6 +203,7 @@
     <Compile Include="Interfaces\IDefaultTaskExporter.cs" />
     <Compile Include="Interfaces\IOperation.cs" />
     <Compile Include="Interfaces\IRTaskRunContext.cs" />
+    <Compile Include="Interfaces\ITaskWorker.cs" />
     <Compile Include="Nancy\HostHolder.cs" />
     <Compile Include="Nancy\NancyBaseModule.cs" />
     <Compile Include="Nancy\NancyApiModules.cs" />
@@ -254,7 +259,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="Content\PagedList.css" />
     <Content Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </Content>
