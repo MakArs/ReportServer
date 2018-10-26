@@ -47,7 +47,9 @@ namespace ReportService.Core
                 var errorsSet = exceptions.Select(pair => new Dictionary<string, object>
                 {
                     {"Operation", pair.Item2},
-                    {"Message", pair.Item1.Message}
+                    {"Message", pair.Item1.Message},
+                    {"Trace",pair.Item1.StackTrace },
+                    {"Source",pair.Item1.Source }
                 }).ToList();
 
                 msg.Body =

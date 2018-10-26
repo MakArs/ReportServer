@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
+﻿using System.Collections.Generic;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
-using ProtoBuf.Data;
 using ReportService.Interfaces;
 
 namespace ReportService.DataImporters
@@ -41,27 +37,21 @@ namespace ReportService.DataImporters
                     .CreateSimple(opt, $"{Query}")
                     .UseReader(reader =>
                     {
-                        byte[] buff;
-                        using (var stream = new MemoryStream())
-                        {
-                            DataSerializer.Serialize(stream,reader);
-                            buff = stream.GetBuffer();
-                        }
+                       //if (reader.Read())
+                       //{
+                           
+                       //     var fields = new Dictionary<string, object>();
 
-                       if (reader.Read())
-                        {
-                            var fields = new Dictionary<string, object>();
+                       //     for (int i = 0; i < reader.FieldCount; i++)
+                       //     {
+                       //         var name = reader.GetName(i);
+                       //         var val = reader[i];
+                       //         // queryres2[name] = new List<object> {val};
+                       //         fields.Add(name, val);
+                       //     }
 
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                var name = reader.GetName(i);
-                                var val = reader[i];
-                                // queryres2[name] = new List<object> {val};
-                                fields.Add(name, val);
-                            }
-
-                            queryResult.Add(fields);
-                        }
+                       //     queryResult.Add(fields);
+                       // }
 
                         while (reader.Read())
                         {
@@ -69,7 +59,9 @@ namespace ReportService.DataImporters
 
                             for (int i = 0; i < reader.FieldCount; i++)
                             {
-                                var name = reader.GetName(i);
+                                var name = string.IsNullOrEmpty(reader.GetName(i))
+                                    ? $"UnnamedColumn{i}"
+                                    : reader.GetName(i);
                                 var val = reader[i];
                                 //  queryres2[name].Add(val);
                                 fields.Add(name, val);
