@@ -105,7 +105,7 @@ namespace TestModule
         public void CopyTest()
         {
 
-            var data = new object[]
+            var writedData = new object[]
             {
                 "Hello",
                 42,
@@ -123,12 +123,14 @@ namespace TestModule
 
             var stream = new MemoryStream();
 
-            foreach (var value in data)
+            foreach (var value in writedData)
                 Serializer.NonGeneric.SerializeWithLengthPrefix(
                     stream,
                     value,
-                    PrefixStyle.Fixed32,
+                    PrefixStyle.Base128,
                     typeToTag[value.GetType()]);
+
+            stream.Position = 0;
 
             var tagToType = new Dictionary<int, Type>()
             {
@@ -140,7 +142,7 @@ namespace TestModule
 
             var expectedElements = 4;
 
-            var readObjects = new object[] {"das", 425, 421.74, false};
+            var readedData = new object[expectedElements];
 
             bool bul = true;
 
@@ -149,7 +151,12 @@ namespace TestModule
                 bul = Serializer.NonGeneric.TryDeserializeWithLengthPrefix(
                     stream,
                     PrefixStyle.Base128,
-                    t => tagToType[t], out readObjects[i]);
+                    t => tagToType[t], out readedData[i]);
+            }
+
+            for (int i = 0; i < expectedElements; i++)
+            {
+                Assert.AreEqual(writedData[i], readedData[i]);
             }
         }
     }
