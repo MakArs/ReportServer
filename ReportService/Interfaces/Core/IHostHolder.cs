@@ -1,4 +1,4 @@
-﻿namespace ReportService.Interfaces
+﻿namespace ReportService.Interfaces.Core
 {
     public interface IHostHolder
     {

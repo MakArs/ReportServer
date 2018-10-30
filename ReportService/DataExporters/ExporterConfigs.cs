@@ -1,4 +1,4 @@
-﻿using ReportService.Interfaces;
+﻿using ReportService.Interfaces.Core;
 
 namespace ReportService.DataExporters
 {

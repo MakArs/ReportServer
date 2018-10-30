@@ -3,7 +3,7 @@ using System.Reflection;
 using Autofac;
 using Monik.Common;
 using Nancy.Hosting.Self;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy
 {
@@ -20,8 +20,7 @@ namespace ReportService.Nancy
                 new Bootstrapper(),
                 HostConfigs);
 
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            stringVersion = $"v.{version.Major}.{version.Minor}.{version.Build} ";
+            stringVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             monik = Bootstrapper.Global.Resolve<IMonik>();
             monik.ApplicationInfo("HostHolder.ctor");
@@ -36,8 +35,8 @@ namespace ReportService.Nancy
 
         public void Start()
         {
-            monik.ApplicationWarning(stringVersion+"Started");
-            Console.WriteLine(stringVersion + "Started");
+            monik.ApplicationWarning(stringVersion+" Started");
+            Console.WriteLine(stringVersion + " Started");
 
             try
             {
@@ -62,8 +61,8 @@ namespace ReportService.Nancy
                 Console.WriteLine(e.Message);
             }
 
-            monik.ApplicationWarning(stringVersion+"Stopped");
-            Console.WriteLine(stringVersion + "Stopped");
+            monik.ApplicationWarning(stringVersion+" Stopped");
+            Console.WriteLine(stringVersion + " Stopped");
             monik.OnStop();
         }
     }

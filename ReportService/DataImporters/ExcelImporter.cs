@@ -5,7 +5,8 @@ using System.Linq;
 using AutoMapper;
 using Newtonsoft.Json;
 using OfficeOpenXml;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.DataImporters
 {

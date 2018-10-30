@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
 using SevenZip;
 
 namespace ReportService.Core

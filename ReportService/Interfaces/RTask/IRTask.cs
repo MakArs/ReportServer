@@ -1,10 +1,11 @@
-﻿using ReportService.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ReportService.Extensions;
+using ReportService.Interfaces.Core;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.RTask
 {
     public enum RReportType : byte
     {

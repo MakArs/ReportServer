@@ -5,6 +5,7 @@ using NUnit.Framework;
 using ProtoBuf;
 using ReportService.Core;
 using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
 
 namespace TestModule
 {
@@ -149,39 +150,40 @@ namespace TestModule
                 Config = "{}"
             };
 
-            //var encodedDescr = serializer.WriteDescriptor<FieldParams>();
 
-            //var decodedUntypedDescr = serializer.ReadDescriptor(encodedDescr);
+            using (var stream = new MemoryStream())
+            {
+                var header = serializer.SaveHeaderFromClassFields<DtoOperation>();
 
-            //var ManualDescriptor = FieldParams.GetDescriptor();
+                var varAsArray = new List<object>();
 
+                foreach (var head in header.Fields)
+                {
+                    var value = testOper.GetType().GetField(head.Value.Name)?.GetValue(testOper);
 
-            //var serializedField = serializer.WriteObj(fieldPar, encodedDescr);
+                    Serializer.NonGeneric.SerializeWithLengthPrefix(stream,
+                        value, PrefixStyle.Base128, head.Key);
 
-            //var manualSerializedField = ManualDescriptor.Write(fieldPar);
+                    varAsArray.Add(value);
+                }
 
-            //var manualfield = ManualDescriptor.Read(manualSerializedField);
+                stream.Position = 0;
 
-            //var deserizalizedField = serializer.ReadObj(serializedField, encodedDescr);
+                var deserialized = new object[header.Fields.Count];
 
-            //var someEntityList = new List<SomeEntity>
-            //{
-            //    new SomeEntity
-            //    {
-            //        IntField = 25,
-            //        DoubleField = 2342.125512,
-            //        StringField = "FirstEntity"
-            //    },
-            //    new SomeEntity {IntField = 12, DoubleField = 0.03421, StringField = "SecondEntity"},
-            //    new SomeEntity {IntField = 893, DoubleField = 90, StringField = "ThirdEntity"}
-            //};
+                foreach (var head in header.Fields)
+                {
+                    Serializer.NonGeneric
+                        .TryDeserializeWithLengthPrefix(stream, PrefixStyle.Base128,
+                            t => Type.GetType(head.Value.TypeName),
+                            out deserialized[head.Key - 1]);
+                }
 
-            //var buff = serializer.WriteList(someEntityList, smEntDscr);
-
-            //var listAgain = serializer.GetEntities(buff, smEntDscr);
-
-            //Assert.That(listAgain.SequenceEqual(someEntityList));
+                for (int i = 0; i < varAsArray.Count; i++)
+                {
+                    Assert.AreEqual(varAsArray[i], deserialized[i]);
+                }
+            }
         }
-
     }
 }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using ReportService.Extensions;
 using ReportService.Nancy;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.Core
 {
     public interface ILogic
     {

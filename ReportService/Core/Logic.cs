@@ -2,7 +2,6 @@
 using AutoMapper;
 using NCrontab;
 using Newtonsoft.Json;
-using ReportService.Interfaces;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
@@ -15,6 +14,8 @@ using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.Core
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.RTask
 {
     public interface IDefaultTaskExporter
     {

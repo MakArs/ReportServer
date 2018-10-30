@@ -3,7 +3,9 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
-using ReportService.Interfaces;
+using ReportService.Core;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.DataImporters
 {
@@ -37,21 +39,23 @@ namespace ReportService.DataImporters
                     .CreateSimple(opt, $"{Query}")
                     .UseReader(reader =>
                     {
-                       //if (reader.Read())
-                       //{
-                           
-                       //     var fields = new Dictionary<string, object>();
+                        DescriptorBuilder builder = new DescriptorBuilder();
+                        var set = builder.GetDbReaderDescriptor(reader);
+                        //if (reader.Read())
+                        //{
 
-                       //     for (int i = 0; i < reader.FieldCount; i++)
-                       //     {
-                       //         var name = reader.GetName(i);
-                       //         var val = reader[i];
-                       //         // queryres2[name] = new List<object> {val};
-                       //         fields.Add(name, val);
-                       //     }
+                        //     var fields = new Dictionary<string, object>();
 
-                       //     queryResult.Add(fields);
-                       // }
+                        //     for (int i = 0; i < reader.FieldCount; i++)
+                        //     {
+                        //         var name = reader.GetName(i);
+                        //         var val = reader[i];
+                        //         // queryres2[name] = new List<object> {val};
+                        //         fields.Add(name, val);
+                        //     }
+
+                        //     queryResult.Add(fields);
+                        // }
 
                         while (reader.Read())
                         {

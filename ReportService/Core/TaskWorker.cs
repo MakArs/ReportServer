@@ -5,7 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Monik.Common;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.Core
 {

@@ -1,11 +1,12 @@
 ﻿using Autofac;
-using ReportService.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Monik.Common;
 using Newtonsoft.Json;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.Core
 {

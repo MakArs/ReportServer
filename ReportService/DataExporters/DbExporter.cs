@@ -6,6 +6,7 @@ using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
 using ReportService.Interfaces;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.DataExporters
 {

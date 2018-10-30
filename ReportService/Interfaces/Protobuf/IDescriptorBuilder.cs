@@ -4,7 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using Gerakul.ProtoBufSerializer;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.Protobuf
 {
     public interface IDescriptorBuilder
     {

@@ -1,9 +1,9 @@
 ﻿using System;
 using AutoMapper;
-using Gerakul.FastSql;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.DataExporters
 {

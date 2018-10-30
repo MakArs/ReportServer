@@ -5,7 +5,8 @@ using System.Linq;
 using System.Net.Mail;
 using Autofac;
 using Newtonsoft.Json;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.Core
 {

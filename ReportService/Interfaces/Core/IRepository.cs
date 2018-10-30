@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.Core
 {
     public interface IDtoEntity
     {
@@ -48,14 +48,14 @@ namespace ReportService.Interfaces
 
     public class DtoOperation : IDtoEntity
     {
-        public int Id { get; set; }
-        public int TaskId { get; set; }
-        public int Number { get; set; }
-        public string Name { get; set; }
-        public string ImplementationType { get; set; }
-        public bool IsDefault { get; set; }
-        public string Config { get; set; }
-        public bool IsDeleted { get; set; }
+        public int Id;
+        public int TaskId;
+        public int Number;
+        public string Name;
+        public string ImplementationType;
+        public bool IsDefault;
+        public string Config;
+        public bool IsDeleted;
     }
 
     public class DtoTaskInstance : IDtoEntity

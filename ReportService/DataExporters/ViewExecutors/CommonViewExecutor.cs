@@ -8,6 +8,7 @@ using RazorEngine.Configuration;
 using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
 
 namespace ReportService.DataExporters.ViewExecutors
 {

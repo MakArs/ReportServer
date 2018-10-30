@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ReportService.Interfaces;
+using ReportService.Interfaces.RTask;
 
 namespace ReportService.Core
 {

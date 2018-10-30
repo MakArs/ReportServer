@@ -13,7 +13,8 @@ using ReportService.DataExporters;
 using ReportService.DataExporters.ViewExecutors;
 using ReportService.DataImporters;
 using ReportService.Extensions;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
+using ReportService.Interfaces.RTask;
 using ReportService.Nancy;
 using Telegram.Bot;
 

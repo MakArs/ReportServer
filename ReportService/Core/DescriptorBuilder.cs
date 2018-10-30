@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 using System.Linq;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Protobuf;
 
 namespace ReportService.Core
 {
@@ -28,11 +28,16 @@ namespace ReportService.Core
 
             var colCount = reader.FieldCount;
 
-            var names=reader.GetColumnSchema().Select(sch=>sch.ColumnName);
+            var names = reader.GetColumnSchema().Select(sch => sch.ColumnName).ToArray();
 
-            var typeNames= reader.GetColumnSchema().Select(sch => sch.DataTypeName);
+            var typeNames = reader.GetColumnSchema().Select(sch => sch.DataType).ToArray();
 
-            return null;
+            for (int i = 0; i < colCount; i++)
+            {
+                descriptor.Fields.Add(i + 1, new ColumnInfo(names[i], typeNames[i]));
+            }
+
+            return descriptor;
         }
     }
 }

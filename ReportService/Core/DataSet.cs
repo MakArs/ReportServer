@@ -1,206 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Gerakul.ProtoBufSerializer;
+using ReportService.Interfaces.Protobuf;
 
 namespace ReportService.Core
 {
-    public class DescriptorInfo
+    public class DataSet
     {
-        public int FieldsCount;
-        public List<FieldParams> Fields = new List<FieldParams>();
+        public  DataSetDescriptor Descriptor;
 
-        public static MessageDescriptor<DescriptorInfo> GetDescriptor()
+        public List<object[]> Rows;
+
+        public List<DataSetRow> GetAllRows()
         {
-            return MessageDescriptorBuilder.New<DescriptorInfo>()
-                .Int32(1, di => di.FieldsCount,
-                    (di, count) => di.FieldsCount = count)
-                .MessageArray(2, di => di.Fields, (di, fparam) => di.Fields.Add(fparam),
-                    FieldParams.GetDescriptor())
-                .CreateDescriptor();
+            return null;
         }
-    }
 
-    public class FieldParams
-    {
-        public int Number;
-        public string Name;
-        public string Type;
-
-        public static MessageDescriptor<FieldParams> GetDescriptor()
+        public DataSetRow GetRow(int index)
         {
-            return MessageDescriptorBuilder.New<FieldParams>()
-                .Int32(1, fp => fp.Number, (fp, numb) => fp.Number = numb)
-                .String(2, fp => fp.Name, (fp, name) => fp.Name = name)
-                .String(3, fp => fp.Type, (fp, type) => fp.Type = type)
-                .CreateDescriptor();
+            return null;
         }
     }
 
     public partial class ElementarySerializer
     {
-        public byte[] WriteDescriptor<T>() where T : class
+        public DataSetDescriptor SaveHeaderFromClassFields<T>() where T : class
         {
             var innerFields = typeof(T).GetFields();
 
-            var descrInfo = new DescriptorInfo
-                {FieldsCount = innerFields.Length};
+            var descriptor = new DataSetDescriptor();
 
-            for (int i = 0; i < descrInfo.FieldsCount; i++)
+            for (int i = 0; i < innerFields.Length; i++)
             {
                 var field = innerFields[i];
-                descrInfo.Fields.Add(new FieldParams
-                {
-                    Name = field.Name,
-                    Number = i + 1,
-                    Type = field.FieldType.Name
-                });
+                descriptor.Fields.Add(i + 1,
+                    new ColumnInfo(field.Name, field.FieldType));
             }
 
-            return DescriptorInfo.GetDescriptor().Write(descrInfo);
-        }
-
-        public MessageDescriptor<T> ReadDescriptor<T>(byte[] encodedDescriptor) where T : new()
-
-        {
-            var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
-
-            var builder = MessageDescriptorBuilder.New<T>();
-
-            foreach (var fieldParams in descrInfo.Fields)
-            {
-                switch (fieldParams.Type)
-                {
-                    case "Boolean":
-                        builder.Bool(fieldParams.Number,
-                            obj => Convert.ToBoolean(obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj)),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-
-                    case "Double":
-                        builder.Double(fieldParams.Number,
-                            obj => Convert.ToDouble(obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj)),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-
-                    case "String":
-                        builder.String(fieldParams.Number,
-                            obj => obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj).ToString(),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-
-                    case "Int32":
-                        builder.Int32(fieldParams.Number,
-                            obj => Convert.ToInt32(obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj)),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-                }
-            }
-
-            return builder.CreateDescriptor();
-        }
-
-        public IUntypedMessageDescriptor ReadDescriptor(byte[] encodedDescriptor)
-        {
-            var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
-
-            var builder = MessageDescriptorBuilder.New<object>();
-
-            foreach (var fieldParams in descrInfo.Fields)
-            {
-                switch (fieldParams.Type)
-                {
-                    case "Boolean":
-                        builder.Bool(fieldParams.Number,
-                            obj => Convert.ToBoolean(obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj)),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-
-                    case "Double":
-                        builder.Double(fieldParams.Number,
-                            obj => Convert.ToDouble(obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj)),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-
-                    case "String":
-                        builder.String(fieldParams.Number,
-                            obj => obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj).ToString(),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-
-                    case "Int32":
-                        builder.Int32(fieldParams.Number,
-                            obj => Convert.ToInt32(obj.GetType().GetField(fieldParams.Name)
-                                .GetValue(obj)),
-                            (obj, val) => obj.GetType().GetField(fieldParams.Name)
-                                .SetValue(obj, val));
-                        break;
-                }
-            }
-
-            return builder.CreateDescriptor();
-        }
-
-        public byte[] WriteObj<T>(T entity, byte[] encodedDescr)
-        {
-            var descr = ReadDescriptor(encodedDescr);
-            return descr.Write(entity);
-        }
-
-        public Dictionary<string, object> ReadObj(byte[] encodedEntity, byte[] encodedDescriptor)
-        {
-            //var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
-            //var dictdescr= MessageDescriptorBuilder.New<Dictionary<string,object>>()
-            //    .array
-            //    MessageDescriptor
-            //return null;
-            var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
-
-            descrInfo.Fields.ToDictionary(field => field.Name, field => new object());
-
-            var customDescr = MessageDescriptorBuilder.New<Dictionary<string, object>>()
-                .MessageArray(1, dict => dict.Select(row => new DataSetRow(row.Key, row.Value)),
-                    (dict, newVal) => dict.Add(newVal.Key, newVal.Value),
-                    DataSetRow.GetDescriptor("String"))
-                .CreateDescriptor();
-
-
-            var descr = ReadDescriptor(encodedDescriptor);
-            return customDescr.Read(encodedEntity);
-        }
-
-        public byte[][] WriteList<T>(List<T> entities, MessageDescriptor<T> entityDescriptor)
-            where T : new()
-        {
-            var count = entities.Count;
-
-            byte[][] buff = new byte[count][];
-
-            for (int i = 0; i < count; i++)
-                buff[i] = entityDescriptor.Write(entities[i]);
-
-            return buff;
-        }
-
-        public List<T> GetEntities<T>(byte[][] serializedList,
-                                      MessageDescriptor<T> entityDescriptor) where T : new()
-        {
-            return serializedList.Select(entityDescriptor.Read)
-                .ToList();
+            return descriptor;
         }
     }
 

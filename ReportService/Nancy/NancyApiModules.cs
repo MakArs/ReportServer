@@ -1,6 +1,6 @@
 ﻿using Nancy;
 using Nancy.ModelBinding;
-using ReportService.Interfaces;
+using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy
 {

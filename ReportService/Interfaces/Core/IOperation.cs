@@ -1,6 +1,7 @@
 ﻿using System;
+using ReportService.Interfaces.RTask;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.Core
 {
     public interface IOperation
     {

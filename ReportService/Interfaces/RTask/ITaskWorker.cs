@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using ReportService.Interfaces.Core;
 
-namespace ReportService.Interfaces
+namespace ReportService.Interfaces.RTask
 {
     public interface ITaskWorker
     {
