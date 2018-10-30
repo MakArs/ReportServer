@@ -188,6 +188,7 @@
     <Compile Include="Core\DefaultTaskExporter.cs" />
     <Compile Include="Core\DescriptorBuilder.cs" />
     <Compile Include="Core\DataSet.cs" />
+    <Compile Include="Core\ProtoSerializer.cs" />
     <Compile Include="Core\RTaskRunContext.cs" />
     <Compile Include="Core\TaskWorker.cs" />
     <Compile Include="DataExporters\CommonDataExporter.cs" />

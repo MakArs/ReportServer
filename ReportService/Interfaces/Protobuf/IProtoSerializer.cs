@@ -6,12 +6,15 @@ namespace ReportService.Interfaces.Protobuf
 {
     public interface IProtoSerializer
     {
-        Stream AddEntityToStream(Stream innerStream, object row, DataSetDescriptor descriptor);
+        Stream WriteParametersToStream(Stream innerStream, DataSetParameters dataSetParameters);
 
-        Stream AddDbReaderRowToStream(Stream innerStream, DbDataReader reader,
-                              DataSetDescriptor descriptor);
+        Stream WriteEntityToStream(Stream innerStream, object row, DataSetParameters dataSetParameters);
 
-        DataSetRow ReadRowFromByteArray(Stream innerStream, DataSetDescriptor descriptor);
+        Stream WriteDbReaderRowToStream(Stream innerStream, DbDataReader reader);
+
+        DataSetParameters ReadDescriptorFromByteArray(byte[] innerStream);
+
+        object[] ReadRowFromByteArray(byte[] innerStream, DataSetParameters dataSetParameters);
 
         DataSet ReadDataSetFromByteArray(byte[] innerStream);
     }

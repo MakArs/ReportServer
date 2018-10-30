@@ -8,17 +8,17 @@ namespace ReportService.Interfaces.Protobuf
 {
     public interface IDescriptorBuilder
     {
-        DataSetDescriptor GetClassDescriptor<T>() where T : class;
-        DataSetDescriptor GetDbReaderDescriptor(DbDataReader reader);
+        DataSetParameters GetClassParameters<T>() where T : class;
+        DataSetParameters GetDbReaderParameters(DbDataReader reader);
     }
 
-    public class DataSetDescriptor
+    public class DataSetParameters
     {
         public readonly Dictionary<int, ColumnInfo> Fields = new Dictionary<int, ColumnInfo>();
 
-        public static MessageDescriptor<DataSetDescriptor> GetDescriptor()
+        public static MessageDescriptor<DataSetParameters> GetDescriptor()
         {
-            return MessageDescriptorBuilder.New<DataSetDescriptor>()
+            return MessageDescriptorBuilder.New<DataSetParameters>()
                 .MessageArray(2, di => di.Fields.Select(field =>
                         new ColumnInfoPair(field.Key, field.Value)),
                     (di, newfield) => di.Fields.Add(newfield.Tag, newfield.ColumnInfo),

@@ -6,11 +6,11 @@ namespace ReportService.Core
 {
     public class DescriptorBuilder : IDescriptorBuilder
     {
-        public DataSetDescriptor GetClassDescriptor<T>() where T : class
+        public DataSetParameters GetClassParameters<T>() where T : class
         {
             var innerFields = typeof(T).GetFields();
 
-            var descriptor = new DataSetDescriptor();
+            var descriptor = new DataSetParameters();
 
             for (int i = 0; i < innerFields.Length; i++)
             {
@@ -22,9 +22,9 @@ namespace ReportService.Core
             return descriptor;
         }
 
-        public DataSetDescriptor GetDbReaderDescriptor(DbDataReader reader)
+        public DataSetParameters GetDbReaderParameters(DbDataReader reader)
         {
-            var descriptor = new DataSetDescriptor();
+            var descriptor = new DataSetParameters();
 
             var colCount = reader.FieldCount;
 

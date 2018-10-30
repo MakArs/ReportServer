@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Gerakul.ProtoBufSerializer;
+using Telegram.Bot.Exceptions;
 
 namespace ReportService.Core
 {
@@ -164,24 +165,7 @@ namespace ReportService.Core
 
         public Dictionary<string, object> ReadObj(byte[] encodedEntity, byte[] encodedDescriptor)
         {
-            //var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
-            //var dictdescr= MessageDescriptorBuilder.New<Dictionary<string,object>>()
-            //    .array
-            //    MessageDescriptor
-            //return null;
-            var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
-
-            descrInfo.Fields.ToDictionary(field => field.Name, field => new object());
-
-            var customDescr = MessageDescriptorBuilder.New<Dictionary<string, object>>()
-                .MessageArray(1, dict => dict.Select(row => new DataSetRow(row.Key, row.Value)),
-                    (dict, newVal) => dict.Add(newVal.Key, newVal.Value),
-                    DataSetRow.GetDescriptor("String"))
-                .CreateDescriptor();
-
-
-            var descr = ReadDescriptor(encodedDescriptor);
-            return customDescr.Read(encodedEntity);
+            throw new NotImplementedException();
         }
 
         public byte[][] WriteList<T>(List<T> entities, MessageDescriptor<T> entityDescriptor)

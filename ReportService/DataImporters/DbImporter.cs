@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
@@ -40,7 +41,10 @@ namespace ReportService.DataImporters
                     .UseReader(reader =>
                     {
                         DescriptorBuilder builder = new DescriptorBuilder();
-                        var set = builder.GetDbReaderDescriptor(reader);
+
+                        var set = builder.GetDbReaderParameters(reader);
+                        var someStream = new MemoryStream();
+
                         //if (reader.Read())
                         //{
 
