@@ -6,9 +6,9 @@ using System.Net.Mail;
 using Autofac;
 using Newtonsoft.Json;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.Core
+namespace ReportService.ReportTask
 {
     public class DefaultTaskExporter : IDefaultTaskExporter
     {

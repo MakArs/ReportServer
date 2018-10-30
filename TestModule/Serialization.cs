@@ -4,8 +4,9 @@ using System.IO;
 using NUnit.Framework;
 using ProtoBuf;
 using ReportService.Core;
-using ReportService.Interfaces;
 using ReportService.Interfaces.Core;
+using ReportService.Protobuf;
+using ElementarySerializer = ReportService.Protobuf.ElementarySerializer;
 
 namespace TestModule
 {

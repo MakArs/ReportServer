@@ -4,11 +4,11 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
-using ReportService.Core;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
+using ReportService.Protobuf;
 
-namespace ReportService.DataImporters
+namespace ReportService.Operations.DataImporters
 {
     public class DbImporter : IDataImporter
     {
@@ -41,9 +41,13 @@ namespace ReportService.DataImporters
                     .UseReader(reader =>
                     {
                         DescriptorBuilder builder = new DescriptorBuilder();
-
+                        ProtoSerializer serializer=new ProtoSerializer();
+                        
                         var set = builder.GetDbReaderParameters(reader);
-                        var someStream = new MemoryStream();
+                        var memStream = new MemoryStream();
+
+                        serializer.WriteParametersToStream(memStream, set);
+
 
                         //if (reader.Read())
                         //{
@@ -63,6 +67,8 @@ namespace ReportService.DataImporters
 
                         while (reader.Read())
                         {
+                            serializer.WriteDbReaderRowToStream(memStream, reader);
+
                             var fields = new Dictionary<string, object>();
 
                             for (int i = 0; i < reader.FieldCount; i++)

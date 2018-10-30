@@ -1,8 +1,7 @@
-﻿using ReportService.Interfaces;
-using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+﻿using ReportService.Interfaces.Core;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.DataExporters
+namespace ReportService.Operations.DataExporters
 {
     public class CommonDataExporter : IDataExporter
     {

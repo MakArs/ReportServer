@@ -5,11 +5,10 @@ using System.Net.Mail;
 using Autofac;
 using AutoMapper;
 using ReportService.Extensions;
-using ReportService.Interfaces;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.DataExporters
+namespace ReportService.Operations.DataExporters
 {
     public class EmailDataSender : CommonDataExporter
     {

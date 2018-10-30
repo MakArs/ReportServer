@@ -15,7 +15,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Core
 {

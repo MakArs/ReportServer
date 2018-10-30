@@ -1,11 +1,11 @@
 ﻿using Autofac;
 using AutoMapper;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
-namespace ReportService.DataExporters
+namespace ReportService.Operations.DataExporters
 {
     public class TelegramDataSender : CommonDataExporter
     {

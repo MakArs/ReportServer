@@ -9,13 +9,16 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using ReportService.Core;
-using ReportService.DataExporters;
-using ReportService.DataExporters.ViewExecutors;
-using ReportService.DataImporters;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.Protobuf;
+using ReportService.Interfaces.ReportTask;
 using ReportService.Nancy;
+using ReportService.Operations.DataExporters;
+using ReportService.Operations.DataExporters.ViewExecutors;
+using ReportService.Operations.DataImporters;
+using ReportService.Protobuf;
+using ReportService.ReportTask;
 using Telegram.Bot;
 
 namespace ReportService
@@ -120,6 +123,10 @@ namespace ReportService
             existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
 
             existingContainer.RegisterImplementation<ITaskWorker,TaskWorker>();
+
+            existingContainer.RegisterImplementation<IDescriptorBuilder,DescriptorBuilder>();
+
+            existingContainer.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
 
             #region ConfigureBot
 

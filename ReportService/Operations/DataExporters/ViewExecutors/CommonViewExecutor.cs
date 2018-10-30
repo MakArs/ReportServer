@@ -7,10 +7,9 @@ using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
 using ReportService.Extensions;
-using ReportService.Interfaces;
 using ReportService.Interfaces.Core;
 
-namespace ReportService.DataExporters.ViewExecutors
+namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonViewExecutor : IViewExecutor
     {

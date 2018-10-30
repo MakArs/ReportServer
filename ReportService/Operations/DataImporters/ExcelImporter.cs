@@ -6,9 +6,9 @@ using AutoMapper;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.DataImporters
+namespace ReportService.Operations.DataImporters
 {
     public class ExcelImporter : IDataImporter
     {

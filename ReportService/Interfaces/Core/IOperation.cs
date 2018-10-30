@@ -1,5 +1,5 @@
 ﻿using System;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Interfaces.Core
 {

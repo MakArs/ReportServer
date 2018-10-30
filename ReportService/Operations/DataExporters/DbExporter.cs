@@ -5,10 +5,9 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Newtonsoft.Json;
-using ReportService.Interfaces;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.DataExporters
+namespace ReportService.Operations.DataExporters
 {
     public class DbExporter : CommonDataExporter
     {

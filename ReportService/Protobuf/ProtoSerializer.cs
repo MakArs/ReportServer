@@ -5,7 +5,7 @@ using Gerakul.ProtoBufSerializer;
 using ProtoBuf;
 using ReportService.Interfaces.Protobuf;
 
-namespace ReportService.Core
+namespace ReportService.Protobuf
 {
     public class ProtoSerializer : IProtoSerializer
     {

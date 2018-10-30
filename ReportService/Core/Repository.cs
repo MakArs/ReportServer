@@ -4,7 +4,6 @@ using System.Linq;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Monik.Common;
-using ReportService.Interfaces;
 using ReportService.Interfaces.Core;
 
 namespace ReportService.Core

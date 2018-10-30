@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.Core
+namespace ReportService.ReportTask
 {
     public class RTaskRunContext : IRTaskRunContext
     {

@@ -2,7 +2,7 @@
 using System.Linq;
 using ReportService.Interfaces.Protobuf;
 
-namespace ReportService.Core
+namespace ReportService.Protobuf
 {
     public class DescriptorBuilder : IDescriptorBuilder
     {

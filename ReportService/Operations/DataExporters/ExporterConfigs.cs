@@ -1,6 +1,6 @@
 ﻿using ReportService.Interfaces.Core;
 
-namespace ReportService.DataExporters
+namespace ReportService.Operations.DataExporters
 {
     public interface IExporterConfig : IOperationConfig
     {

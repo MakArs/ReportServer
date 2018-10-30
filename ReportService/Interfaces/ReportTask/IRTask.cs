@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 
-namespace ReportService.Interfaces.RTask
+namespace ReportService.Interfaces.ReportTask
 {
     public enum RReportType : byte
     {

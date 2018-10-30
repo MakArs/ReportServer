@@ -1,4 +1,4 @@
-﻿namespace ReportService.DataExporters.ViewExecutors
+﻿namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonTableViewExecutor : CommonViewExecutor
     {

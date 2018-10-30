@@ -1,14 +1,14 @@
-﻿using Autofac;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
 using Monik.Common;
 using Newtonsoft.Json;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.Core
+namespace ReportService.ReportTask
 {
     public class RTask : IRTask
     {

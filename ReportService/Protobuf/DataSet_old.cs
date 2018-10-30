@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Gerakul.ProtoBufSerializer;
-using Telegram.Bot.Exceptions;
 
-namespace ReportService.Core
+namespace ReportService.Protobuf
 {
     public class DescriptorInfo
     {

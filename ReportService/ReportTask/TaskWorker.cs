@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Monik.Common;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.Core
+namespace ReportService.ReportTask
 {
     public class TaskWorker: ITaskWorker
     {
@@ -157,7 +157,7 @@ namespace ReportService.Core
         public async Task<string> RunOperationsAndGetLastView(
             List<IOperation> opers, IRTaskRunContext taskContext)
         {
-            await Task.Factory.StartNew(() =>
+            await System.Threading.Tasks.Task.Factory.StartNew(() =>
                 RunOperations(opers, taskContext));
 
             var val = taskContext.DataSets.LastOrDefault().Value;

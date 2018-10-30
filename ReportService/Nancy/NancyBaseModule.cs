@@ -1,6 +1,5 @@
 ﻿using System;
 using Nancy;
-using ReportService.Interfaces;
 using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy

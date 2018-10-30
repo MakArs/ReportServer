@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using ReportService.Interfaces.Core;
 
-namespace ReportService.Interfaces.RTask
+namespace ReportService.Interfaces.ReportTask
 {
     public interface ITaskWorker
     {

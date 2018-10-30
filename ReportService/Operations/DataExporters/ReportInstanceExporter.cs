@@ -3,9 +3,9 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.RTask;
+using ReportService.Interfaces.ReportTask;
 
-namespace ReportService.DataExporters
+namespace ReportService.Operations.DataExporters
 {
     public class ReportInstanceExporter : CommonDataExporter
     {

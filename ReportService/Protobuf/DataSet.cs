@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ReportService.Interfaces.Protobuf;
 
-namespace ReportService.Core
+namespace ReportService.Protobuf
 {
     public class DataSet
     {

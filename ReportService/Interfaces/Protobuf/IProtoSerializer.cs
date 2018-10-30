@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 using System.IO;
-using ReportService.Core;
+using ReportService.Protobuf;
 
 namespace ReportService.Interfaces.Protobuf
 {

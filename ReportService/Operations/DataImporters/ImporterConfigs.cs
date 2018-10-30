@@ -1,6 +1,6 @@
 ﻿using ReportService.Interfaces.Core;
 
-namespace ReportService.DataImporters
+namespace ReportService.Operations.DataImporters
 {
     public interface IImporterConfig : IOperationConfig
     {
