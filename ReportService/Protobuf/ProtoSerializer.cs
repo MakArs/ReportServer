@@ -19,14 +19,18 @@ namespace ReportService.Protobuf
         public Stream WriteParametersToStream(Stream innerStream,
                                               DataSetParameters dataSetParameters)
         {
-            byte[] serializedParams = descriptor.Write(dataSetParameters);
-            innerStream.Write(serializedParams, 0, serializedParams.Length);
+            //add byte [header]
+
+            var writer = descriptor.CreateWriter(innerStream);
+            writer.Write(dataSetParameters);
             return innerStream;
         }
 
         public Stream WriteEntityToStream(Stream innerStream, object row,
                                           DataSetParameters dataSetParameters)
         {
+            //add byte[row]
+
             foreach (var head in dataSetParameters.Fields)
             {
                 var value = row.GetType().GetField(head.Value.Name)?.GetValue(row);
@@ -40,6 +44,7 @@ namespace ReportService.Protobuf
 
         public Stream WriteDbReaderRowToStream(Stream innerStream, DbDataReader reader)
         {
+            //add byte[row]
             object[] row=new object[reader.FieldCount];
 
             reader.GetValues(row);
@@ -53,60 +58,53 @@ namespace ReportService.Protobuf
             return innerStream;
         }
 
-        public DataSetParameters ReadDescriptorFromByteArray(byte[] innerStream)
+        public DataSetParameters ReadDescriptorFromStream(Stream innerStream)
         {
-           // var str=new MemoryStream();
-           // str.Write(innerStream,0,innerStream.Length);
-            return descriptor.Read(innerStream);
+            //read byte[header]
+            var reader = descriptor.CreateReader(innerStream);
+
+            return reader.Read();
         }
 
-        public object[] ReadRowFromByteArray(byte[] innerStream, DataSetParameters dataSetParameters)
+        public object[] ReadRowFromStream(Stream innerStream, DataSetParameters dataSetParameters)
         {
-            var str = new MemoryStream();
+            //read byte[row]
 
-            str.Write(innerStream,0,innerStream.Length);
-
-            str.Position = Array.IndexOf(innerStream, new byte()) + 1;
+            innerStream.Position = 0;
 
             var deserialized = new object[dataSetParameters.Fields.Count];
 
             foreach (var head in dataSetParameters.Fields)
             {
                 Serializer.NonGeneric
-                    .TryDeserializeWithLengthPrefix(str, PrefixStyle.Base128,
+                    .TryDeserializeWithLengthPrefix(innerStream, PrefixStyle.Base128,
                         t => Type.GetType(head.Value.TypeName),
                         out deserialized[head.Key - 1]);
             }
 
-            str.Dispose();
-
             return deserialized;
         }
 
-        public DataSet ReadDataSetFromByteArray(byte[] innerStream)
+        public DataSet ReadDataSetFromStream(Stream innerStream)
         {
-            var set = new DataSet
-            {
-                dataSetParameters = ReadDescriptorFromByteArray(innerStream)
-            };
+            //read byte[row]
 
-            var str = new MemoryStream();
-            str.Write(innerStream, 0, innerStream.Length);
+            innerStream.Position = 0;//specific bytes..
 
-            str.Position = Array.IndexOf(innerStream, new byte());//specific bytes..
+            DataSet set=new DataSet();
 
-            var nextRowIndex= Array.IndexOf(innerStream, new byte())+1;
+            var nextRowIndex = 0;
 
             while (nextRowIndex > 0)
             {
-                str.Position = nextRowIndex;
+                innerStream.Position = nextRowIndex;
 
                 var deserialized = new object[set.dataSetParameters.Fields.Count];
 
                 foreach (var head in set.dataSetParameters.Fields)
                 {
                     Serializer.NonGeneric
-                        .TryDeserializeWithLengthPrefix(str, PrefixStyle.Base128,
+                        .TryDeserializeWithLengthPrefix(innerStream, PrefixStyle.Base128,
                             t => Type.GetType(head.Value.TypeName),
                             out deserialized[head.Key - 1]);
                 }
@@ -116,7 +114,6 @@ namespace ReportService.Protobuf
                 nextRowIndex = Array.IndexOf(innerStream, new byte(), nextRowIndex) + 1;
             }
 
-            str.Dispose();
 
             return set;
         }

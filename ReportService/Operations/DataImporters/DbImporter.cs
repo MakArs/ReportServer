@@ -29,7 +29,6 @@ namespace ReportService.Operations.DataImporters
         public void Execute(IRTaskRunContext taskContext)
         {
             var queryResult = new List<Dictionary<string, object>>();
-            // var queryres2=new Dictionary<string,List<object>>();
 
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
