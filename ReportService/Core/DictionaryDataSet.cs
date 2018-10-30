@@ -1,98 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using Gerakul.ProtoBufSerializer;
+﻿using System.Collections.Generic;
+using ReportService.Interfaces;
 
 namespace ReportService.Core
 {
+    public class DataSet
+    {
+        private readonly DataSetDescriptor descriptor;
 
-//    public class DictionaryDataSet
-//    {
-//       public readonly Dictionary<string, string> ColumnDefinitions = new Dictionary<string, string>();
-//        //public List<List<object>> Data;
+        public List<object[]> Rows;
 
-//        public static MessageDescriptor<DictionaryDataSet> GetDescriptor()
-//        {
-//            return MessageDescriptorBuilder.New<DictionaryDataSet>()
-//                .MessageArray(1, ds => ds.ColumnDefinitions,
-//                    (ds, kvp) => ds.ColumnDefinitions.Add(kvp.Key, kvp.Value),
-//                    MessageDescriptorBuilder.New<KeyValuePair<string, string>>().CreateDescriptor())
-//                //.MessageArray(2, ds => ds.Data,
-//                //    (ds, list) => ds.Data.Add(list),
-//                //    MessageDescriptorBuilder.New<List<object>>().CreateDescriptor())
-//                .CreateDescriptor();
-//        }
-//    }
+        public List<DataSetRow> GetAllRows()
+        {
+            return null;
+        }
 
-//    public partial class ElementarySerializer
-//    {
-//        public byte[] WriteDictDescriptor<T>() where T : class
-//        {
-//            var innerFields = typeof(T).GetFields();
-
-//            DictionaryDataSet set=new DictionaryDataSet();
-
-//            foreach (var field in innerFields)
-//            {
-//                set.ColumnDefinitions.Add(field.Name,field.FieldType.Name);
-//            }
-
-//            return DictionaryDataSet.GetDescriptor().Write(set);
-//        }
-
-//        public Dictionary<string,string> ReadDictDescriptor(byte[] encodedDescriptor)
-//        {
-//            var descrInfo = DictionaryDataSet.GetDescriptor().Read(encodedDescriptor);
-
-//            return descrInfo.ColumnDefinitions;
-//        }
-
-//        public byte[] WriteDictionary<T>(byte[] encodedDescriptor, T t) where T : class
-//        {
-//            return null;
-//        }
-
-//        public Dictionary<string,object> ReadEntity(byte[] encodedDescriptor, byte[] encodedEntity) 
-//        {
-//            var dict = ReadDictDescriptor(encodedDictionary);
-
-//            var entity = new object[dict.Count];
-
-//            return null;
-//        }
-//    }
+        public DataSetRow GetRow(int index)
+        {
+            return null;
+        }
+    }
 
     public partial class ElementarySerializer
     {
-        public List<FieldParams2> SaveHeader<T>() where T : class
+        public DataSetDescriptor SaveHeaderFromClassFields<T>() where T : class
         {
             var innerFields = typeof(T).GetFields();
 
-            var fieldpars=new List<FieldParams2>();
+            var descriptor = new DataSetDescriptor();
 
             for (int i = 0; i < innerFields.Length; i++)
             {
                 var field = innerFields[i];
-                fieldpars.Add(new FieldParams2
-                {
-                    Name = field.Name,
-                    Number = i + 1,
-                    Type = field.FieldType
-                });
+                descriptor.Fields.Add(i + 1,
+                    new ColumnInfo(field.Name, field.FieldType));
             }
 
-            return fieldpars;
+            return descriptor;
         }
-    }
-
-    public class Header
-    {
-        public List<FieldParams2> fprs = new List<FieldParams2>();
-    }
-
-    public class FieldParams2
-    {
-        public int Number;
-        public string Name;
-        public Type Type;
     }
 }

@@ -186,6 +186,7 @@
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Core\DataSet.cs" />
     <Compile Include="Core\DefaultTaskExporter.cs" />
+    <Compile Include="Core\DescriptorBuilder.cs" />
     <Compile Include="Core\DictionaryDataSet.cs" />
     <Compile Include="Core\RTaskRunContext.cs" />
     <Compile Include="Core\TaskWorker.cs" />
@@ -202,7 +203,9 @@
     <Compile Include="Extensions\MailMessageExtension.cs" />
     <Compile Include="Interfaces\IArchiver.cs" />
     <Compile Include="Interfaces\IDefaultTaskExporter.cs" />
+    <Compile Include="Interfaces\IDescriptorBuilder.cs" />
     <Compile Include="Interfaces\IOperation.cs" />
+    <Compile Include="Interfaces\IProtoSerializer.cs" />
     <Compile Include="Interfaces\IRTaskRunContext.cs" />
     <Compile Include="Interfaces\ITaskWorker.cs" />
     <Compile Include="Nancy\HostHolder.cs" />

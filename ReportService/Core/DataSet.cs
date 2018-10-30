@@ -5,54 +5,6 @@ using Gerakul.ProtoBufSerializer;
 
 namespace ReportService.Core
 {
-    //public class KeyValuePairStringType
-    //{
-    //    public string Key;
-    //    public string Value;
-
-    //    public KeyValuePairStringType()
-    //    {
-    //    }
-
-    //    public KeyValuePairStringType(string key, string value)
-    //    {
-    //        Key = key;
-    //        Value = value;
-    //    }
-
-    //    public static MessageDescriptor<KeyValuePairStringType> GetDescriptor()
-    //    {
-    //        return MessageDescriptorBuilder.New<KeyValuePairStringType>()
-    //            .String(1, x => x.Key, (x, y) => x.Key = y)
-    //            .String(2, x => x.Value, (x, y) => x.Value = y, x => x.Value != null)
-    //            .CreateDescriptor();
-    //    }
-    //}
-
-    //public class SomeEntity : IEquatable<SomeEntity>
-    //{
-    //    public int IntField;
-    //    public string StringField;
-    //    public double DoubleField;
-
-    //    public static MessageDescriptor<SomeEntity> GetDescriptor()
-    //    {
-    //        return MessageDescriptorBuilder.New<SomeEntity>()
-    //            .Int32(1, se => se.IntField, (se, intVal) => se.IntField = intVal)
-    //            .String(2, se => se.StringField, (se, strVal) => se.StringField = strVal)
-    //            .Double(3, se => se.DoubleField, (se, doubVal) => se.DoubleField = doubVal)
-    //            .CreateDescriptor();
-    //    }
-
-    //    public bool Equals(SomeEntity other)
-    //    {
-    //        return other       != null              &&
-    //               IntField    == other.IntField    &&
-    //               StringField == other.StringField &&
-    //               DoubleField == other.DoubleField;
-    //    }
-    //}
-
     public class DescriptorInfo
     {
         public int FieldsCount;
@@ -156,7 +108,7 @@ namespace ReportService.Core
             return builder.CreateDescriptor();
         }
 
-       public IUntypedMessageDescriptor ReadDescriptor(byte[] encodedDescriptor)
+        public IUntypedMessageDescriptor ReadDescriptor(byte[] encodedDescriptor)
         {
             var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
 
@@ -209,7 +161,7 @@ namespace ReportService.Core
             return descr.Write(entity);
         }
 
-        public Dictionary<string,object> ReadObj(byte[] encodedEntity, byte[] encodedDescriptor)
+        public Dictionary<string, object> ReadObj(byte[] encodedEntity, byte[] encodedDescriptor)
         {
             //var descrInfo = DescriptorInfo.GetDescriptor().Read(encodedDescriptor);
             //var dictdescr= MessageDescriptorBuilder.New<Dictionary<string,object>>()
@@ -220,9 +172,9 @@ namespace ReportService.Core
 
             descrInfo.Fields.ToDictionary(field => field.Name, field => new object());
 
-          var customDescr = MessageDescriptorBuilder.New<Dictionary<string, object>>()
+            var customDescr = MessageDescriptorBuilder.New<Dictionary<string, object>>()
                 .MessageArray(1, dict => dict.Select(row => new DataSetRow(row.Key, row.Value)),
-                    (dict,newVal)=>dict.Add(newVal.Key,newVal.Value),
+                    (dict, newVal) => dict.Add(newVal.Key, newVal.Value),
                     DataSetRow.GetDescriptor("String"))
                 .CreateDescriptor();
 
