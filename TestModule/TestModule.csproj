@@ -73,7 +73,8 @@
     <Compile Include="BugTests.cs" />
     <Compile Include="ExampleProtoInt.cs" />
     <Compile Include="ExampleProtoInt2.cs" />
-    <Compile Include="OperationPackage.cs" />
+    <Compile Include="ProtoOld\DataSet_old.cs" />
+    <Compile Include="ProtoOld\Structure.cs" />
     <Compile Include="Serialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

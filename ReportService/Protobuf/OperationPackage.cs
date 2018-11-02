@@ -24,28 +24,31 @@ namespace ReportService {
     static OperationPackageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChZPcGVyYXRpb25QYWNrYWdlLnByb3RvEg1SZXBvcnRTZXJ2aWNlImQKEE9w",
-            "ZXJhdGlvblBhY2thZ2USDwoHQ3JlYXRlZBgBIAEoBRIVCg1PcGVyYXRpb25O",
-            "YW1lGAIgASgJEigKCERhdGFTZXRzGA8gAygLMhYuUmVwb3J0U2VydmljZS5E",
-            "YXRhU2V0ImUKB0RhdGFTZXQSDAoETmFtZRgBIAEoCRIqCgdDb2x1bW5zGAIg",
-            "AygLMhkuUmVwb3J0U2VydmljZS5Db2x1bW5JbmZvEiAKBFJvd3MYAyADKAsy",
-            "Ei5SZXBvcnRTZXJ2aWNlLlJvdyJVCgpDb2x1bW5JbmZvEgwKBE5hbWUYASAB",
-            "KAkSJwoEVHlwZRgCIAEoDjIZLlJlcG9ydFNlcnZpY2UuU2NhbGFyVHlwZRIQ",
-            "CghOdWxsYWJsZRgDIAEoCCIyCgNSb3cSKwoGVmFsdWVzGAEgAygLMhsuUmVw",
-            "b3J0U2VydmljZS5WYXJpYW50VmFsdWUilgEKDFZhcmlhbnRWYWx1ZRISCgpJ",
-            "bnQzMlZhbHVlGAEgASgFEhMKC0RvdWJsZVZhbHVlGAIgASgBEhEKCUxvbmdW",
-            "YWx1ZRgDIAEoAxIRCglCb29sVmFsdWUYBCABKAgSEwoLU3RyaW5nVmFsdWUY",
-            "BSABKAkSEgoKQnl0ZXNWYWx1ZRgGIAEoDBIOCgZJc051bGwYDyABKAgqTgoK",
-            "U2NhbGFyVHlwZRIJCgVJbnQzMhAAEgoKBkRvdWJsZRABEggKBExvbmcQAhII",
-            "CgRCb29sEAMSCgoGU3RyaW5nEAQSCQoFQnl0ZXMQBWIGcHJvdG8z"));
+            "ChZPcGVyYXRpb25QYWNrYWdlLnByb3RvEg1SZXBvcnRTZXJ2aWNlGg90aW1l",
+            "c3RhbXAucHJvdG8igAEKEE9wZXJhdGlvblBhY2thZ2USKwoHQ3JlYXRlZBgB",
+            "IAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASFQoNT3BlcmF0aW9u",
+            "TmFtZRgCIAEoCRIoCghEYXRhU2V0cxgPIAMoCzIWLlJlcG9ydFNlcnZpY2Uu",
+            "RGF0YVNldCJlCgdEYXRhU2V0EgwKBE5hbWUYASABKAkSKgoHQ29sdW1ucxgC",
+            "IAMoCzIZLlJlcG9ydFNlcnZpY2UuQ29sdW1uSW5mbxIgCgRSb3dzGAMgAygL",
+            "MhIuUmVwb3J0U2VydmljZS5Sb3ciVQoKQ29sdW1uSW5mbxIMCgROYW1lGAEg",
+            "ASgJEicKBFR5cGUYAiABKA4yGS5SZXBvcnRTZXJ2aWNlLlNjYWxhclR5cGUS",
+            "EAoITnVsbGFibGUYAyABKAgiMgoDUm93EisKBlZhbHVlcxgBIAMoCzIbLlJl",
+            "cG9ydFNlcnZpY2UuVmFyaWFudFZhbHVlIssBCgxWYXJpYW50VmFsdWUSEgoK",
+            "SW50MzJWYWx1ZRgBIAEoBRITCgtEb3VibGVWYWx1ZRgCIAEoARISCgpJbnQ2",
+            "NFZhbHVlGAMgASgDEhEKCUJvb2xWYWx1ZRgEIAEoCBITCgtTdHJpbmdWYWx1",
+            "ZRgFIAEoCRISCgpCeXRlc1ZhbHVlGAYgASgMEjIKDlRpbWVTdGFtcFZhbHVl",
+            "GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZJc051bGwY",
+            "DyABKAgqXQoKU2NhbGFyVHlwZRIJCgVJbnQzMhAAEgoKBkRvdWJsZRABEgkK",
+            "BUludDY0EAISCAoEQm9vbBADEgoKBlN0cmluZxAEEgkKBUJ5dGVzEAUSDAoI",
+            "RGF0ZVRpbWUQBmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::ReportService.ScalarType), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::ReportService.OperationPackage), global::ReportService.OperationPackage.Parser, new[]{ "Created", "OperationName", "DataSets" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ReportService.DataSet), global::ReportService.DataSet.Parser, new[]{ "Name", "Columns", "Rows" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ReportService.ColumnInfo), global::ReportService.ColumnInfo.Parser, new[]{ "Name", "Type", "Nullable" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ReportService.Row), global::ReportService.Row.Parser, new[]{ "Values" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ReportService.VariantValue), global::ReportService.VariantValue.Parser, new[]{ "Int32Value", "DoubleValue", "LongValue", "BoolValue", "StringValue", "BytesValue", "IsNull" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::ReportService.VariantValue), global::ReportService.VariantValue.Parser, new[]{ "Int32Value", "DoubleValue", "Int64Value", "BoolValue", "StringValue", "BytesValue", "TimeStampValue", "IsNull" }, null, null, null)
           }));
     }
     #endregion
@@ -55,13 +58,14 @@ namespace ReportService {
   public enum ScalarType {
     [pbr::OriginalName("Int32")] Int32 = 0,
     [pbr::OriginalName("Double")] Double = 1,
-    [pbr::OriginalName("Long")] Long = 2,
+    [pbr::OriginalName("Int64")] Int64 = 2,
     [pbr::OriginalName("Bool")] Bool = 3,
     [pbr::OriginalName("String")] String = 4,
+    [pbr::OriginalName("Bytes")] Bytes = 5,
     /// <summary>
     ///Can add other if needed. Now no need i think
     /// </summary>
-    [pbr::OriginalName("Bytes")] Bytes = 5,
+    [pbr::OriginalName("DateTime")] DateTime = 6,
   }
 
   #endregion
@@ -92,7 +96,7 @@ namespace ReportService {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public OperationPackage(OperationPackage other) : this() {
-      created_ = other.created_;
+      created_ = other.created_ != null ? other.created_.Clone() : null;
       operationName_ = other.operationName_;
       dataSets_ = other.dataSets_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -105,9 +109,9 @@ namespace ReportService {
 
     /// <summary>Field number for the "Created" field.</summary>
     public const int CreatedFieldNumber = 1;
-    private int created_;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp created_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Created {
+    public global::Google.Protobuf.WellKnownTypes.Timestamp Created {
       get { return created_; }
       set {
         created_ = value;
@@ -151,7 +155,7 @@ namespace ReportService {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Created != other.Created) return false;
+      if (!object.Equals(Created, other.Created)) return false;
       if (OperationName != other.OperationName) return false;
       if(!dataSets_.Equals(other.dataSets_)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -160,7 +164,7 @@ namespace ReportService {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Created != 0) hash ^= Created.GetHashCode();
+      if (created_ != null) hash ^= Created.GetHashCode();
       if (OperationName.Length != 0) hash ^= OperationName.GetHashCode();
       hash ^= dataSets_.GetHashCode();
       if (_unknownFields != null) {
@@ -176,9 +180,9 @@ namespace ReportService {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (Created != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(Created);
+      if (created_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Created);
       }
       if (OperationName.Length != 0) {
         output.WriteRawTag(18);
@@ -193,8 +197,8 @@ namespace ReportService {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Created != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Created);
+      if (created_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Created);
       }
       if (OperationName.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(OperationName);
@@ -211,8 +215,11 @@ namespace ReportService {
       if (other == null) {
         return;
       }
-      if (other.Created != 0) {
-        Created = other.Created;
+      if (other.created_ != null) {
+        if (created_ == null) {
+          created_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        Created.MergeFrom(other.Created);
       }
       if (other.OperationName.Length != 0) {
         OperationName = other.OperationName;
@@ -229,8 +236,11 @@ namespace ReportService {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 8: {
-            Created = input.ReadInt32();
+          case 10: {
+            if (created_ == null) {
+              created_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(created_);
             break;
           }
           case 18: {
@@ -752,10 +762,11 @@ namespace ReportService {
     public VariantValue(VariantValue other) : this() {
       int32Value_ = other.int32Value_;
       doubleValue_ = other.doubleValue_;
-      longValue_ = other.longValue_;
+      int64Value_ = other.int64Value_;
       boolValue_ = other.boolValue_;
       stringValue_ = other.stringValue_;
       bytesValue_ = other.bytesValue_;
+      timeStampValue_ = other.timeStampValue_ != null ? other.timeStampValue_.Clone() : null;
       isNull_ = other.isNull_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -787,14 +798,14 @@ namespace ReportService {
       }
     }
 
-    /// <summary>Field number for the "LongValue" field.</summary>
-    public const int LongValueFieldNumber = 3;
-    private long longValue_;
+    /// <summary>Field number for the "Int64Value" field.</summary>
+    public const int Int64ValueFieldNumber = 3;
+    private long int64Value_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long LongValue {
-      get { return longValue_; }
+    public long Int64Value {
+      get { return int64Value_; }
       set {
-        longValue_ = value;
+        int64Value_ = value;
       }
     }
 
@@ -831,6 +842,17 @@ namespace ReportService {
       }
     }
 
+    /// <summary>Field number for the "TimeStampValue" field.</summary>
+    public const int TimeStampValueFieldNumber = 7;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp timeStampValue_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp TimeStampValue {
+      get { return timeStampValue_; }
+      set {
+        timeStampValue_ = value;
+      }
+    }
+
     /// <summary>Field number for the "IsNull" field.</summary>
     public const int IsNullFieldNumber = 15;
     private bool isNull_;
@@ -857,10 +879,11 @@ namespace ReportService {
       }
       if (Int32Value != other.Int32Value) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(DoubleValue, other.DoubleValue)) return false;
-      if (LongValue != other.LongValue) return false;
+      if (Int64Value != other.Int64Value) return false;
       if (BoolValue != other.BoolValue) return false;
       if (StringValue != other.StringValue) return false;
       if (BytesValue != other.BytesValue) return false;
+      if (!object.Equals(TimeStampValue, other.TimeStampValue)) return false;
       if (IsNull != other.IsNull) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -870,10 +893,11 @@ namespace ReportService {
       int hash = 1;
       if (Int32Value != 0) hash ^= Int32Value.GetHashCode();
       if (DoubleValue != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(DoubleValue);
-      if (LongValue != 0L) hash ^= LongValue.GetHashCode();
+      if (Int64Value != 0L) hash ^= Int64Value.GetHashCode();
       if (BoolValue != false) hash ^= BoolValue.GetHashCode();
       if (StringValue.Length != 0) hash ^= StringValue.GetHashCode();
       if (BytesValue.Length != 0) hash ^= BytesValue.GetHashCode();
+      if (timeStampValue_ != null) hash ^= TimeStampValue.GetHashCode();
       if (IsNull != false) hash ^= IsNull.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -896,9 +920,9 @@ namespace ReportService {
         output.WriteRawTag(17);
         output.WriteDouble(DoubleValue);
       }
-      if (LongValue != 0L) {
+      if (Int64Value != 0L) {
         output.WriteRawTag(24);
-        output.WriteInt64(LongValue);
+        output.WriteInt64(Int64Value);
       }
       if (BoolValue != false) {
         output.WriteRawTag(32);
@@ -911,6 +935,10 @@ namespace ReportService {
       if (BytesValue.Length != 0) {
         output.WriteRawTag(50);
         output.WriteBytes(BytesValue);
+      }
+      if (timeStampValue_ != null) {
+        output.WriteRawTag(58);
+        output.WriteMessage(TimeStampValue);
       }
       if (IsNull != false) {
         output.WriteRawTag(120);
@@ -930,8 +958,8 @@ namespace ReportService {
       if (DoubleValue != 0D) {
         size += 1 + 8;
       }
-      if (LongValue != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LongValue);
+      if (Int64Value != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Int64Value);
       }
       if (BoolValue != false) {
         size += 1 + 1;
@@ -941,6 +969,9 @@ namespace ReportService {
       }
       if (BytesValue.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(BytesValue);
+      }
+      if (timeStampValue_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(TimeStampValue);
       }
       if (IsNull != false) {
         size += 1 + 1;
@@ -962,8 +993,8 @@ namespace ReportService {
       if (other.DoubleValue != 0D) {
         DoubleValue = other.DoubleValue;
       }
-      if (other.LongValue != 0L) {
-        LongValue = other.LongValue;
+      if (other.Int64Value != 0L) {
+        Int64Value = other.Int64Value;
       }
       if (other.BoolValue != false) {
         BoolValue = other.BoolValue;
@@ -973,6 +1004,12 @@ namespace ReportService {
       }
       if (other.BytesValue.Length != 0) {
         BytesValue = other.BytesValue;
+      }
+      if (other.timeStampValue_ != null) {
+        if (timeStampValue_ == null) {
+          timeStampValue_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        TimeStampValue.MergeFrom(other.TimeStampValue);
       }
       if (other.IsNull != false) {
         IsNull = other.IsNull;
@@ -997,7 +1034,7 @@ namespace ReportService {
             break;
           }
           case 24: {
-            LongValue = input.ReadInt64();
+            Int64Value = input.ReadInt64();
             break;
           }
           case 32: {
@@ -1010,6 +1047,13 @@ namespace ReportService {
           }
           case 50: {
             BytesValue = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            if (timeStampValue_ == null) {
+              timeStampValue_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(timeStampValue_);
             break;
           }
           case 120: {

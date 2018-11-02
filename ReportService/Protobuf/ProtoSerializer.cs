@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.IO;
-using Gerakul.ProtoBufSerializer;
+using Google.Protobuf.Collections;
 using ProtoBuf;
 using ReportService.Interfaces.Protobuf;
 
@@ -9,32 +9,21 @@ namespace ReportService.Protobuf
 {
     public class ProtoSerializer : IProtoSerializer
     {
-        private readonly MessageDescriptor<DataSetParameters> descriptor;
-
-        public ProtoSerializer()
-        {
-            descriptor = DataSetParameters.GetDescriptor();
-        }
-
         public Stream WriteParametersToStream(Stream innerStream,
-                                              DataSetParameters dataSetParameters)
+                                              RepeatedField<ColumnInfo> dataSetParameters)
         {
             //add byte [header]
-
-            var writer = descriptor.CreateWriter(innerStream);
-            writer.Write(dataSetParameters);
-            writer.Close();
             return innerStream;
         }
 
         public Stream WriteEntityToStream(Stream innerStream, object row,
-                                          DataSetParameters dataSetParameters)
+                                          RepeatedField<ColumnInfo> dataSetParameters)
         {
             //add byte[row]
 
-            foreach (var head in dataSetParameters.Fields)
+            foreach (var head in dataSetParameters)
             {
-                var value = row.GetType().GetField(head.Value.Name)?.GetValue(row);
+                var value = row.GetType().GetField(head.Name)?.GetValue(row);
 
                 Serializer.NonGeneric.Serialize(innerStream,value);
 
@@ -62,26 +51,20 @@ namespace ReportService.Protobuf
             return innerStream;
         }
 
-        public DataSetParameters ReadParametersFromStream(Stream innerStream) //tested without byte-separator
+        public RepeatedField<ColumnInfo> ReadParametersFromStream(Stream innerStream) //tested without byte-separator
         {
             //read byte[header]
 
             innerStream.Position = 0;
-
-            var reader = descriptor.CreateReader(innerStream);
-
-            var dsParams = reader.Read();
-
-            reader.Close();
-
-            return dsParams;
+            
+            return new RepeatedField<ColumnInfo>();
         }
 
-        public object[] ReadRowFromStream(Stream innerStream, DataSetParameters dataSetParameters)
+        public object[] ReadRowFromStream(Stream innerStream, RepeatedField<ColumnInfo> dataSetParameters)
         {
             //read byte[row]
             innerStream.Position = 0;
-            var deserialized = new object[dataSetParameters.Fields.Count];
+            var deserialized = new object[dataSetParameters.Count];
 
             //foreach (var head in dataSetParameters.Fields)
             //{
@@ -94,7 +77,7 @@ namespace ReportService.Protobuf
             for (int i = 0; i < deserialized.Length; i++)
             {
                 Serializer.NonGeneric.Deserialize(
-                    Type.GetType(dataSetParameters.Fields[i - 1].TypeName),innerStream
+                    Type.GetType(dataSetParameters[i - 1].Type.ToString()),innerStream
                 );
             }
 
@@ -115,17 +98,15 @@ namespace ReportService.Protobuf
             {
                 innerStream.Position = nextRowIndex;
 
-                var deserialized = new object[set.dataSetParameters.Fields.Count];
+                var deserialized = new object[1];
 
-                foreach (var head in set.dataSetParameters.Fields)
+                foreach (var head in set.Columns)
                 {
                     Serializer.NonGeneric
                         .TryDeserializeWithLengthPrefix(innerStream, PrefixStyle.Base128,
-                            t => Type.GetType(head.Value.TypeName),
-                            out deserialized[head.Key - 1]);
+                            t => Type.GetType(head.Type.ToString()),
+                            out deserialized[0]);
                 }
-
-                set.Rows.Add(deserialized);
 
              //   nextRowIndex = Array.IndexOf(innerStream, new byte(), nextRowIndex) + 1;
             }

@@ -181,10 +181,10 @@
   <ItemGroup>
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
-    <Compile Include="Protobuf\DataSet_old.cs" />
+    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Protobuf\OperationPackage.cs" />
     <Compile Include="ReportTask\DefaultTaskExporter.cs" />
-    <Compile Include="Protobuf\DescriptorBuilder.cs" />
-    <Compile Include="Protobuf\DataSet.cs" />
+    <Compile Include="Protobuf\ProtoPackageBuilder.cs" />
     <Compile Include="Protobuf\ProtoSerializer.cs" />
     <Compile Include="ReportTask\RTaskRunContext.cs" />
     <Compile Include="ReportTask\TaskWorker.cs" />
@@ -201,7 +201,7 @@
     <Compile Include="Extensions\MailMessageExtension.cs" />
     <Compile Include="Interfaces\Core\IArchiver.cs" />
     <Compile Include="Interfaces\ReportTask\IDefaultTaskExporter.cs" />
-    <Compile Include="Interfaces\Protobuf\IDescriptorBuilder.cs" />
+    <Compile Include="Interfaces\Protobuf\IPackageBuilder.cs" />
     <Compile Include="Interfaces\Core\IOperation.cs" />
     <Compile Include="Interfaces\Protobuf\IProtoSerializer.cs" />
     <Compile Include="Interfaces\ReportTask\IRTaskRunContext.cs" />

@@ -124,7 +124,7 @@ namespace ReportService
 
             existingContainer.RegisterImplementation<ITaskWorker,TaskWorker>();
 
-            existingContainer.RegisterImplementation<IDescriptorBuilder,DescriptorBuilder>();
+            existingContainer.RegisterImplementation<IPackageBuilder,ProtoPackageBuilder>();
 
             existingContainer.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
 

@@ -5,9 +5,8 @@ using Google.Protobuf;
 using NUnit.Framework;
 using ProtoBuf;
 using ReportService;
-using ReportService.Interfaces.Core;
-using ReportService.Protobuf;
-using ElementarySerializer = ReportService.Protobuf.ElementarySerializer;
+using ElementarySerializer = TestModule.ProtoOld.ElementarySerializer;
+using FieldParams = TestModule.ProtoOld.FieldParams;
 
 namespace TestModule
 {
@@ -96,128 +95,7 @@ namespace TestModule
                 Assert.AreEqual(data[i], readObjects[i]);
             }
         }
-
-        [Test]
-        public void UntypedArrayTest()
-        {
-            var serializer = new ElementarySerializer();
-
-            var fieldPar = new FieldParams {Number = 15, Name = "fdas", Type = "r5q"};
-           
-            using (var stream = new MemoryStream())
-            {
-                var header = serializer.SaveHeaderFromClassFields<FieldParams>();
-
-                var varAsArray = new List<object>();
-
-                foreach (var head in header.Fields)
-                {
-                    var value = fieldPar.GetType().GetField(head.Value.Name)?.GetValue(fieldPar);
-
-                    Serializer.NonGeneric.SerializeWithLengthPrefix(stream,
-                        value, PrefixStyle.Base128, head.Key);
-
-                    varAsArray.Add(value);
-                }
-
-                stream.Position = 0;
-
-                var deserialized = new object[header.Fields.Count];
-
-                foreach (var head in header.Fields)
-                {
-                    Serializer.NonGeneric
-                        .TryDeserializeWithLengthPrefix(stream, PrefixStyle.Base128,
-                            t => Type.GetType(head.Value.TypeName),
-                            out deserialized[head.Key-1]);
-                }
-
-                for (int i = 0; i< varAsArray.Count; i++)
-                {
-                Assert.AreEqual(varAsArray[i], deserialized[i]);
-                }
-            }
-
-            var testOper = new DtoOperation
-            {
-                Id=14,
-                TaskId = 163,
-                Number = 3,
-                Name = "testOperr",
-                ImplementationType = "NoImplemented",
-                IsDeleted = false,
-                IsDefault = true,
-                Config = "{}"
-            };
-            
-            using (var stream = new MemoryStream())
-            {
-                var header = serializer.SaveHeaderFromClassFields<DtoOperation>();
-
-                var varAsArray = new List<object>();
-
-                foreach (var head in header.Fields)
-                {
-                    var value = testOper.GetType().GetField(head.Value.Name)?.GetValue(testOper);
-
-                    Serializer.NonGeneric.SerializeWithLengthPrefix(stream,
-                        value, PrefixStyle.Base128, head.Key);
-
-                    varAsArray.Add(value);
-                }
-
-                stream.Position = 0;
-
-                var deserialized = new object[header.Fields.Count];
-
-                foreach (var head in header.Fields)
-                {
-                    Serializer.NonGeneric
-                        .TryDeserializeWithLengthPrefix(stream, PrefixStyle.Base128,
-                            t => Type.GetType(head.Value.TypeName),
-                            out deserialized[head.Key - 1]);
-                }
-
-                for (int i = 0; i < varAsArray.Count; i++)
-                {
-                    Assert.AreEqual(varAsArray[i], deserialized[i]);
-                }
-            }
-        }
-
-        [Test]
-        public void ProtoSerializerTest()
-        {
-            var testOper = new DtoOperation
-            {
-                Id = 14,
-                TaskId = 163,
-                Number = 3,
-                Name = "testOperr",
-                ImplementationType = "NoImplemented",
-                IsDeleted = false,
-                IsDefault = true,
-                Config = "{}"
-            };
-
-            var descrbuilder=new DescriptorBuilder();
-
-            var info = descrbuilder.GetClassParameters<DtoOperation>();
-
-            var serializer=new ProtoSerializer();
-
-            var stream=new MemoryStream();
-            var stream2 = new MemoryStream();
-
-            serializer.WriteParametersToStream(stream,info);
-
-            serializer.WriteEntityToStream(stream2, testOper,
-                serializer.ReadParametersFromStream(stream));
-
-            var newinfo = serializer.ReadParametersFromStream(stream);
-            var newFields = serializer.ReadRowFromStream(stream,newinfo);
-        }
-
+        
         [Test]
         public void ExampleProtoUsing()
         {
@@ -236,6 +114,10 @@ namespace TestModule
             //            TypeName = "Intg32Type"
             //        }}
             //};
+
+            OperationPackage package = new OperationPackage();
+            var t = package.DataSets;
+            ColumnInfo info=new ColumnInfo();
 
             TestingProtoInt protoint=new TestingProtoInt
             {

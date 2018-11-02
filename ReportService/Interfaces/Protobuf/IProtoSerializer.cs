@@ -1,20 +1,20 @@
 ﻿using System.Data.Common;
 using System.IO;
-using ReportService.Protobuf;
+using Google.Protobuf.Collections;
 
 namespace ReportService.Interfaces.Protobuf
 {
     public interface IProtoSerializer
     {
-        Stream WriteParametersToStream(Stream innerStream, DataSetParameters dataSetParameters);
+        Stream WriteParametersToStream(Stream innerStream, RepeatedField<ColumnInfo> dataSetParameters);
 
-        Stream WriteEntityToStream(Stream innerStream, object row, DataSetParameters dataSetParameters);
+        Stream WriteEntityToStream(Stream innerStream, object row, RepeatedField<ColumnInfo> dataSetParameters);
 
         Stream WriteDbReaderRowToStream(Stream innerStream, DbDataReader reader);
 
-        DataSetParameters ReadParametersFromStream(Stream innerStream);
+        RepeatedField<ColumnInfo> ReadParametersFromStream(Stream innerStream);
 
-        object[] ReadRowFromStream(Stream innerStream, DataSetParameters dataSetParameters);
+        object[] ReadRowFromStream(Stream innerStream, RepeatedField<ColumnInfo> dataSetParameters);
 
         DataSet ReadDataSetFromStream(Stream innerStream);
     }

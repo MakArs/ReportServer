@@ -1,24 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using Gerakul.ProtoBufSerializer;
 
-namespace ReportService.Interfaces.Protobuf
+namespace TestModule.ProtoOld
 {
-    public interface IDescriptorBuilder
-    {
-        DataSetParameters GetClassParameters<T>() where T : class;
-        DataSetParameters GetDbReaderParameters(DbDataReader reader);
-    }
-
-    public class OperationPackage
-    {
-        public DateTime Created;
-        public string OperationName;
-        public List<Dataset> DataSets;
-    }
-
     public class DataSetParameters
     {
         public int FieldCount;
