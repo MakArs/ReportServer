@@ -37,7 +37,6 @@ namespace TestModule
                 var t = e;
             }
 
-            Assert.AreEqual(1,3);
         }
     }
 }

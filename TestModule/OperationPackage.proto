@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package ReportService;
+
+message OperationPackage
+{
+	int32 Created=1;
+	string OperationName=2;
+
+	repeated DataSet DataSets=15; //if need to add any no-repeated fields,can place them at 3-14
+}
+
+message DataSet
+{
+	string Name=1;
+	repeated ColumnInfo Columns=2; //maybe 14-15 tags instead of 2-3?
+	repeated Row Rows=3;
+}
+
+message ColumnInfo
+{
+	string Name=1;
+	ScalarType Type=2;
+	bool Nullable=3;
+}
+
+enum ScalarType
+{
+	Int32=0;
+	Double=1;
+	Long=2;
+	Bool=3;
+	String=4;
+	Bytes=5;
+	//Can add other if needed. Now no need i think
+}
+
+message Row
+{
+	repeated VariantValue Values=1;
+}
+
+message VariantValue
+{
+	int32 Int32Value=1;
+	double DoubleValue=2;
+	int64 LongValue=3;
+	bool BoolValue=4;
+	string StringValue=5;
+	bytes BytesValue=6;
+
+	bool IsNull=15; 
+}

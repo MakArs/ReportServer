@@ -39,3 +39,24 @@ namespace ReportService.Protobuf
 
     }
 }
+
+//syntax = "proto3";
+
+//message ColumnInfo
+//{
+//    int32 Tag = 1;
+//string Name = 2;
+//string TypeName = 3;
+//}
+
+//message DataSet
+//{
+//string Name = 1;
+//repeated ColumnInfo = 2;
+//repeated Row = 3;
+//}
+
+//message Row
+//{
+//repeated string(?) Values = 1;
+//}

@@ -39,35 +39,8 @@ namespace ReportService.Operations.DataImporters
                     .CreateSimple(opt, $"{Query}")
                     .UseReader(reader =>
                     {
-                        DescriptorBuilder builder = new DescriptorBuilder();
-                        ProtoSerializer serializer=new ProtoSerializer();
-                        
-                        var set = builder.GetDbReaderParameters(reader);
-                        var memStream = new MemoryStream();
-
-                        serializer.WriteParametersToStream(memStream, set);
-
-
-                        //if (reader.Read())
-                        //{
-
-                        //     var fields = new Dictionary<string, object>();
-
-                        //     for (int i = 0; i < reader.FieldCount; i++)
-                        //     {
-                        //         var name = reader.GetName(i);
-                        //         var val = reader[i];
-                        //         // queryres2[name] = new List<object> {val};
-                        //         fields.Add(name, val);
-                        //     }
-
-                        //     queryResult.Add(fields);
-                        // }
-
                         while (reader.Read())
                         {
-                            serializer.WriteDbReaderRowToStream(memStream, reader);
-
                             var fields = new Dictionary<string, object>();
 
                             for (int i = 0; i < reader.FieldCount; i++)

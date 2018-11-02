@@ -12,16 +12,29 @@ namespace ReportService.Interfaces.Protobuf
         DataSetParameters GetDbReaderParameters(DbDataReader reader);
     }
 
+    public class OperationPackage
+    {
+        public DateTime Created;
+        public string OperationName;
+        public List<Dataset> DataSets;
+    }
+
     public class DataSetParameters
     {
+        public int FieldCount;
         public readonly Dictionary<int, ColumnInfo> Fields = new Dictionary<int, ColumnInfo>();
 
         public static MessageDescriptor<DataSetParameters> GetDescriptor()
         {
             return MessageDescriptorBuilder.New<DataSetParameters>()
+                .Int32(1, di => di.FieldCount, (di, count) => di.FieldCount = count)
                 .MessageArray(2, di => di.Fields.Select(field =>
                         new ColumnInfoPair(field.Key, field.Value)),
-                    (di, newfield) => di.Fields.Add(newfield.Tag, newfield.ColumnInfo),
+                    (di, newfield) =>
+                    {
+                        if (di.Fields.Count < di.FieldCount)
+                            di.Fields.Add(newfield.Tag, newfield.ColumnInfo);
+                    },
                     ColumnInfoPair.GetDescriptor())
                 .CreateDescriptor();
         }

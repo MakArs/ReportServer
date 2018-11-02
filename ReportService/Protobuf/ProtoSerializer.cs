@@ -23,6 +23,7 @@ namespace ReportService.Protobuf
 
             var writer = descriptor.CreateWriter(innerStream);
             writer.Write(dataSetParameters);
+            writer.Close();
             return innerStream;
         }
 
@@ -35,8 +36,10 @@ namespace ReportService.Protobuf
             {
                 var value = row.GetType().GetField(head.Value.Name)?.GetValue(row);
 
-                Serializer.NonGeneric.SerializeWithLengthPrefix(innerStream,
-                    value, PrefixStyle.Base128, head.Key);
+                Serializer.NonGeneric.Serialize(innerStream,value);
+
+                //Serializer.NonGeneric.SerializeWithLengthPrefix(innerStream,
+                //    value, PrefixStyle.Base128, head.Key);
             }
 
             return innerStream;
@@ -45,6 +48,7 @@ namespace ReportService.Protobuf
         public Stream WriteDbReaderRowToStream(Stream innerStream, DbDataReader reader)
         {
             //add byte[row]
+
             object[] row=new object[reader.FieldCount];
 
             reader.GetValues(row);
@@ -58,28 +62,40 @@ namespace ReportService.Protobuf
             return innerStream;
         }
 
-        public DataSetParameters ReadDescriptorFromStream(Stream innerStream)
+        public DataSetParameters ReadParametersFromStream(Stream innerStream) //tested without byte-separator
         {
             //read byte[header]
+
+            innerStream.Position = 0;
+
             var reader = descriptor.CreateReader(innerStream);
 
-            return reader.Read();
+            var dsParams = reader.Read();
+
+            reader.Close();
+
+            return dsParams;
         }
 
         public object[] ReadRowFromStream(Stream innerStream, DataSetParameters dataSetParameters)
         {
             //read byte[row]
-
             innerStream.Position = 0;
-
             var deserialized = new object[dataSetParameters.Fields.Count];
 
-            foreach (var head in dataSetParameters.Fields)
+            //foreach (var head in dataSetParameters.Fields)
+            //{
+            //    Serializer.NonGeneric
+            //        .TryDeserializeWithLengthPrefix(innerStream, PrefixStyle.Base128,
+            //            t => Type.GetType(head.Value.TypeName),
+            //            out deserialized[head.Key - 1]);
+            //}
+
+            for (int i = 0; i < deserialized.Length; i++)
             {
-                Serializer.NonGeneric
-                    .TryDeserializeWithLengthPrefix(innerStream, PrefixStyle.Base128,
-                        t => Type.GetType(head.Value.TypeName),
-                        out deserialized[head.Key - 1]);
+                Serializer.NonGeneric.Deserialize(
+                    Type.GetType(dataSetParameters.Fields[i - 1].TypeName),innerStream
+                );
             }
 
             return deserialized;
@@ -111,7 +127,7 @@ namespace ReportService.Protobuf
 
                 set.Rows.Add(deserialized);
 
-                nextRowIndex = Array.IndexOf(innerStream, new byte(), nextRowIndex) + 1;
+             //   nextRowIndex = Array.IndexOf(innerStream, new byte(), nextRowIndex) + 1;
             }
 
 

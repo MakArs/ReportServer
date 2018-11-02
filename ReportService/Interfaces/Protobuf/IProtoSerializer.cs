@@ -12,7 +12,7 @@ namespace ReportService.Interfaces.Protobuf
 
         Stream WriteDbReaderRowToStream(Stream innerStream, DbDataReader reader);
 
-        DataSetParameters ReadDescriptorFromStream(Stream innerStream);
+        DataSetParameters ReadParametersFromStream(Stream innerStream);
 
         object[] ReadRowFromStream(Stream innerStream, DataSetParameters dataSetParameters);
 

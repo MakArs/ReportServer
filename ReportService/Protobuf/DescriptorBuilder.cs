@@ -19,6 +19,8 @@ namespace ReportService.Protobuf
                     new ColumnInfo(field.Name, field.FieldType));
             }
 
+            descriptor.FieldCount = innerFields.Length;
+
             return descriptor;
         }
 
