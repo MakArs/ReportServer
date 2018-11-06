@@ -6,7 +6,7 @@ package ReportService;
 
 message OperationPackage
 {
-	//google.protobuf.Timestamp Created=1;
+	int64 Created=1;
 	string OperationName=2;
 
 	repeated DataSet DataSets=15; //if need to add any no-repeated fields,can place them at 3-14
@@ -28,14 +28,16 @@ message ColumnInfo
 
 enum ScalarType
 {
-	Int32=0;
-	Double=1;
-	Int64=2;
-	Bool=3;
-	String=4;
-	Bytes=5;
-	DateTime=6;
-	//Can add other if needed. Now no need i think
+	Unknown=0;
+	Int32=1;
+	Double=2;
+	Int64=3;
+	Bool=4;
+	String=5;
+	Bytes=6;
+	DateTime=7;
+	TimeStamp=8;
+	//Can add other if needed.
 }
 
 message Row
@@ -51,7 +53,8 @@ message VariantValue
 	bool BoolValue=4;
 	string StringValue=5;
 	bytes BytesValue=6;
-	//google.protobuf.Timestamp TimeStampValue=7;
+	int64 DateTime=7;
+	//google.protobuf.Timestamp TimeStamp=8;
 
 	bool IsNull=15; 
 }

@@ -43,10 +43,10 @@ namespace ReportService
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-            RegisterNamedDataImporter<DbImporter,DbImporterConfig>
+            RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (existingContainer, "CommonDbImporter");
 
-            RegisterNamedDataImporter<ExcelImporter,ExcelImporterConfig>
+            RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
                 (existingContainer, "CommonExcelImporter");
 
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
@@ -62,8 +62,9 @@ namespace ReportService
                 (existingContainer, "CommonReportInstanceExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
-            RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer, "CommonTableViewEx");
-       
+            RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer,
+                "CommonTableViewEx");
+
             existingContainer
                 .RegisterSingleton<ILogic, Logic>();
             existingContainer
@@ -116,15 +117,15 @@ namespace ReportService
 
             #endregion
 
-            existingContainer.RegisterImplementation<IDefaultTaskExporter,DefaultTaskExporter>();
+            existingContainer.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
-            existingContainer.RegisterImplementation<IArchiver,Archiver7Zip>();
+            existingContainer.RegisterImplementation<IArchiver, Archiver7Zip>();
 
             existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
 
-            existingContainer.RegisterImplementation<ITaskWorker,TaskWorker>();
+            existingContainer.RegisterImplementation<ITaskWorker, TaskWorker>();
 
-            existingContainer.RegisterImplementation<IPackageBuilder,ProtoPackageBuilder>();
+            existingContainer.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
 
             existingContainer.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
 
@@ -179,7 +180,7 @@ namespace ReportService
         }
 
         private void RegisterNamedDataImporter<TImplementation, TConfigType>
-            (ILifetimeScope container, string name) 
+            (ILifetimeScope container, string name)
             where TImplementation : IDataImporter
             where TConfigType : IImporterConfig
         {
@@ -212,6 +213,7 @@ namespace ReportService
             CreateMap<ReportInstanceExporterConfig, ReportInstanceExporter>();
             CreateMap<DbImporterConfig, DbImporter>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
+            CreateMap<ExcelImporterConfig, ExcelPackageReadingParameters>();
         }
     }
 }

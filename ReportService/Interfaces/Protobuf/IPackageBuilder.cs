@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
 using OfficeOpenXml;
+using ReportService.Operations.DataImporters;
 
 namespace ReportService.Interfaces.Protobuf
 {
@@ -8,9 +9,9 @@ namespace ReportService.Interfaces.Protobuf
     {
         OperationPackage GetPackage(DbDataReader reader);
 
-        OperationPackage GetPackage<T>(IEnumerable<T> values) where T:class;
+        OperationPackage GetPackage<T>(IEnumerable<T> values) where T : class;
 
-        OperationPackage GetPackage(ExcelPackage excelPackage);
+        OperationPackage GetPackage(ExcelPackage excelPackage,
+                                    ExcelPackageReadingParameters excelParameters);
     }
-   
 }

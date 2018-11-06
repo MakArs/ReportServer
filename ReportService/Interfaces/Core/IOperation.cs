@@ -14,7 +14,7 @@ namespace ReportService.Interfaces.Core
 
     public interface IOperationConfig
     {
-        string DataSetName { get; set; }
+        string PackageName { get; set; }
     }
 
     public interface IDataExporter : IOperation

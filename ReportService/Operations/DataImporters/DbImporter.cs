@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
+﻿using System.Collections.Generic;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
-using Google.Protobuf.Collections;
 using Newtonsoft.Json;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
@@ -14,7 +11,7 @@ namespace ReportService.Operations.DataImporters
 {
     public class DbImporter : IDataImporter
     {
-        private IPackageBuilder packageBuilder;
+        private readonly IPackageBuilder packageBuilder;
 
         public int Id { get; set; }
         public bool IsDefault { get; set; }
@@ -67,7 +64,7 @@ namespace ReportService.Operations.DataImporters
             });
 
             string jsString = JsonConvert.SerializeObject(queryResult);
-            // string jsString = JsonConvert.SerializeObject(queryres2,Formatting.Indented);
+
             taskContext.DataSets[DataSetName] = jsString;
         }
     }

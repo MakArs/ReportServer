@@ -1,33 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using AutoMapper;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataImporters
 {
-    public class ExcelImporter : IDataImporter
+    public class ExcelPackageReadingParameters
     {
-        public int Id { get; set; }
-        public bool IsDefault { get; set; }
-        public int Number { get; set; }
-        public string Name { get; set; }
-        public string DataSetName { get; set; }
-        public string FilePath;
         public string SheetName;
         public bool SkipEmptyRows;
         public string[] ColumnList;
         public bool UseColumnNames;
         public int FirstDataRow;
         public int MaxRowCount;
+    }
 
-        public ExcelImporter(IMapper mapper, ExcelImporterConfig config)
+    public class ExcelImporter : IDataImporter
+    {
+        private readonly IPackageBuilder packageBuilder;
+        public ExcelPackageReadingParameters ExcelParameters;
+
+        public int Id { get; set; }
+        public bool IsDefault { get; set; }
+        public int Number { get; set; }
+        public string Name { get; set; }
+        public string DataSetName { get; set; }
+        public string FilePath;
+
+        public ExcelImporter(IMapper mapper, ExcelImporterConfig config, IPackageBuilder builder)
         {
             mapper.Map(config, this);
+            ExcelParameters=new ExcelPackageReadingParameters();
+            mapper.Map(config, ExcelParameters);
+            packageBuilder = builder;
         }
 
         public void Execute(IRTaskRunContext taskContext)
@@ -37,45 +46,7 @@ namespace ReportService.Operations.DataImporters
 
             using (var pack = new ExcelPackage(fi))
             {
-                var sheet = string.IsNullOrEmpty(SheetName)
-                    ? pack.Workbook.Worksheets.First()
-                    : pack.Workbook.Worksheets.First(workSheet => workSheet.Name == SheetName);
-
-
-                var names = new string[ColumnList.Length];
-
-                int firstValueRow;
-
-                int lastValueRow =
-                    Math.Min(sheet.Cells.Last(cell => !string.IsNullOrEmpty(cell.Text)).End.Row,
-                        MaxRowCount);
-
-                if (UseColumnNames)
-                {
-                    firstValueRow = FirstDataRow + 1;
-                    for (int i = 0; i < ColumnList.Length; i++)
-                        names[i] = sheet.Cells[$"{ColumnList[i]}{FirstDataRow}"]
-                            .Text;
-                }
-
-                else
-                {
-                    firstValueRow = FirstDataRow;
-                    names = ColumnList;
-                }
-
-                for (int i = firstValueRow; i <= lastValueRow; i++)
-                {
-                    var fields = new Dictionary<string, string>();
-                    for (int j = 0; j < ColumnList.Length; j++)
-                        fields
-                            .Add(names[j], sheet.Cells[$"{ColumnList[j]}{i}"].Text);
-
-                    if (SkipEmptyRows && fields.All(field => string.IsNullOrEmpty(field.Value)))
-                        continue;
-
-                    queryResult.Add(fields);
-                }
+                var package=packageBuilder.GetPackage(pack, ExcelParameters);
             }
 
             var jsString = JsonConvert.SerializeObject(queryResult);

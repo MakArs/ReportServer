@@ -8,7 +8,7 @@ namespace ReportService.Operations.DataImporters
 
     public class ExcelImporterConfig : IImporterConfig
     {
-        public string DataSetName { get; set; }
+        public string PackageName { get; set; }
         public string FilePath;
         public string ScheetName;
         public bool SkipEmptyRows;
@@ -20,7 +20,7 @@ namespace ReportService.Operations.DataImporters
 
     public class DbImporterConfig : IImporterConfig
     {
-        public string DataSetName { get; set; }
+        public string PackageName { get; set; }
         public string ConnectionString;
         public string Query;
         public int TimeOut;
