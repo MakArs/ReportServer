@@ -1,8 +1,11 @@
-﻿namespace ReportService.Interfaces.Core
+﻿using System.IO;
+
+namespace ReportService.Interfaces.Core
 {
     public interface IArchiver
     {
-        byte[] CompressString(string data);
-        string ExtractFromByteArchive(byte[] byteData);
+        byte[] CompressByteArray(byte[] data);
+        byte[] ExtractFromByteArchive(byte[] byteData);
+        byte[] CompressStream(Stream data);
     }
 }

@@ -16,6 +16,9 @@ namespace TestModule
         [Test]
         public void GenericTest()
         {
+            (string country, string capital, double gdpPerCapita) das =
+                ("Malawi", "Lilongwe", 226.50);
+
             var serializer = new ElementarySerializer();
 
             var encodedDescr = serializer.WriteDescriptor<FieldParams>();

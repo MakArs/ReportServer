@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Google.Protobuf;
 using Monik.Common;
+using ProtoBuf;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class TaskWorker: ITaskWorker
+    public class TaskWorker : ITaskWorker
     {
         private readonly IRepository repository;
         private readonly IMapper mapper;
@@ -71,8 +74,12 @@ namespace ReportService.ReportTask
                             {
                                 importer.Execute(taskContext);
 
-                                dtoOperInstance.DataSet = archiver.CompressString(taskContext
-                                    .DataSets[importer.DataSetName]);
+                                using (var stream = new MemoryStream())
+                                {
+                                    taskContext.Packages[importer.PackageName].WriteTo(stream);
+                                    dtoOperInstance.DataSet = archiver.CompressStream(stream);
+                                }
+
                                 dtoOperInstance.State = (int) InstanceState.Success;
                                 operDuration.Stop();
                                 dtoOperInstance.Duration =
@@ -157,12 +164,12 @@ namespace ReportService.ReportTask
         public async Task<string> RunOperationsAndGetLastView(
             List<IOperation> opers, IRTaskRunContext taskContext)
         {
-            await System.Threading.Tasks.Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
                 RunOperations(opers, taskContext));
 
-            var val = taskContext.DataSets.LastOrDefault().Value;
-
-            return taskContext.exporter.GetDefaultView(taskContext.TaskName, val);
+            var val = taskContext.Packages.LastOrDefault().Value;
+            return "";
+            // return taskContext.exporter.GetDefaultView(taskContext.TaskName, val);
         }
 
         public async void RunOperationsAndSendLastView(List<IOperation> opers,

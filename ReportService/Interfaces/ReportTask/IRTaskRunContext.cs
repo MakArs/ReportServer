@@ -4,7 +4,7 @@ namespace ReportService.Interfaces.ReportTask
 {
     public interface IRTaskRunContext
     {
-        Dictionary<string, string> DataSets { get; set; }
+        Dictionary<string, OperationPackage> Packages { get; set; }
         int TaskId { get; set; }
         string TaskName { get; set; }
         IDefaultTaskExporter exporter { get; set; }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Mail;
 using Autofac;
 using AutoMapper;
+using Newtonsoft.Json;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
@@ -35,9 +36,9 @@ namespace ReportService.Operations.DataExporters
 
         public override void Send(IRTaskRunContext taskContext)
         {
-            var dataSet = taskContext.DataSets[DataSetName];
+            var package = taskContext.Packages[PackageName];
 
-            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
 
             string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
@@ -53,15 +54,16 @@ namespace ReportService.Operations.DataExporters
 
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
                 msg.AddRecepientsFromGroup(addresses);
+
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                    msg.AddRecepientsFromDataSet(taskContext.DataSets[RecepientsDatasetName]);
+                    msg.AddRecepientsFromPackage(                        taskContext.Packages[RecepientsDatasetName]);
 
                 msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
 
                 if (HasHtmlBody)
                 {
                     msg.IsBodyHtml = true;
-                    msg.Body = viewExecutor.ExecuteHtml(ViewTemplate, dataSet);
+                //    msg.Body = viewExecutor.ExecuteHtml(ViewTemplate, package);
                 }
 
                 MemoryStream streamJson = null;
@@ -72,8 +74,8 @@ namespace ReportService.Operations.DataExporters
                     if (HasJsonAttachment)
                     {
                         streamJson =
-                            new MemoryStream(
-                                System.Text.Encoding.UTF8.GetBytes(dataSet));
+                            new MemoryStream(System.Text.Encoding.UTF8
+                                    .GetBytes(JsonConvert.SerializeObject(package)));
                         msg.Attachments.Add(new Attachment(streamJson, filenameJson,
                             @"application/json"));
                     }
@@ -81,9 +83,9 @@ namespace ReportService.Operations.DataExporters
                     if (HasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        var excel = viewExecutor.ExecuteXlsx(dataSet, ReportName);
-                        excel.SaveAs(streamXlsx);
-                        excel.Dispose();
+                       // var excel = viewExecutor.ExecuteXlsx(package, ReportName);
+                        //excel.SaveAs(streamXlsx);
+                    //    excel.Dispose();
                         streamXlsx.Position = 0;
                         msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));

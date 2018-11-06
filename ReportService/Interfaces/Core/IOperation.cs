@@ -9,7 +9,7 @@ namespace ReportService.Interfaces.Core
         bool IsDefault { get; set; }
         int Number { get; set; }
         string Name { get; set; }
-        string DataSetName { get; set; }
+        string PackageName { get; set; }
     }
 
     public interface IOperationConfig
@@ -19,7 +19,7 @@ namespace ReportService.Interfaces.Core
 
     public interface IDataExporter : IOperation
     {
-        bool RunIfVoidDataSet { get; set; }
+        bool RunIfVoidPackage { get; set; }
         void Send(IRTaskRunContext taskContext);
         void Cleanup(ICleanupSettings cleanUpSettings);
     }

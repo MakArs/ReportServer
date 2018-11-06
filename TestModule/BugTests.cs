@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using NUnit.Framework;
 using ReportService.Core;
 
@@ -29,7 +30,8 @@ namespace TestModule
 
             try
             {
-            var compressed = archiver.CompressString(someDictionary["safsf"]);
+            var compressed = archiver.CompressByteArray(Encoding.UTF8.GetBytes(
+                someDictionary["safsf"]));
 
             }
             catch (Exception e)

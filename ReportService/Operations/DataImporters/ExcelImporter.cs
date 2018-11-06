@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using AutoMapper;
-using Newtonsoft.Json;
 using OfficeOpenXml;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
@@ -28,13 +26,13 @@ namespace ReportService.Operations.DataImporters
         public bool IsDefault { get; set; }
         public int Number { get; set; }
         public string Name { get; set; }
-        public string DataSetName { get; set; }
+        public string PackageName { get; set; }
         public string FilePath;
 
         public ExcelImporter(IMapper mapper, ExcelImporterConfig config, IPackageBuilder builder)
         {
             mapper.Map(config, this);
-            ExcelParameters=new ExcelPackageReadingParameters();
+            ExcelParameters = new ExcelPackageReadingParameters();
             mapper.Map(config, ExcelParameters);
             packageBuilder = builder;
         }
@@ -42,15 +40,12 @@ namespace ReportService.Operations.DataImporters
         public void Execute(IRTaskRunContext taskContext)
         {
             var fi = new FileInfo(FilePath);
-            var queryResult = new List<Dictionary<string, string>>();
 
             using (var pack = new ExcelPackage(fi))
             {
-                var package=packageBuilder.GetPackage(pack, ExcelParameters);
+                var package = packageBuilder.GetPackage(pack, ExcelParameters);
+                taskContext.Packages[PackageName] = package;
             }
-
-            var jsString = JsonConvert.SerializeObject(queryResult);
-            taskContext.DataSets[DataSetName] = jsString;
         }
     }
 }

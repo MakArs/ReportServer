@@ -24,9 +24,9 @@ namespace ReportService.Operations.DataExporters
 
         public override void Send(IRTaskRunContext taskContext)
         {
-            var dataSet = taskContext.DataSets[DataSetName];
+            var dataSet = taskContext.Packages[PackageName];
 
-            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+            //if (!RunIfVoidPackage && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
@@ -47,7 +47,7 @@ namespace ReportService.Operations.DataExporters
             {
                 ReportName,
                 ExecuteTime = DateTime.Now,
-                DataSet = archiver.CompressString(dataSet) //archiver.CompressString(dataSet)
+              //  DataSet = archiver.com(dataSet) //archiver.CompressString(dataSet)
             };
 
             context.Insert(TableName, newInstance, new QueryOptions(DbTimeOut), "Id");

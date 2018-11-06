@@ -26,13 +26,11 @@ namespace ReportService.Core
             };
         }
 
-        public byte[] CompressString(string data)
+        public byte[] CompressByteArray(byte[] data)
         {
             using (var compressedStream = new MemoryStream())
             {
-                var dataBytes = System.Text.Encoding.UTF8.GetBytes(data);
-
-                using (var viewStream = new MemoryStream(dataBytes))
+                using (var viewStream = new MemoryStream(data))
                 {
                     compressor.CompressStream(viewStream, compressedStream);
 
@@ -41,7 +39,7 @@ namespace ReportService.Core
             }
         }
 
-        public string ExtractFromByteArchive(byte[] byteData)
+        public byte[] ExtractFromByteArchive(byte[] byteData)
         {
             if (byteData == null || byteData.Length == 0) return null;
 
@@ -52,9 +50,18 @@ namespace ReportService.Core
                 using (var extractedStream = new MemoryStream())
                 {
                     extractor.ExtractFile(0, extractedStream);
-
-                    return System.Text.Encoding.UTF8.GetString(extractedStream.ToArray());
+                    return extractedStream.ToArray();
                 }
+            }
+        }
+
+        public byte[] CompressStream(Stream data)
+        {
+            using (var compressedStream = new MemoryStream())
+            {
+                compressor.CompressStream(data, compressedStream);
+
+                return compressedStream.ToArray();
             }
         }
     }

@@ -27,11 +27,11 @@ namespace ReportService.Operations.DataExporters
 
         public override void Send(IRTaskRunContext taskContext)
         {
-            var dataSet = taskContext.DataSets[DataSetName];
-            if (!RunIfVoidDataSet && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+            var dataSet = taskContext.Packages[PackageName];
+          //  if (!RunIfVoidPackage && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
                 return;
             bot.SendTextMessageAsync(channel.ChatId,
-                    viewExecutor.ExecuteTelegramView(dataSet, ReportName),
+              ","  ,  //  viewExecutor.ExecuteTelegramView(dataSet, ReportName),
                     ParseMode.Markdown)
                 .Wait();
         }
