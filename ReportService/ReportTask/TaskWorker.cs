@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Google.Protobuf;
 using Monik.Common;
-using ProtoBuf;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 

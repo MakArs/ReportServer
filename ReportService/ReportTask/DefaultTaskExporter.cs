@@ -4,7 +4,6 @@ using System.Configuration;
 using System.Linq;
 using System.Net.Mail;
 using Autofac;
-using Newtonsoft.Json;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 
@@ -19,9 +18,9 @@ namespace ReportService.ReportTask
             executor = autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
         }
 
-        public string GetDefaultView(string taskName, string dataSet)
+        public string GetDefaultView(string taskName, OperationPackage package)
         {
-            return executor.ExecuteHtml(taskName, dataSet);
+            return executor.ExecuteHtml(taskName, package);
         }
 
         public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
@@ -45,16 +44,55 @@ namespace ReportService.ReportTask
 
                 msg.IsBodyHtml = true;
 
-                var errorsSet = exceptions.Select(pair => new Dictionary<string, object>
+                List<ColumnInfo> columns = new List<ColumnInfo>
                 {
-                    {"Operation", pair.Item2},
-                    {"Message", pair.Item1.Message},
-                    {"Trace",pair.Item1.StackTrace },
-                    {"Source",pair.Item1.Source }
-                }).ToList();
+                    new ColumnInfo
+                    {
+                        Name = "Operation",
+                        Type = ScalarType.String
+                    },
+                    new ColumnInfo
+                    {
+                        Name = "Message",
+                        Type = ScalarType.String
+                    },
+                    new ColumnInfo
+                    {
+                        Name = "Trace",
+                        Type = ScalarType.String
+                    },
+                    new ColumnInfo
+                    {
+                        Name = "Source",
+                        Type = ScalarType.String
+                    }
+                };
+
+                var rows = exceptions.Select(pair => new Row
+                {
+                    Values =
+                    {
+                        new VariantValue {StringValue = pair.Item2},
+                        new VariantValue {StringValue = pair.Item1.Message},
+                        new VariantValue {StringValue = pair.Item1.StackTrace},
+                        new VariantValue {StringValue = pair.Item1.Source}
+                    }
+                });
+
+                var exceptionsPack = new OperationPackage
+                {
+                    DataSets =
+                    {
+                        new DataSet
+                        {
+                            Columns = {columns},
+                            Rows = {rows}
+                        }
+                    }
+                };
 
                 msg.Body =
-                    executor.ExecuteHtml("Errors list", JsonConvert.SerializeObject(errorsSet));
+                    executor.ExecuteHtml("Errors list", exceptionsPack);
 
                 client.Send(msg);
             }

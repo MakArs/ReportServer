@@ -15,6 +15,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Core
@@ -29,6 +30,7 @@ namespace ReportService.Core
         private readonly IRepository repository;
         private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
+        private readonly IPackageBuilder packageBuilder;
 
         private readonly List<DtoOperTemplate> operTemplates;
         private readonly List<DtoRecepientGroup> recepientGroups;
@@ -41,7 +43,7 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
-                     IMapper mapper, IArchiver archiver, ITelegramBotClient bot)
+                     IMapper mapper, IArchiver archiver, ITelegramBotClient bot,IPackageBuilder builder)
         {
             this.autofac = autofac;
             this.mapper = mapper;
@@ -49,6 +51,7 @@ namespace ReportService.Core
             this.archiver = archiver;
             this.bot = bot;
             this.repository = repository;
+            packageBuilder = builder;
 
             checkScheduleAndExecuteScheduler =
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
@@ -459,11 +462,12 @@ namespace ReportService.Core
                 task.Name,
                 task.Schedule?.Schedule,
                 Operations = string.Join("=>", task.Operations.Select(oper => oper.Name))
-            }).ToList();
+            });
 
-            var jsonTasks = JsonConvert.SerializeObject(tasksData);
+            var pack = packageBuilder.GetPackage(tasksData);
+
             return await Task.Factory.StartNew(() =>
-                tableView.ExecuteHtml("Current tasks list", jsonTasks));
+                tableView.ExecuteHtml("Current tasks list", pack));
         }
 
         public async Task<string> GetCurrentViewByTaskId(int taskId)
@@ -475,7 +479,7 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-
+            
             var view = await task.GetCurrentView();
             return string.IsNullOrEmpty(view)
                 ? "This task has not default operations or default dataset is empty.."
@@ -512,9 +516,10 @@ namespace ReportService.Core
                     State = ((InstanceState) instance.State).ToString()
                 });
 
-            var jsonInstances = JsonConvert.SerializeObject(instances);
+            var pack = packageBuilder.GetPackage(instances);
+            
             return await Task.Factory.StartNew(() =>
-                tableView.ExecuteHtml("История выполнения задачи", jsonInstances));
+                tableView.ExecuteHtml("Task executions history", pack));
         }
 
         public void DeleteOperInstanceById(int operInstanceId)

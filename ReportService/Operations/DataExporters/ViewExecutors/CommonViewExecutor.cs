@@ -1,19 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
-using ReportService.Extensions;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Protobuf;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonViewExecutor : IViewExecutor
     {
-        public virtual string ExecuteHtml(string viewTemplate, string json)
+        private readonly IPackageBuilder packageBuilder;
+
+        public CommonViewExecutor(IPackageBuilder builder)
+        {
+            packageBuilder = builder;
+        }
+
+        public virtual string ExecuteHtml(string viewTemplate, OperationPackage package)
         {
             string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
 
@@ -27,66 +32,55 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             var serv = RazorEngineService.Create(templateConfig);
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
-            JArray jObj = JArray.Parse(json);
+            
 
-            if (!jObj.Any()) return "No information obtained by query";
+            if (!package.DataSets.Any()) return "No information obtained by query";
 
-            List<string> headers = new List<string>();
+            var packageValues = packageBuilder.GetPackageValues(package);
 
-            foreach (JProperty p in JObject.Parse(jObj.First.ToString()).Properties())
-                headers.Add(p.Name);
-
-            List<List<JToken>> content = new List<List<JToken>>();
-            foreach (JObject j in jObj.Children<JObject>())
+            var model = new
             {
-                List<JToken> prop = new List<JToken>();
-                foreach (JProperty p in j.Properties()) prop.Add(p.Value);
-
-                content.Add(prop);
-            }
-
-            var model = new {Headers = headers, Content = content, Date = date};
+                packageValues.First().Headers,
+                Content = packageValues.First().Rows,
+                Date = date
+            };
 
             return Engine.Razor.Run("somekey", null, model);
         }
 
-        public virtual string ExecuteTelegramView(string json, string reportName = "Отчёт")
+        public virtual string ExecuteTelegramView(OperationPackage package,
+                                                  string reportName = "Отчёт")
         {
-            JArray jObj = JArray.Parse(json);
+            var packageValues = packageBuilder.GetPackageValues(package);
 
-            List<List<JToken>> content = new List<List<JToken>>();
-            foreach (JObject j in jObj.Children<JObject>())
+            var tmRep = $@"*{reportName}*";
+
+            foreach (var dataset in packageValues)
             {
-                List<JToken> prop = new List<JToken>();
-                foreach (JProperty p in j.Properties()) prop.Add(p.Value);
+                tmRep = tmRep.Insert(tmRep.Length,
+                    Environment.NewLine + Environment.NewLine + $"_{dataset.Name}_");
 
-                content.Add(prop);
-            }
+                tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine +
+                                                   string.Join("|", dataset.Headers));
 
-            var tmRep = $@"*{reportName}*" + Environment.NewLine;
-            foreach (var prop in content)
-            {
-                for (var i = 0; i < prop.Count; ++i)
-                {
-                    tmRep = i == 0 ? tmRep.Insert(tmRep.Length, Environment.NewLine + $"{prop[i]}")
-                        : tmRep.Insert(tmRep.Length, $"|{prop[i]}");
-                }
+                foreach (var row in dataset.Rows)
+                    tmRep=tmRep.Insert(tmRep.Length, Environment.NewLine + string.Join("|", row));
             }
 
             return tmRep;
         }
 
-        public ExcelPackage ExecuteXlsx(string json, string reportName)
+        public ExcelPackage ExecuteXlsx(OperationPackage package, string reportName)
         {
             var pack = new ExcelPackage();
             var ws = pack.Workbook.Worksheets.Add(reportName);
 
-            JArray jObj = JArray.Parse(json);
+            var firstSet = packageBuilder.GetPackageValues(package).First();
 
             var propNum = 0;
-            var props = JObject.Parse(jObj.First.ToString()).Properties();
-            foreach (JProperty p in props)
-                ws.Cells[1, ++propNum].Value = p.Name;
+
+            foreach (string header in firstSet.Headers)
+                ws.Cells[1, ++propNum].Value = header;
 
             using (ExcelRange rng = ws.Cells[1, 1, 1, propNum])
             {
@@ -96,14 +90,16 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             }
 
             int i = 0;
-            foreach (JObject row in jObj.Children<JObject>())
+
+            foreach (var row in firstSet.Rows)
             {
                 i++;
                 int j = 0;
-                foreach (JProperty p in row.Properties())
+
+                foreach (var value in row)
                 {
                     j++;
-                    ws.Cells[i + 1, j].SetJValue( p.Value );
+                    ws.Cells[i + 1, j].Value=value;
                 }
             }
 

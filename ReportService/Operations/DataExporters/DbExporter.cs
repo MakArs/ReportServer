@@ -38,6 +38,7 @@ namespace ReportService.Operations.DataExporters
                     $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
                     .ExecuteNonQuery();
             return;
+
             //var children = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(package);
 
             //var names = children.First().Select(pair => pair.Key).ToList();

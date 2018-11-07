@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
+using Google.Protobuf.Reflection;
 using OfficeOpenXml;
 using ReportService.Extensions;
 using ReportService.Interfaces.Protobuf;
@@ -27,7 +28,8 @@ namespace ReportService.Protobuf
                     {typeof(long), ScalarType.Int64},
                     {typeof(bool), ScalarType.Bool},
                     {typeof(string), ScalarType.String},
-                    {typeof(byte[]), ScalarType.Bytes}
+                    {typeof(byte[]), ScalarType.Bytes},
+                    {typeof(DateTime), ScalarType.DateTime}
                 };
 
             ScalarTypesToDotNetTypes =
@@ -38,7 +40,9 @@ namespace ReportService.Protobuf
                     {ScalarType.Int64, typeof(long)},
                     {ScalarType.Bool, typeof(bool)},
                     {ScalarType.String, typeof(string)},
-                    {ScalarType.Bytes, typeof(byte[])}
+                    {ScalarType.Bytes, typeof(byte[])},
+                    {ScalarType.DateTime, typeof(DateTime)},
+                    // {ScalarType.TimeStamp, typeof(DateTime)}
                 };
         }
 
@@ -112,9 +116,7 @@ namespace ReportService.Protobuf
 
             if (value == null && info.Nullable) //what if is not nullable but null?..
                 varValue.IsNull = true;
-
-            // var datefromdtoff = DateTimeOffset.FromUnixTimeSeconds(dtoff).UtcDateTime;
-
+            
             else
             {
                 switch (info.Type)
@@ -144,27 +146,68 @@ namespace ReportService.Protobuf
                             ? ByteString.CopyFrom(byteval)
                             : ByteString.Empty;
                         break;
+
+                    case ScalarType.DateTime:
+                        varValue.DateTime = value is DateTime dateval
+                            ? ((DateTimeOffset) dateval).ToUnixTimeSeconds()
+                            : 0;
+                        break;
                 }
             }
 
             return varValue;
         }
 
+        private object GetFromVariantValue(ColumnInfo info, VariantValue value)
+        {
+            if (info.Nullable && value.IsNull)
+                return null;
+
+            switch (info.Type)
+            {
+                case ScalarType.Int32:
+                    return value.Int32Value;
+
+                case ScalarType.Double:
+                    return value.DoubleValue;
+
+                case ScalarType.Int64:
+                    return value.Int64Value;
+
+                case ScalarType.Bool:
+                    return value.BoolValue;
+
+                case ScalarType.String:
+                    return value.StringValue;
+
+                case ScalarType.Bytes:
+                    return value.BytesValue.ToByteArray();
+
+                case ScalarType.DateTime:
+                    return DateTimeOffset
+                        .FromUnixTimeSeconds(value.DateTime).UtcDateTime;
+            }
+
+            return null;
+        }
+
         #region ExcelPackageToPackage
 
         public OperationPackage GetPackage(ExcelPackage excelPackage,
-                                           ExcelPackageReadingParameters excelParameters) //todo: logic for maintaining multiple datasets, mb 
+                                           ExcelPackageReadingParameters
+                                               excelParameters) //todo: logic for maintaining multiple datasets, mb 
         {
             var date = DateTime.Now.ToUniversalTime();
 
             var queryPackage = new OperationPackage
             {
-                Created = ((DateTimeOffset)date).ToUnixTimeSeconds()
+                Created = ((DateTimeOffset) date).ToUnixTimeSeconds()
             };
-            
+
             var sheet = string.IsNullOrEmpty(excelParameters.SheetName)
                 ? excelPackage.Workbook.Worksheets.FirstOrDefault()
-                : excelPackage.Workbook.Worksheets.FirstOrDefault(workSheet => workSheet.Name == excelParameters.SheetName);
+                : excelPackage.Workbook.Worksheets.FirstOrDefault(workSheet =>
+                    workSheet.Name == excelParameters.SheetName);
 
             if (sheet == null) //todo: dataset with error?
                 return null;
@@ -223,8 +266,8 @@ namespace ReportService.Protobuf
 
             var set = new DataSet
             {
-                Columns = { columns },
-                Rows = { rows }
+                Columns = {columns},
+                Rows = {rows}
             };
 
             queryPackage.DataSets.Add(set);
@@ -238,7 +281,44 @@ namespace ReportService.Protobuf
 
         public OperationPackage GetPackage<T>(IEnumerable<T> values) where T : class
         {
-            throw new System.NotImplementedException();
+            var date = DateTime.Now.ToUniversalTime();
+            var type = typeof(T);
+
+            var queryPackage = new OperationPackage
+            {
+                Created = ((DateTimeOffset) date).ToUnixTimeSeconds(),
+                OperationName = type.Name
+            };
+
+            var cols = GetClassParameters<T>();
+
+
+            var rows = new RepeatedField<Row>();
+
+            foreach (var value in values)
+            {
+                var rowValues = new RepeatedField<VariantValue>();
+
+                foreach (var t in cols)
+                {
+                    rowValues.Add(FillVariantValue(t, type
+                        .GetField(t.Name)
+                        .GetValue(value)));
+                }
+
+                rows.Add(new Row {Values = {rowValues}});
+            }
+
+            var dataSet = new DataSet
+            {
+                Columns = {cols},
+                Name = typeof(T).Name,
+                Rows = {rows}
+            };
+            
+            queryPackage.DataSets.Add(dataSet);
+
+            return queryPackage;
         }
 
         private RepeatedField<ColumnInfo> GetClassParameters<T>() where T : class
@@ -249,12 +329,12 @@ namespace ReportService.Protobuf
 
             foreach (var field in innerFields)
             {
+                var type = field.FieldType;
                 columns.Add(new ColumnInfo
                 {
-
+                    Nullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
                     Name = field.Name,
-                    Type = EnumExtensions.EnumHelper
-                        .GetEnumValue<ScalarType>(field.FieldType.FullName)
+                    Type = DotNetTypesToScalarTypes[type]
                 });
             }
 
@@ -263,5 +343,39 @@ namespace ReportService.Protobuf
 
         #endregion
 
+        public List<DataSetContent> GetPackageValues(OperationPackage package)
+        {
+            var allContent = new List<DataSetContent>();
+
+            foreach (var set in package.DataSets)
+            {
+                var setHeaders = set.Columns.Select(col => col.Name).ToList();
+                var setRows = new List<List<object>>();
+
+                foreach (var row in set.Rows)
+                {
+                    var rowValues = new List<object>();
+
+                    for (int i = 0; i < set.Columns.Count; i++)
+                    {
+                        var colInfo = set.Columns[i];
+                        var varValue = row.Values[i];
+
+                        rowValues.Add(GetFromVariantValue(colInfo,varValue));
+                    }
+
+                    setRows.Add(rowValues);
+                }
+
+                allContent.Add(new DataSetContent
+                {
+                    Headers = setHeaders,
+                    Rows = setRows,
+                    Name = set.Name
+                });
+            }
+
+            return allContent;
+        }
     }
 }

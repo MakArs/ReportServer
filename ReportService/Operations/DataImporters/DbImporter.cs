@@ -39,7 +39,6 @@ namespace ReportService.Operations.DataImporters
                     .UseReader(reader =>
                     {
                         var pack = packageBuilder.GetPackage(reader);
-                        var gsd = pack.DataSets.Count;
                         taskContext.Packages[PackageName] = pack;
                     });
             });

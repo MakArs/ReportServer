@@ -4,8 +4,8 @@ namespace ReportService.Interfaces.Core
 {
     public interface IViewExecutor
     {
-        string ExecuteHtml(string viewTemplate, string json);
-        string ExecuteTelegramView(string json, string reportName = "Отчёт");
-        ExcelPackage ExecuteXlsx(string json, string reportName);
+        string ExecuteHtml(string viewTemplate, OperationPackage package);
+        string ExecuteTelegramView(OperationPackage package, string reportName = "Отчёт");
+        ExcelPackage ExecuteXlsx(OperationPackage package, string reportName);
     }
 }

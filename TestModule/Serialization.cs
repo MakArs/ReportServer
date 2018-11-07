@@ -5,6 +5,8 @@ using Google.Protobuf;
 using NUnit.Framework;
 using ProtoBuf;
 using ReportService;
+using ReportService.Interfaces.Core;
+using ReportService.Protobuf;
 using ElementarySerializer = TestModule.ProtoOld.ElementarySerializer;
 using FieldParams = TestModule.ProtoOld.FieldParams;
 
@@ -16,9 +18,6 @@ namespace TestModule
         [Test]
         public void GenericTest()
         {
-            (string country, string capital, double gdpPerCapita) das =
-                ("Malawi", "Lilongwe", 226.50);
-
             var serializer = new ElementarySerializer();
 
             var encodedDescr = serializer.WriteDescriptor<FieldParams>();
@@ -81,7 +80,7 @@ namespace TestModule
 
             var expectedElements = 4;
 
-            var readObjects = new object[] { "124", 25, 04.24, "ds" };
+            var readObjects = new object[] {"124", 25, 04.24, "ds"};
 
             bool bul = true;
 
@@ -98,7 +97,7 @@ namespace TestModule
                 Assert.AreEqual(data[i], readObjects[i]);
             }
         }
-        
+
         [Test]
         public void ExampleProtoUsing()
         {
@@ -120,35 +119,74 @@ namespace TestModule
 
             OperationPackage package = new OperationPackage();
             var t = package.DataSets;
-            ColumnInfo info=new ColumnInfo();
+            ColumnInfo info = new ColumnInfo();
 
-            TestingProtoInt protoint=new TestingProtoInt
+            TestingProtoInt protoint = new TestingProtoInt
             {
-                ColumnCount = { 1,1,1,1,1,1,1,1,32112}
+                ColumnCount = {1, 1, 1, 1, 1, 1, 1, 1, 32112}
             };
 
             TestingProtoInt2 protoInt2 = new TestingProtoInt2
             {
-                ColumnCount = {1, 1, 1, 1, 1, 1, 1, 1, 32112 },
+                ColumnCount = {1, 1, 1, 1, 1, 1, 1, 1, 32112},
                 //RowCount = {2, 2, 2, 2, 2, 2, 2, 2}
             };
 
-            using (var output = File.OpenWrite(@"C:\ArsMak\ReportServer\TestModule\exampleserialized.dat"))
+            using (var output =
+                File.OpenWrite(@"C:\ArsMak\ReportServer\TestModule\exampleserialized.dat"))
             {
                 protoint.WriteTo(output);
             }
 
-            using (var output=File.OpenWrite(@"C:\ArsMak\ReportServer\TestModule\exampleint2-d.dat"))
+            using (var output =
+                File.OpenWrite(@"C:\ArsMak\ReportServer\TestModule\exampleint2-d.dat"))
             {
                 protoint.WriteDelimitedTo(output);
                 protoint.WriteDelimitedTo(output);
             }
 
-            using (var output = File.OpenWrite(@"C:\ArsMak\ReportServer\TestModule\exampleint2-nd.dat"))
+            using (var output =
+                File.OpenWrite(@"C:\ArsMak\ReportServer\TestModule\exampleint2-nd.dat"))
             {
                 protoint.WriteTo(output);
                 protoint.WriteTo(output);
             }
+
+        }
+
+        [Test]
+        public void ProtoBuilderTest()
+        {
+          var opers = new List<DtoOperation>
+            {
+                new DtoOperation
+                {
+                    Config = "gds",
+                    Id = 13,
+                    ImplementationType = null,
+                    IsDefault = true,
+                    IsDeleted = true,
+                    Name = "hnerwe",
+                    Number = 1,
+                    TaskId = 32
+                },
+                new DtoOperation
+                {
+                    Config = "gd9-s",
+                    Id = 1334,
+                    ImplementationType = "9098",
+                    Name = "hnerwe",
+                    Number = 51,
+                    TaskId = 232
+                },
+            };
+
+            var bldr = new ProtoPackageBuilder();
+
+            var packfrm = bldr.GetPackage(opers);
+
+            var deser = bldr.GetPackageValues(packfrm);
+
         }
     }
 }

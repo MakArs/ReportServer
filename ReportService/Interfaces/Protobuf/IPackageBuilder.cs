@@ -13,5 +13,14 @@ namespace ReportService.Interfaces.Protobuf
 
         OperationPackage GetPackage(ExcelPackage excelPackage,
                                     ExcelPackageReadingParameters excelParameters);
+
+        List<DataSetContent> GetPackageValues(OperationPackage package);
+    }
+
+    public class DataSetContent
+    {
+        public string Name;
+        public List<string> Headers;
+        public List<List<object>> Rows;
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
-using Newtonsoft.Json.Linq;
 
 namespace ReportService.Extensions
 {

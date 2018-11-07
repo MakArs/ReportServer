@@ -1,8 +1,10 @@
-﻿namespace ReportService.Operations.DataExporters.ViewExecutors
+﻿using ReportService.Interfaces.Protobuf;
+
+namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonTableViewExecutor : CommonViewExecutor
     {
-        public override string ExecuteHtml(string tableName, string json)
+        public override string ExecuteHtml(string tableName, OperationPackage package)
         {
         string tableTemplate = @"<!DOCTYPE html>
 <html>
@@ -45,8 +47,11 @@
     </table>
 </body>
 </html>";
-            return base.ExecuteHtml(tableTemplate, json);
+            return base.ExecuteHtml(tableTemplate, package);
+        }
+
+        public CommonTableViewExecutor(IPackageBuilder builder) : base(builder)
+        {
         }
     } //class
 }
-
