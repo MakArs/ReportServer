@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
+using Google.Protobuf;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 
@@ -24,9 +26,9 @@ namespace ReportService.Operations.DataExporters
 
         public override void Send(IRTaskRunContext taskContext)
         {
-            var dataSet = taskContext.Packages[PackageName];
+            var package = taskContext.Packages[PackageName];
 
-            //if (!RunIfVoidPackage && (string.IsNullOrEmpty(dataSet) || dataSet == "[]"))
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
@@ -37,17 +39,25 @@ namespace ReportService.Operations.DataExporters
                 (Id INT IDENTITY,
                 ReportName NVARCHAR(255) NOT NULL,
                 ExecuteTime DATETIME NOT NULL,
-                DataSet VARBINARY(MAX) NOT NULL,
+                OperationPackage VARBINARY(MAX) NOT NULL,
                 CONSTRAINT [PK_Report_Date] PRIMARY KEY CLUSTERED 
                 (ReportName DESC,
               	ExecuteTime DESC));")
                 .ExecuteNonQuery();
 
+            byte[] archivedPackage;
+
+            using (var stream = new MemoryStream())
+            {
+                package.WriteTo(stream);
+                archivedPackage = archiver.CompressStream(stream);
+            }
+
             var newInstance = new
             {
                 ReportName,
                 ExecuteTime = DateTime.Now,
-              //  DataSet = archiver.com(dataSet) //archiver.CompressString(dataSet)
+                OperationPackage = archivedPackage 
             };
 
             context.Insert(TableName, newInstance, new QueryOptions(DbTimeOut), "Id");

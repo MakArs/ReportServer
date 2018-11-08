@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
+using Gerakul.FastSql.Common;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;

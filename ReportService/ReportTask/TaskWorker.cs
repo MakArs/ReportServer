@@ -167,8 +167,8 @@ namespace ReportService.ReportTask
                 RunOperations(opers, taskContext));
 
             var val = taskContext.Packages.LastOrDefault().Value;
-            return "";
-            // return taskContext.exporter.GetDefaultView(taskContext.TaskName, val);
+
+            return taskContext.exporter.GetDefaultView(taskContext.TaskName, val);
         }
 
         public async void RunOperationsAndSendLastView(List<IOperation> opers,

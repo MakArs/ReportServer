@@ -63,7 +63,7 @@ namespace ReportService.Operations.DataExporters
                 if (HasHtmlBody)
                 {
                     msg.IsBodyHtml = true;
-                //    msg.Body = viewExecutor.ExecuteHtml(ViewTemplate, package);
+                    msg.Body = viewExecutor.ExecuteHtml(ViewTemplate, package);
                 }
 
                 MemoryStream streamJson = null;
@@ -83,9 +83,9 @@ namespace ReportService.Operations.DataExporters
                     if (HasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                       // var excel = viewExecutor.ExecuteXlsx(package, ReportName);
-                        //excel.SaveAs(streamXlsx);
-                    //    excel.Dispose();
+                        var excel = viewExecutor.ExecuteXlsx(package, ReportName);
+                        excel.SaveAs(streamXlsx);
+                        excel.Dispose();
                         streamXlsx.Position = 0;
                         msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));

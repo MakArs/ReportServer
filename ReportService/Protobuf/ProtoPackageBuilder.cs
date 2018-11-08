@@ -110,87 +110,6 @@ namespace ReportService.Protobuf
 
         #endregion
 
-        private VariantValue FillVariantValue(ColumnInfo info, object value)
-        {
-            var varValue = new VariantValue();
-
-            if (value == null && info.Nullable) //what if is not nullable but null?..
-                varValue.IsNull = true;
-            
-            else
-            {
-                switch (info.Type)
-                {
-                    case ScalarType.Int32:
-                        varValue.Int32Value = value is int intval ? intval : 0;
-                        break;
-
-                    case ScalarType.Double:
-                        varValue.DoubleValue = value is double doubval ? doubval : 0;
-                        break;
-
-                    case ScalarType.Int64:
-                        varValue.Int64Value = value is long longval ? longval : 0;
-                        break;
-
-                    case ScalarType.Bool:
-                        varValue.BoolValue = value is bool boolgval && boolgval;
-                        break;
-
-                    case ScalarType.String:
-                        varValue.StringValue = value is string stringval ? stringval : "";
-                        break;
-
-                    case ScalarType.Bytes:
-                        varValue.BytesValue = value is byte[] byteval
-                            ? ByteString.CopyFrom(byteval)
-                            : ByteString.Empty;
-                        break;
-
-                    case ScalarType.DateTime:
-                        varValue.DateTime = value is DateTime dateval
-                            ? ((DateTimeOffset) dateval).ToUnixTimeSeconds()
-                            : 0;
-                        break;
-                }
-            }
-
-            return varValue;
-        }
-
-        private object GetFromVariantValue(ColumnInfo info, VariantValue value)
-        {
-            if (info.Nullable && value.IsNull)
-                return null;
-
-            switch (info.Type)
-            {
-                case ScalarType.Int32:
-                    return value.Int32Value;
-
-                case ScalarType.Double:
-                    return value.DoubleValue;
-
-                case ScalarType.Int64:
-                    return value.Int64Value;
-
-                case ScalarType.Bool:
-                    return value.BoolValue;
-
-                case ScalarType.String:
-                    return value.StringValue;
-
-                case ScalarType.Bytes:
-                    return value.BytesValue.ToByteArray();
-
-                case ScalarType.DateTime:
-                    return DateTimeOffset
-                        .FromUnixTimeSeconds(value.DateTime).UtcDateTime;
-            }
-
-            return null;
-        }
-
         #region ExcelPackageToPackage
 
         public OperationPackage GetPackage(ExcelPackage excelPackage,
@@ -290,8 +209,9 @@ namespace ReportService.Protobuf
                 OperationName = type.Name
             };
 
-            var cols = GetClassParameters<T>();
+            var fields = GetClassFields<T>();
 
+            var props = GetClassProps<T>();
 
             var rows = new RepeatedField<Row>();
 
@@ -299,19 +219,28 @@ namespace ReportService.Protobuf
             {
                 var rowValues = new RepeatedField<VariantValue>();
 
-                foreach (var t in cols)
+                foreach (var t in fields)
                 {
                     rowValues.Add(FillVariantValue(t, type
                         .GetField(t.Name)
                         .GetValue(value)));
                 }
 
+                foreach (var t in props)
+                {
+                    rowValues.Add(FillVariantValue(t, type
+                        .GetProperty(t.Name)?
+                        .GetValue(value)));
+                }
+
                 rows.Add(new Row {Values = {rowValues}});
             }
 
+            var headers = fields.Concat(props);
+
             var dataSet = new DataSet
             {
-                Columns = {cols},
+                Columns = { headers },
                 Name = typeof(T).Name,
                 Rows = {rows}
             };
@@ -321,7 +250,7 @@ namespace ReportService.Protobuf
             return queryPackage;
         }
 
-        private RepeatedField<ColumnInfo> GetClassParameters<T>() where T : class
+        private RepeatedField<ColumnInfo> GetClassFields<T>() where T : class
         {
             var innerFields = typeof(T).GetFields();
 
@@ -341,7 +270,108 @@ namespace ReportService.Protobuf
             return columns;
         }
 
+        private RepeatedField<ColumnInfo> GetClassProps<T>() where T : class
+        {
+            var props = typeof(T).GetProperties();
+
+            var columns = new RepeatedField<ColumnInfo>();
+
+            foreach (var prop in props)
+            {
+                var type = prop.PropertyType;
+                columns.Add(new ColumnInfo
+                {
+                    Nullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
+                    Name = prop.Name,
+                    Type = DotNetTypesToScalarTypes[type]
+                });
+            }
+
+            return columns;
+        }
+
         #endregion
+
+        private VariantValue FillVariantValue(ColumnInfo info, object value)
+        {
+            var varValue = new VariantValue();
+
+            if (value == null && info.Nullable) //what if is not nullable but null?..
+                varValue.IsNull = true;
+
+            else
+            {
+                switch (info.Type)
+                {
+                    case ScalarType.Int32:
+                        varValue.Int32Value = value is int intval ? intval : 0;
+                        break;
+
+                    case ScalarType.Double:
+                        varValue.DoubleValue = value is double doubval ? doubval : 0;
+                        break;
+
+                    case ScalarType.Int64:
+                        varValue.Int64Value = value is long longval ? longval : 0;
+                        break;
+
+                    case ScalarType.Bool:
+                        varValue.BoolValue = value is bool boolgval && boolgval;
+                        break;
+
+                    case ScalarType.String:
+                        varValue.StringValue = value is string stringval ? stringval : "";
+                        break;
+
+                    case ScalarType.Bytes:
+                        varValue.BytesValue = value is byte[] byteval
+                            ? ByteString.CopyFrom(byteval)
+                            : ByteString.Empty;
+                        break;
+
+                    case ScalarType.DateTime:
+                        varValue.DateTime = value is DateTime dateval
+                            ? ((DateTimeOffset)dateval).ToUnixTimeSeconds()
+                            : 0;
+                        break;
+                }
+            }
+
+            return varValue;
+        }
+
+        private object GetFromVariantValue(ColumnInfo info, VariantValue value)
+        {
+            if (info.Nullable && value.IsNull)
+                return null;
+
+            switch (info.Type)
+            {
+                case ScalarType.Int32:
+                    return value.Int32Value;
+
+                case ScalarType.Double:
+                    return value.DoubleValue;
+
+                case ScalarType.Int64:
+                    return value.Int64Value;
+
+                case ScalarType.Bool:
+                    return value.BoolValue;
+
+                case ScalarType.String:
+                    return value.StringValue;
+
+                case ScalarType.Bytes:
+                    return value.BytesValue.ToByteArray();
+
+                case ScalarType.DateTime:
+                    return DateTimeOffset
+                        .FromUnixTimeSeconds(value.DateTime).UtcDateTime;
+            }
+
+            return null;
+        }
 
         public List<DataSetContent> GetPackageValues(OperationPackage package)
         {

@@ -37,54 +37,50 @@ namespace ReportService.Operations.DataExporters
                 sqlContext.CreateSimple(new QueryOptions(DbTimeOut),
                     $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
                     .ExecuteNonQuery();
-            return;
+            var names = children.First().Select(pair => pair.Key).ToList();
 
-            //var children = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(package);
+            if (CreateTable)
+            {
+                StringBuilder createQueryBuilder = new StringBuilder($@" 
+                IF OBJECT_ID('{TableName}') IS NULL
+                CREATE TABLE {TableName}
+                (");
 
-            //var names = children.First().Select(pair => pair.Key).ToList();
+                foreach (var name in names)
+                {
+                    createQueryBuilder.AppendLine($"{name} NVARCHAR(4000) NOT NULL,");
+                }
 
-            //if (CreateTable)
-            //{
-            //    StringBuilder createQueryBuilder = new StringBuilder($@" 
-            //    IF OBJECT_ID('{TableName}') IS NULL
-            //    CREATE TABLE {TableName}
-            //    (");
+                createQueryBuilder.Length--;
+                createQueryBuilder.Append("); ");
 
-            //    foreach (var name in names)
-            //    {
-            //        createQueryBuilder.AppendLine($"{name} NVARCHAR(4000) NOT NULL,");
-            //    }
+                sqlContext.CreateSimple(createQueryBuilder.ToString())
+                    .ExecuteNonQuery();
+            }
 
-            //    createQueryBuilder.Length--;
-            //    createQueryBuilder.Append("); ");
+            StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
+            for (int i = 0; i < names.Count - 1; i++)
+            {
+                comm.Append($@"[{names[i]}],");
+            }
 
-            //    sqlContext.CreateSimple(createQueryBuilder.ToString())
-            //        .ExecuteNonQuery();
-            //}
+            comm.Append($@"[{names.Last()}]) VALUES (");
 
-            //StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
-            //for (int i = 0; i < names.Count - 1; i++)
-            //{
-            //    comm.Append($@"[{names[i]}],");
-            //}
+            foreach (var child in children)
+            {
+                var values = child.Select(pair => pair.Value).ToList();
 
-            //comm.Append($@"[{names.Last()}]) VALUES (");
+                var fullcom = new StringBuilder(comm.ToString());
 
-            //foreach (var child in children)
-            //{
-            //    var values = child.Select(pair => pair.Value).ToList();
+                for (int i = 0; i < names.Count - 1; i++)
+                {
+                    fullcom.Append($@"'{values[i]}',");
+                }
 
-            //    var fullcom = new StringBuilder(comm.ToString());
-
-            //    for (int i = 0; i < names.Count - 1; i++)
-            //    {
-            //        fullcom.Append($@"'{values[i]}',");
-            //    }
-
-            //    fullcom.Append($@"'{values.Last()}')");
-            //    var fstr = fullcom.ToString();
-            //    sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fstr).ExecuteNonQuery();
-            //}
+                fullcom.Append($@"'{values.Last()}')");
+                var fstr = fullcom.ToString();
+                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fstr).ExecuteNonQuery();
+            }
         }
     }
 }

@@ -9,49 +9,49 @@ namespace ReportService.Interfaces.Core
 
     public class DtoOperTemplate : IDtoEntity
     {
-        public int Id { get; set; }
-        public string ImplementationType { get; set; }
-        public string Name { get; set; }
-        public string ConfigTemplate { get; set; }
+        public int Id;
+        public string ImplementationType;
+        public string Name;
+        public string ConfigTemplate;
     }
 
     public class DtoRecepientGroup : IDtoEntity
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Addresses { get; set; }
-        public string AddressesBcc { get; set; }
+        public int Id;
+        public string Name;
+        public string Addresses;
+        public string AddressesBcc;
     }
 
     public class DtoTelegramChannel : IDtoEntity
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public long ChatId { get; set; }
-        public int Type { get; set; } //from nuget types enum
+        public int Id;
+        public string Name;
+        public string Description;
+        public long ChatId;
+        public int Type; //from nuget types enum
     }
 
     public class DtoSchedule : IDtoEntity
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Schedule { get; set; }
+        public int Id;
+        public string Name;
+        public string Schedule;
     }
 
     public class DtoTask : IDtoEntity
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int? ScheduleId { get; set; }
+        public int Id;
+        public string Name;
+        public int? ScheduleId;
     }
 
     public class DtoOperation : IDtoEntity
     {
-        public int Id;
-        public int TaskId;
+        public int Id { get; set; }
+        public int TaskId { get; set; }
         public int Number;
-        public string Name;
+        public string Name { get; set; }
         public string ImplementationType;
         public bool IsDefault;
         public string Config;
@@ -60,23 +60,23 @@ namespace ReportService.Interfaces.Core
 
     public class DtoTaskInstance : IDtoEntity
     {
-        public int Id { get; set; }
-        public int TaskId { get; set; }
-        public DateTime StartTime { get; set; }
-        public int Duration { get; set; }
-        public int State { get; set; }
+        public int Id;
+        public int TaskId;
+        public DateTime StartTime;
+        public int Duration;
+        public int State;
     }
 
     public class DtoOperInstance : IDtoEntity
     {
-        public int Id { get; set; }
-        public int TaskInstanceId { get; set; }
-        public int OperationId { get; set; }
-        public DateTime StartTime { get; set; }
-        public int Duration { get; set; }
-        public int State { get; set; }
-        public byte[] DataSet { get; set; }
-        public string ErrorMessage { get; set; }
+        public int Id;
+        public int TaskInstanceId;
+        public int OperationId;
+        public DateTime StartTime;
+        public int Duration;
+        public int State;
+        public byte[] DataSet;
+        public string ErrorMessage;
     }
 
     public interface IRepository
