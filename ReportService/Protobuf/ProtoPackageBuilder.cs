@@ -4,9 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
-using Google.Protobuf.Reflection;
 using OfficeOpenXml;
-using ReportService.Extensions;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Operations.DataImporters;
 using Type = System.Type;
@@ -15,7 +13,7 @@ namespace ReportService.Protobuf
 {
     public class ProtoPackageBuilder : IPackageBuilder
     {
-        private readonly Dictionary<ScalarType, Type> ScalarTypesToDotNetTypes;
+        
         private readonly Dictionary<Type, ScalarType> DotNetTypesToScalarTypes;
 
         public ProtoPackageBuilder()
@@ -30,19 +28,6 @@ namespace ReportService.Protobuf
                     {typeof(string), ScalarType.String},
                     {typeof(byte[]), ScalarType.Bytes},
                     {typeof(DateTime), ScalarType.DateTime}
-                };
-
-            ScalarTypesToDotNetTypes =
-                new Dictionary<ScalarType, Type>
-                {
-                    {ScalarType.Int32, typeof(int)},
-                    {ScalarType.Double, typeof(double)},
-                    {ScalarType.Int64, typeof(long)},
-                    {ScalarType.Bool, typeof(bool)},
-                    {ScalarType.String, typeof(string)},
-                    {ScalarType.Bytes, typeof(byte[])},
-                    {ScalarType.DateTime, typeof(DateTime)},
-                    // {ScalarType.TimeStamp, typeof(DateTime)}
                 };
         }
 

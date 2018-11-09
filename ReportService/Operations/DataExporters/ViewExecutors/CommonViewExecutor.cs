@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using OfficeOpenXml;
 using RazorEngine;
 using RazorEngine.Configuration;
@@ -61,10 +62,18 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                     Environment.NewLine + Environment.NewLine + $"_{dataset.Name}_");
 
                 tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine +
-                                                   string.Join("|", dataset.Headers));
+                                                   string.Join(" | ",
+                                                       dataset.Headers.Select(head =>
+                                                           Regex.Replace(head, @"([[*_])",
+                                                               @"\$1"))));
 
                 foreach (var row in dataset.Rows)
-                    tmRep=tmRep.Insert(tmRep.Length, Environment.NewLine + string.Join("|", row));
+                    tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine + string.Join(" | ", row
+                                                           .Select(val =>
+                                                               val is string strVal
+                                                                   ? Regex.Replace(strVal,
+                                                                       @"([[*_])", @"\$1")
+                                                                   : val)));
             }
 
             return tmRep;

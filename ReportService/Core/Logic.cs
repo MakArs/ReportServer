@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
-using Gerakul.FastSql.Common;
 using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -51,6 +50,7 @@ namespace ReportService.Core
             this.monik = monik;
             this.archiver = archiver;
             this.bot = bot;
+            bot.StartReceiving();
             this.repository = repository;
             packageBuilder = builder;
 
@@ -548,6 +548,7 @@ namespace ReportService.Core
             var apiInstance = mapper.Map<ApiOperInstance>(instance);
 
             apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);
+
             apiInstance.OperName = operations.FirstOrDefault(op =>
                 op.Id == apiInstance.OperationId)?.Name;
 
