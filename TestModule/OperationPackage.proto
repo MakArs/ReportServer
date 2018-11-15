@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ReportService;
 
-//import "timestamp.proto";
+import "timestamp.proto";
 
 message OperationPackage
 {
@@ -37,6 +37,11 @@ enum ScalarType
 	Bytes=6;
 	DateTime=7;
 	TimeStamp=8;
+	Int16=9;
+	Int8=10;
+	DateTimeOffset=11;
+	TimeSpan=12;
+	Decimal=13;
 	//Can add other if needed.
 }
 
@@ -54,7 +59,12 @@ message VariantValue
 	string StringValue=5;
 	bytes BytesValue=6;
 	int64 DateTime=7;
-	//google.protobuf.Timestamp TimeStamp=8;
+	google.protobuf.Timestamp TimeStamp=8;
+	int32 Int16Value=9;
+	int32 Int8Value=10;
+	int64 DateTimeOffsetValue=11;
+	int64 TimeSpanValue=12;
+	double DecimalValue=13;
 
 	bool IsNull=15; 
 }

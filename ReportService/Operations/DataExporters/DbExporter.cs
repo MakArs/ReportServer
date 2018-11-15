@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
+using Google.Protobuf.Collections;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
@@ -13,7 +13,7 @@ namespace ReportService.Operations.DataExporters
     public class DbExporter : CommonDataExporter
     {
         private readonly IPackageBuilder packageBuilder;
-        private readonly Dictionary<ScalarType, string> ScalarTypesToSqlTypes;
+        private readonly Dictionary<ScalarType, string> scalarTypesToSqlTypes;
 
         public string ConnectionString;
         public string TableName;
@@ -26,7 +26,7 @@ namespace ReportService.Operations.DataExporters
             mapper.Map(config, this);
             packageBuilder = builder;
 
-            ScalarTypesToSqlTypes =
+            scalarTypesToSqlTypes =
                 new Dictionary<ScalarType, string>
                 {
                     {ScalarType.Int32, "int"},
@@ -36,8 +36,34 @@ namespace ReportService.Operations.DataExporters
                     {ScalarType.String, "nvarchar(4000)"},
                     {ScalarType.Bytes, "varbinary(MAX)"},
                     {ScalarType.DateTime, "datetime"},
+                    {ScalarType.Int16, "smallint"},
+                    {ScalarType.Int8, "tinyint"},
+                    {ScalarType.DateTimeOffset, "datetimeoffset"},
+                    {ScalarType.TimeSpan, "time"},
+                    {ScalarType.Decimal, "decimal"}
                     // {ScalarType.TimeStamp, typeof(DateTime)}
                 };
+        }
+
+        private void CreateTableByColumnInfo(DbContext sqlContext, RepeatedField<ColumnInfo> columns)
+        {
+            StringBuilder createQueryBuilder = new StringBuilder($@" 
+                IF OBJECT_ID('{TableName}') IS NULL
+                CREATE TABLE {TableName}
+                (");
+
+            foreach (var col in columns)
+            {
+                var nullable = col.Nullable ? "NULL" : "NOT NULL";
+                createQueryBuilder.AppendLine($"{col.Name} {scalarTypesToSqlTypes[col.Type]} " +
+                                              $"{nullable},");
+            }
+
+            createQueryBuilder.Length--;
+            createQueryBuilder.Append("); ");
+
+            sqlContext.CreateSimple(createQueryBuilder.ToString())
+                .ExecuteNonQuery();
         }
 
         public override void Send(IRTaskRunContext taskContext)
@@ -61,25 +87,7 @@ namespace ReportService.Operations.DataExporters
             var columns = package.DataSets.First().Columns;
 
             if (CreateTable)
-            {
-                StringBuilder createQueryBuilder = new StringBuilder($@" 
-                IF OBJECT_ID('{TableName}') IS NULL
-                CREATE TABLE {TableName}
-                (");
-
-                foreach (var col in columns)
-                {
-                    var nullable = col.Nullable ? "NULL" : "NOT NULL";
-                    createQueryBuilder.AppendLine($"{col.Name} {ScalarTypesToSqlTypes[col.Type]} " +
-                                                  $"{nullable},");
-                }
-
-                createQueryBuilder.Length--;
-                createQueryBuilder.Append("); ");
-
-                sqlContext.CreateSimple(createQueryBuilder.ToString())
-                    .ExecuteNonQuery();
-            }
+                CreateTableByColumnInfo(sqlContext, columns);
 
             StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
             for (int i = 0; i < columns.Count - 1; i++)

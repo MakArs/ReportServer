@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Google.Protobuf;
@@ -13,12 +14,12 @@ namespace ReportService.Protobuf
 {
     public class ProtoPackageBuilder : IPackageBuilder
     {
-        
-        private readonly Dictionary<Type, ScalarType> DotNetTypesToScalarTypes;
+
+        private readonly Dictionary<Type, ScalarType> dotNetTypesToScalarTypes;
 
         public ProtoPackageBuilder()
         {
-            DotNetTypesToScalarTypes =
+            dotNetTypesToScalarTypes =
                 new Dictionary<Type, ScalarType>
                 {
                     {typeof(int), ScalarType.Int32},
@@ -27,24 +28,51 @@ namespace ReportService.Protobuf
                     {typeof(bool), ScalarType.Bool},
                     {typeof(string), ScalarType.String},
                     {typeof(byte[]), ScalarType.Bytes},
-                    {typeof(DateTime), ScalarType.DateTime}
+                    {typeof(decimal), ScalarType.Decimal},
+                    {typeof(DateTime), ScalarType.DateTime},
+                    {typeof(DateTimeOffset), ScalarType.DateTimeOffset},
+                    {typeof(char[]), ScalarType.String},
+                    {typeof(short), ScalarType.Int16},
+                    {typeof(TimeSpan), ScalarType.TimeSpan},//
+                    {typeof(byte), ScalarType.Int8}
                 };
         }
 
         #region DbReaderToPackage
 
+        private T GetDbColumnValue<T>(DataColumnCollection schemaColumns,
+            DataRow schemaRow, string columnName)
+        {
+            if (!schemaColumns.Contains(columnName))
+                return default;
+
+            object obj = schemaRow[columnName];
+
+            if (obj is T variable)
+                return variable;
+
+            return default;
+        }
+
         private RepeatedField<ColumnInfo> GetCurrentResultParameters(DbDataReader reader)
         {
             var columns = new RepeatedField<ColumnInfo>();
 
-            columns.AddRange(reader.GetColumnSchema()
-                .Select(column => new ColumnInfo
+            var schemaTable = reader.GetSchemaTable();
+            if (schemaTable == null) return null;
+
+            var cols = schemaTable.Columns;
+            var rows = schemaTable.Rows;
+
+            foreach (DataRow row in (InternalDataCollectionBase) rows)
+            {
+                columns.Add(new ColumnInfo
                 {
-                    Name = column.ColumnName,
-                    Nullable = column.AllowDBNull ?? false,
-                    Type = DotNetTypesToScalarTypes[column.DataType]
-                })
-            );
+                    Name = GetDbColumnValue<string>(cols, row, SchemaTableColumn.ColumnName),
+                    Nullable = GetDbColumnValue<bool?>(cols, row, SchemaTableColumn.AllowDBNull) ?? false,
+                    Type = dotNetTypesToScalarTypes[GetDbColumnValue<Type>(cols, row, SchemaTableColumn.DataType)]
+                });
+            }
 
             return columns;
         }
@@ -60,7 +88,10 @@ namespace ReportService.Protobuf
                 var row = new Row();
 
                 for (int i = 0; i < columns.Count; i++)
-                    row.Values.Add(FillVariantValue(columns[i], reader[i]));
+                {
+                    var value = reader.IsDBNull(i) ? null : reader[i];
+                    row.Values.Add(FillVariantValue(columns[i], value));
+                }
 
                 rows.Add(row);
             }
@@ -98,8 +129,8 @@ namespace ReportService.Protobuf
         #region ExcelPackageToPackage
 
         public OperationPackage GetPackage(ExcelPackage excelPackage,
-                                           ExcelPackageReadingParameters
-                                               excelParameters) //todo: logic for maintaining multiple datasets, mb 
+            ExcelPackageReadingParameters
+                excelParameters) //todo: logic for maintaining multiple datasets, mb 
         {
             var date = DateTime.Now.ToUniversalTime();
 
@@ -225,11 +256,11 @@ namespace ReportService.Protobuf
 
             var dataSet = new DataSet
             {
-                Columns = { headers },
+                Columns = {headers},
                 Name = typeof(T).Name,
                 Rows = {rows}
             };
-            
+
             queryPackage.DataSets.Add(dataSet);
 
             return queryPackage;
@@ -248,7 +279,7 @@ namespace ReportService.Protobuf
                 {
                     Nullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
                     Name = field.Name,
-                    Type = DotNetTypesToScalarTypes[type]
+                    Type = dotNetTypesToScalarTypes[type]
                 });
             }
 
@@ -268,7 +299,7 @@ namespace ReportService.Protobuf
                 {
                     Nullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
                     Name = prop.Name,
-                    Type = DotNetTypesToScalarTypes[type]
+                    Type = dotNetTypesToScalarTypes[type]
                 });
             }
 
@@ -289,11 +320,29 @@ namespace ReportService.Protobuf
                 switch (info.Type)
                 {
                     case ScalarType.Int32:
-                        varValue.Int32Value = value is int intval ? intval : 0;
+                        varValue.Int32Value = value is int intval
+                            ? intval
+                            : 0;
+                        break;
+
+                    case ScalarType.Int16:
+                        varValue.Int16Value = value is short shortval
+                            ? shortval
+                            : 0;
+                        break;
+
+                    case ScalarType.Int8:
+                        varValue.Int8Value = value is byte tinyval ? tinyval : 0;
                         break;
 
                     case ScalarType.Double:
-                        varValue.DoubleValue = value is double doubval ? doubval : 0;
+                        varValue.DoubleValue = value is double doubval
+                            ? doubval
+                            : 0;
+                        break;
+
+                    case ScalarType.Decimal:
+                        varValue.DecimalValue = value is decimal decval ? (double) decval : 0;
                         break;
 
                     case ScalarType.Int64:
@@ -305,7 +354,9 @@ namespace ReportService.Protobuf
                         break;
 
                     case ScalarType.String:
-                        varValue.StringValue = value is string stringval ? stringval : "";
+                        varValue.StringValue = value is string stringval ? stringval
+                            : value is char[] charval ? string.Concat(charval)
+                            : "";
                         break;
 
                     case ScalarType.Bytes:
@@ -316,9 +367,28 @@ namespace ReportService.Protobuf
 
                     case ScalarType.DateTime:
                         varValue.DateTime = value is DateTime dateval
-                            ? ((DateTimeOffset)dateval).ToUnixTimeSeconds()
+                            ? ((DateTimeOffset) dateval.Add(dateval-dateval.ToUniversalTime()))
+                            .ToUnixTimeSeconds() //fix saving utc datetime
                             : 0;
                         break;
+
+                    case ScalarType.DateTimeOffset:
+                        varValue.DateTimeOffsetValue = value is DateTimeOffset offset
+                            ? offset.ToUnixTimeMilliseconds()
+                            : 0;
+                        break;
+
+                    case ScalarType.TimeSpan:
+                        varValue.TimeSpanValue = value is TimeSpan span
+                            ? span.Ticks
+                            : 0;
+                        break;
+
+                    //case ScalarType.TimeStamp:
+                    //    varValue.TimeStamp = value is TimeSpan span
+                    //        ? new Timestamp {Seconds = span.Seconds}
+                    //        : new Timestamp();
+                    //    break;
                 }
             }
 
@@ -335,8 +405,17 @@ namespace ReportService.Protobuf
                 case ScalarType.Int32:
                     return value.Int32Value;
 
+                case ScalarType.Int16:
+                    return value.Int16Value;
+
+                case ScalarType.Int8:
+                    return value.Int8Value;
+
                 case ScalarType.Double:
                     return value.DoubleValue;
+
+                case ScalarType.Decimal:
+                    return value.DecimalValue;
 
                 case ScalarType.Int64:
                     return value.Int64Value;
@@ -352,7 +431,14 @@ namespace ReportService.Protobuf
 
                 case ScalarType.DateTime:
                     return DateTimeOffset
-                        .FromUnixTimeSeconds(value.DateTime).UtcDateTime;
+                        .FromUnixTimeSeconds(value.DateTime);
+
+                case ScalarType.DateTimeOffset:
+                    return DateTimeOffset
+                        .FromUnixTimeMilliseconds(value.DateTimeOffsetValue);
+
+                case ScalarType.TimeSpan:
+                    return new TimeSpan(value.TimeSpanValue);
             }
 
             return null;
@@ -376,7 +462,7 @@ namespace ReportService.Protobuf
                         var colInfo = set.Columns[i];
                         var varValue = row.Values[i];
 
-                        rowValues.Add(GetFromVariantValue(colInfo,varValue));
+                        rowValues.Add(GetFromVariantValue(colInfo, varValue));
                     }
 
                     setRows.Add(rowValues);

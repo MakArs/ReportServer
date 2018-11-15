@@ -157,7 +157,17 @@ namespace TestModule
         [Test]
         public void ProtoBuilderTest()
         {
-          var opers = new List<DtoOperation>
+            var offs = new DateTime(1980, 3, 4, 21, 45, 52);
+
+            var unix = ((DateTimeOffset)offs).ToUnixTimeSeconds();
+
+            var back = DateTimeOffset
+                .FromUnixTimeSeconds(unix);
+
+            var backutc= DateTimeOffset
+                .FromUnixTimeSeconds(unix).UtcDateTime;
+
+            var opers = new List<DtoOperation>
             {
                 new DtoOperation
                 {

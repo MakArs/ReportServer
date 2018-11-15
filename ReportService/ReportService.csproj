@@ -182,6 +182,7 @@
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Operations\DataExporters\B2BExporter.cs" />
     <Compile Include="Protobuf\OperationPackage.cs" />
     <Compile Include="ReportTask\DefaultTaskExporter.cs" />
     <Compile Include="Protobuf\ProtoPackageBuilder.cs" />

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
 
 namespace ReportService.Extensions
 {
+    [SuppressMessage("ReSharper", "IdentifierTypo")]
     public class RecepientAddresses
     {
         public List<string> To = new List<string>();
@@ -14,14 +16,14 @@ namespace ReportService.Extensions
     public static class MailMessageExtension
     {
         public static void AddRecepientsFromGroup(this MailMessage msg,
-                                                  RecepientAddresses addresses)
+            RecepientAddresses addresses)
         {
             AddAddressesToCollection(addresses.To, msg.To);
             AddAddressesToCollection(addresses.Bcc, msg.Bcc);
         }
 
         private static void AddAddressesToCollection(List<string> addresses,
-                                                     MailAddressCollection col)
+            MailAddressCollection col)
         {
             if (addresses == null) return;
 
@@ -32,8 +34,8 @@ namespace ReportService.Extensions
 
         public static void AddRecepientsFromPackage(this MailMessage msg, OperationPackage package)
         {
-            List<string> To = new List<string>();
-            List<string> Bcc = new List<string>();
+            List<string> to = new List<string>();
+            List<string> bcc = new List<string>();
 
             var set = package.DataSets.FirstOrDefault();
             if (set == null)
@@ -58,13 +60,13 @@ namespace ReportService.Extensions
                 var recType = row.Values[recTypeIndex].StringValue;
 
                 if (recType == "To")
-                    To.AddRange(newAddrs);
+                    to.AddRange(newAddrs);
                 else if (recType == "Bcc")
-                    Bcc.AddRange(newAddrs);
+                    bcc.AddRange(newAddrs);
             }
 
-            AddAddressesToCollection(To, msg.To);
-            AddAddressesToCollection(Bcc, msg.Bcc);
+            AddAddressesToCollection(to, msg.To);
+            AddAddressesToCollection(bcc, msg.Bcc);
         }
     }
 }
