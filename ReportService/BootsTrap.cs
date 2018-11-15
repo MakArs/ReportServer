@@ -58,8 +58,8 @@ namespace ReportService
             RegisterNamedDataExporter<DbExporter, DbExporterConfig>
                 (existingContainer, "CommonDbExporter");
 
-            RegisterNamedDataExporter<ReportInstanceExporter, ReportInstanceExporterConfig>
-                (existingContainer, "CommonReportInstanceExporter");
+            RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
+                (existingContainer, "CommonB2BExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
             RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer,
@@ -210,7 +210,7 @@ namespace ReportService
             CreateMap<DbExporterConfig, DbExporter>();
             CreateMap<EmailExporterConfig, EmailDataSender>();
             CreateMap<TelegramExporterConfig, TelegramDataSender>();
-            CreateMap<ReportInstanceExporterConfig, ReportInstanceExporter>();
+            CreateMap<B2BExporterConfig, B2BExporter>();
             CreateMap<DbImporterConfig, DbImporter>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
             CreateMap<ExcelImporterConfig, ExcelPackageReadingParameters>();

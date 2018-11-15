@@ -192,7 +192,6 @@
     <Compile Include="Operations\DataExporters\CommonDataExporter.cs" />
     <Compile Include="Operations\DataExporters\DbExporter.cs" />
     <Compile Include="Operations\DataExporters\ExporterConfigs.cs" />
-    <Compile Include="Operations\DataExporters\ReportInstanceExporter.cs" />
     <Compile Include="Operations\DataExporters\TelegramDataSender.cs" />
     <Compile Include="Operations\DataImporters\DbImporter.cs" />
     <Compile Include="Operations\DataImporters\ExcelImporter.cs" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
@@ -9,16 +10,17 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataExporters
 {
-    public class ReportInstanceExporter : CommonDataExporter
+    public class B2BExporter : CommonDataExporter
     {
         public string ConnectionString;
-        public string TableName;
+        public string ExportTableName;
+        public string ExportInstanceTableName;
         public int DbTimeOut;
         private readonly IArchiver archiver;
         public string ReportName;
 
-        public ReportInstanceExporter(IMapper mapper, IArchiver archiver,
-                                      ReportInstanceExporterConfig config)
+        public B2BExporter(IMapper mapper, IArchiver archiver,
+            B2BExporterConfig config)
         {
             this.archiver = archiver;
             mapper.Map(config, this);
@@ -30,20 +32,17 @@ namespace ReportService.Operations.DataExporters
 
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
+
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-            context.CreateSimple($@"
-                IF OBJECT_ID('{TableName}') IS NULL
-                CREATE TABLE {TableName}
-                (Id INT IDENTITY,
-                ReportName NVARCHAR(255) NOT NULL,
-                ExecuteTime DATETIME NOT NULL,
-                OperationPackage VARBINARY(MAX) NOT NULL,
-                CONSTRAINT [PK_Report_Date] PRIMARY KEY CLUSTERED 
-                (ReportName DESC,
-              	ExecuteTime DESC));")
-                .ExecuteNonQuery();
+            if (context.CreateSimple($@"
+                IF OBJECT_ID('{ExportTableName}') IS NOT NULL
+                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {Id})
+                AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
+                SELECT 1
+                ELSE SELECT 0").ExecuteQueryFirstColumn<int>().First() != 1)
+                return;
 
             byte[] archivedPackage;
 
@@ -55,12 +54,12 @@ namespace ReportService.Operations.DataExporters
 
             var newInstance = new
             {
-                ReportName,
+                ExportId = Id,
                 ExecuteTime = DateTime.Now,
-                OperationPackage = archivedPackage 
+                OperationPackage = archivedPackage
             };
 
-            context.Insert(TableName, newInstance, new QueryOptions(DbTimeOut), "Id");
+            context.Insert(ExportInstanceTableName, newInstance, new QueryOptions(DbTimeOut), "Id");
         }
     }
 }
