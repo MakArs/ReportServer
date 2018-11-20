@@ -17,6 +17,7 @@ using Monik.Common;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataExporters;
 
 namespace ReportService.Core
 {
@@ -155,10 +156,10 @@ namespace ReportService.Core
             Task.Factory.StartNew(() => task.Execute());
         }
 
-        //private void CreateBase(string connStr)
-        //{
-        //    repository.CreateBase(connStr);
-        //}
+        private void CreateBase(string connStr)
+        {
+            repository.CreateBase(connStr);
+        }
 
         public void Start()
         {
@@ -195,7 +196,20 @@ namespace ReportService.Core
             UpdateTaskList();
 
             checkScheduleAndExecuteScheduler.OnStart();
+
+            UpdateInstances();
         } //start
+
+        private void UpdateInstances()
+        {
+            var operIds = repository.UpdateOperInstancesAndGetIds();
+
+            SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", operIds)}");
+
+            var taskids = repository.UpdateTaskInstancesAndGetIds();
+
+            SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", taskids)}");
+        }
 
         public void Stop()
         {
@@ -555,16 +569,55 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(apiInstance);
         }
 
-        public string GetAllRegisteredImporters()
+        public string GetAllRegisteredImportersJson()
         {
             return JsonConvert.SerializeObject(RegisteredImporters
                 .ToDictionary(pair => pair.Key, pair => pair.Value.Name));
         }
 
-        public string GetAllRegisteredExporters()
+        public string GetAllRegisteredExportersJson()
         {
             return JsonConvert.SerializeObject(RegisteredExporters
                 .ToDictionary(pair => pair.Key, pair => pair.Value.Name));
+        }
+
+        public string GetAllB2BExportersJson(string keyParameter)
+        {
+            var taskList = repository.GetListEntitiesByDtoType<DtoTask>()
+                .Select(task => new
+                {
+                    task.Id,
+                    KeyParameter = JsonConvert
+                        .DeserializeObject<Dictionary<string, object>>(task.Parameters)
+                        .FirstOrDefault(kvp => kvp.Key == keyParameter).Value
+                })
+                .Where(values => values.KeyParameter != null);
+
+            var exporters = operations
+                .Where(oper => oper.ImplementationType == "CommonB2BExporter").ToList()
+                .Select(oper => new
+                {
+                    oper.Id,
+                    config = JsonConvert.DeserializeObject<B2BExporterConfig>(oper.Config),
+                    oper.TaskId
+                })
+                .Join(taskList,
+                    exp => exp.TaskId,
+                    task => task.Id,
+                    (exp, task) => new
+                    {
+                        exp.Id,
+                        task.KeyParameter,
+                        exp.config.ReportName,
+                        exp.config.Description
+                    });
+
+            return JsonConvert.SerializeObject(exporters);
+        }
+
+        public int CreateTaskByTemplate(ApiTask newTask)
+        {
+            throw new NotImplementedException();
         }
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)

@@ -43,15 +43,16 @@ namespace ReportService.Interfaces.Core
     {
         public int Id;
         public string Name;
+        public string Parameters;
         public int? ScheduleId;
     }
 
     public class DtoOperation : IDtoEntity
     {
-        public int Id { get; set; }
-        public int TaskId { get; set; }
+        public int Id;
+        public int TaskId;
         public int Number;
-        public string Name { get; set; }
+        public string Name;
         public string ImplementationType;
         public bool IsDefault;
         public string Config;
@@ -112,6 +113,9 @@ namespace ReportService.Interfaces.Core
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
         void DeleteEntity<T>(int id) where T : IDtoEntity;
+
+        List<int> UpdateOperInstancesAndGetIds();
+        List<int> UpdateTaskInstancesAndGetIds();
 
         void CreateBase(string baseConnStr);
     }

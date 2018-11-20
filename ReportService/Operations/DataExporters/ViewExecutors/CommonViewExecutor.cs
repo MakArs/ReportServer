@@ -5,6 +5,7 @@ using OfficeOpenXml;
 using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
+using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 
@@ -108,7 +109,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 foreach (var value in row)
                 {
                     j++;
-                    ws.Cells[i + 1, j].Value=value;
+                    ws.Cells[i + 1, j].SetObjValue(value,"");
                 }
             }
 

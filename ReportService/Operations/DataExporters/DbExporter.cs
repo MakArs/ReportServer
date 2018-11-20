@@ -55,14 +55,14 @@ namespace ReportService.Operations.DataExporters
             foreach (var col in columns)
             {
                 var nullable = col.Nullable ? "NULL" : "NOT NULL";
-                createQueryBuilder.AppendLine($"{col.Name} {scalarTypesToSqlTypes[col.Type]} " +
+                createQueryBuilder.AppendLine($"[{col.Name}] {scalarTypesToSqlTypes[col.Type]} " +
                                               $"{nullable},");
             }
 
             createQueryBuilder.Length--;
             createQueryBuilder.Append("); ");
 
-            sqlContext.CreateSimple(createQueryBuilder.ToString())
+            sqlContext.CreateSimple(new QueryOptions(DbTimeOut), createQueryBuilder.ToString())
                 .ExecuteNonQuery();
         }
 
@@ -100,21 +100,20 @@ namespace ReportService.Operations.DataExporters
             foreach (var row in firstSet.Rows)
             {
 
-                var fullcom = new StringBuilder(comm.ToString());
+                var fullRowData = new StringBuilder(comm.ToString());
                 int i;
 
                 for (i = 0; i < columns.Count - 1; i++)
                 {
-                    fullcom.Append($@"@p{i},");
+                    fullRowData.Append($"@p{i},");
 
                 }
 
-                fullcom.Append($@"@p{i})");
-                var fstr = fullcom.ToString();
+                fullRowData.Append($"@p{i})");
 
-                var parameters = row.ToArray();
+                //var parameters = row.ToArray();
 
-                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fstr, parameters)
+                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
                     .ExecuteNonQuery();
             }
         }

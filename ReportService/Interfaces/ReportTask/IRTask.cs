@@ -38,7 +38,7 @@ namespace ReportService.Interfaces.ReportTask
             };
         }
     }
-    
+
     public interface IRTask
     {
         int Id { get; }
@@ -46,6 +46,7 @@ namespace ReportService.Interfaces.ReportTask
         DtoSchedule Schedule { get; }
         DateTime LastTime { get; }
         List<IOperation> Operations { get; set; }
+        Dictionary<string, object> Parameters { get; set; }
 
         void Execute();
         void UpdateLastTime();

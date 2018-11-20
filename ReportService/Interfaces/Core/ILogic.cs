@@ -61,7 +61,10 @@ namespace ReportService.Interfaces.Core
         //todo: void DeleteEntity<T>(int entityId) or one method for each entity ??
         //todo:replace create&update methods with createorupdate?
 
-        string GetAllRegisteredImporters();
-        string GetAllRegisteredExporters();
+        string GetAllRegisteredImportersJson();
+        string GetAllRegisteredExportersJson();
+
+        string GetAllB2BExportersJson(string keyParameter);
+        int CreateTaskByTemplate(ApiTask newTask);
     }
 }

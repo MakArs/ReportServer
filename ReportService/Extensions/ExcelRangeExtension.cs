@@ -25,5 +25,48 @@ namespace ReportService.Extensions
                     break;
             }
         }
+
+        public static void SetObjValue(this ExcelRange rng, object value,string dateFormat)
+        {
+            switch (value)
+            {
+              case int intValue:
+                    rng.Value = intValue;
+                    break;
+
+                case short shortValue:
+                    rng.Value = shortValue;
+                    break;
+
+                case byte byteValue:
+                    rng.Value = byteValue;
+                    break;
+
+                case double doublevValue:
+                    rng.Value = doublevValue;
+                    break;
+
+                case decimal decimalValue:
+                    rng.Value = decimalValue;
+                    break;
+
+                case long longValue:
+                    rng.Value = longValue;
+                    break;
+
+                case bool boolValue:
+                    rng.Value = boolValue;
+                    break;
+
+                case DateTime dateTimeValue:
+                    rng.Value = dateTimeValue;
+                    rng.Style.Numberformat.Format = "dd.mm.yyyy";
+                    break;
+
+                default:
+                    rng.Value = value?.ToString();
+                    break;
+            }
+        }
     }
 }

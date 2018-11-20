@@ -285,6 +285,26 @@ namespace ReportService.Core
             //}
         }
 
+        public List<int> UpdateOperInstancesAndGetIds()
+        {
+            var ids=context.CreateSimple(@"UPDATE OperInstance
+            SET state=3,ErrorMessage='Unknown error.The service was probably stopped during the task execution.'
+            OUTPUT INSERTED.id
+            WHERE state=1").ExecuteQueryFirstColumn<int>().ToList();
+
+            return ids;
+        }
+
+        public List<int> UpdateTaskInstancesAndGetIds()
+        {
+            var ids = context.CreateSimple(@"UPDATE TaskInstance
+            SET state=3
+            OUTPUT INSERTED.id
+            WHERE state=1").ExecuteQueryFirstColumn<int>().ToList();
+
+            return ids;
+        }
+
         private void SendAppWarning(string msg)
         {
             monik.ApplicationWarning(msg);
@@ -354,7 +374,8 @@ namespace ReportService.Core
                 CREATE TABLE Task
                 (Id INT PRIMARY KEY IDENTITY,
                 Name NVARCHAR(127) NOT NULL,
-                ScheduleId INT NULL
+                ScheduleId INT NULL,
+                Parameters NVARCHAR(1024) NULL
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
                 REFERENCES Schedule(Id)
                 )")

@@ -41,7 +41,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllRegisteredImporters();
+                    var response = (Response)logic.GetAllRegisteredImportersJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -55,7 +55,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllRegisteredExporters();
+                    var response = (Response)logic.GetAllRegisteredExportersJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -114,7 +114,7 @@ namespace ReportService.Nancy
                 }
             };
         }
-    } //OperTemplates&OperationssModule
+    } //OperTemplates&Operations Module
 
     public class RecepientGroupsModule : NancyBaseModule
     {
@@ -242,6 +242,44 @@ namespace ReportService.Nancy
                 }
             };
 
+        }
+    } //TelegramModule
+
+    public class SyncModule : NancyBaseModule
+    {
+        public SyncModule(ILogic logic)
+        {
+            ModulePath = "/api/v2/synchronizations";
+
+            Get["/currentexporters"] = parameters =>
+            {
+                try
+                {
+                    var response = (Response)logic.GetAllTelegramChannelsJson();
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+            
+            Post[""] = parameters =>
+            {
+                try
+                {
+                    var apiTask = this.Bind<ApiTask>();
+                    var id = logic.CreateTask(apiTask);
+                    var response = (Response)$"{id}";
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
         }
     } //TelegramModule
 

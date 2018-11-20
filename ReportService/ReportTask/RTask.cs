@@ -17,6 +17,7 @@ namespace ReportService.ReportTask
         public DtoSchedule Schedule { get; }
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
 
         private readonly IMonik monik;
         private readonly ILifetimeScope autofac;

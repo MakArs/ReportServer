@@ -431,7 +431,7 @@ namespace ReportService.Protobuf
 
                 case ScalarType.DateTime:
                     return DateTimeOffset
-                        .FromUnixTimeSeconds(value.DateTime);
+                        .FromUnixTimeSeconds(value.DateTime).UtcDateTime;
 
                 case ScalarType.DateTimeOffset:
                     return DateTimeOffset
