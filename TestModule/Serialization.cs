@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Google.Protobuf;
 using NUnit.Framework;
 using ProtoBuf;
@@ -18,6 +19,30 @@ namespace TestModule
         [Test]
         public void GenericTest()
         {
+            var taskContext = new Dictionary<string, object>
+            {
+                {"@table", "table3"},
+                {"@par", "id"},
+                {"@value", 15}
+            };
+
+            var Query = "Select * from @table where @par=@value";
+
+            var parameters = new List<object>();
+            Regex regex = new Regex(@"\@\w+\b");
+
+            var selections = regex.Matches(Query);
+
+            List<object> values = new List<object>();
+
+            for (int i = 0; i < selections.Count; i++)
+            {
+                var sel = selections[i].Value;
+                var paramValue = taskContext[sel];
+                values.Add(paramValue);
+                Query=Query.Replace(sel, $@"@p{i}");
+            }
+
             var serializer = new ElementarySerializer();
 
             var encodedDescr = serializer.WriteDescriptor<FieldParams>();
@@ -157,6 +182,7 @@ namespace TestModule
         [Test]
         public void ProtoBuilderTest()
         {
+            var е = new Random().Next(100);
             var offs = new DateTime(1980, 3, 4, 21, 45, 52);
 
             var unix = ((DateTimeOffset)offs).ToUnixTimeSeconds();

@@ -24,13 +24,18 @@ namespace ReportService.ReportTask
 
         public RTask(ILogic logic, ILifetimeScope autofac,
                      IMonik monik, int id,
-                     string name, DtoSchedule schedule, List<DtoOperation> opers)
+                     string name,string parameters, DtoSchedule schedule, List<DtoOperation> opers)
         {
             this.monik = monik;
             Id = id;
             Name = name;
             Schedule = schedule;
             Operations = new List<IOperation>();
+
+            Parameters=new Dictionary<string, object>();
+            if (!string.IsNullOrEmpty(parameters))
+            Parameters = JsonConvert
+                .DeserializeObject<Dictionary<string, object>>(parameters);
 
             foreach (var operation in opers)
             {
@@ -70,9 +75,11 @@ namespace ReportService.ReportTask
         public void Execute()
         {
             var context = autofac.Resolve<IRTaskRunContext>();
-            context.exporter = autofac.Resolve<IDefaultTaskExporter>();
+            context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
             context.TaskId = Id;
             context.TaskName = Name; //can do it by NamedParameter+ctor,but..
+            context.Parameters = Parameters
+                .ToDictionary(pair=>pair.Key,pair=>pair.Value);
 
             var opersToExecute = Operations.OrderBy(oper => oper.Number).ToList();
 
@@ -102,7 +109,7 @@ namespace ReportService.ReportTask
             }
 
             var context = autofac.Resolve<IRTaskRunContext>();
-            context.exporter = autofac.Resolve<IDefaultTaskExporter>();
+            context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
             context.TaskId = Id;
             context.TaskName = Name;
 
@@ -130,7 +137,7 @@ namespace ReportService.ReportTask
             }
 
             var context = autofac.Resolve<IRTaskRunContext>();
-            context.exporter = autofac.Resolve<IDefaultTaskExporter>();
+            context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
             context.TaskId = Id;
             context.TaskName = Name;
 

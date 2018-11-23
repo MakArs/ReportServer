@@ -10,6 +10,7 @@ namespace ReportService.ReportTask
 
         public int TaskId { get; set; }
         public string TaskName { get; set; }
-        public IDefaultTaskExporter exporter { get; set; }
+        public IDefaultTaskExporter Exporter { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using Monik.Common;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
+using Newtonsoft.Json;
 using ReportService.Core;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
@@ -148,13 +149,13 @@ namespace ReportService
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container,
-                                                          NancyContext context)
+            NancyContext context)
         {
             // Perform registrations that should have a request lifetime
         }
 
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines,
-                                               NancyContext context)
+            NancyContext context)
         {
             // No registrations should be performed in here, however you may
             // resolve things that are needed during request startup.
@@ -198,7 +199,9 @@ namespace ReportService
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
 
             CreateMap<RTask, DtoTask>()
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id));
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+                .ForMember("Parameters", opt =>
+                    opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)));
 
             CreateMap<ApiTask, DtoTask>();
 

@@ -7,6 +7,7 @@ namespace ReportService.Interfaces.ReportTask
         Dictionary<string, OperationPackage> Packages { get; set; }
         int TaskId { get; set; }
         string TaskName { get; set; }
-        IDefaultTaskExporter exporter { get; set; }
+        IDefaultTaskExporter Exporter { get; set; }
+        Dictionary<string, object> Parameters { get; set; }
     }
 }

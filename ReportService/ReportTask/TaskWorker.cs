@@ -134,7 +134,7 @@ namespace ReportService.ReportTask
                 else
                 {
                     success = false;
-                    taskContext.exporter.SendError(exceptions, taskContext.TaskName);
+                    taskContext.Exporter.SendError(exceptions, taskContext.TaskName);
                     var msg = $"Задача {taskContext.TaskId} выполнена с ошибками";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
@@ -144,7 +144,7 @@ namespace ReportService.ReportTask
             catch (Exception e)
             {
                 success = false;
-                taskContext.exporter.SendError(exceptions, taskContext.TaskName);
+                taskContext.Exporter.SendError(exceptions, taskContext.TaskName);
                 var msg = $"Задача {taskContext.TaskId} не выполнена.Возникла ошибка: {e.Message}";
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
@@ -168,7 +168,7 @@ namespace ReportService.ReportTask
 
             var val = taskContext.Packages.LastOrDefault().Value;
 
-            return taskContext.exporter.GetDefaultView(taskContext.TaskName, val);
+            return taskContext.Exporter.GetDefaultView(taskContext.TaskName, val);
         }
 
         public async void RunOperationsAndSendLastView(List<IOperation> opers,
@@ -179,7 +179,7 @@ namespace ReportService.ReportTask
 
             if (string.IsNullOrEmpty(view)) return;
 
-            taskContext.exporter.ForceSend(view, taskContext.TaskName, mailAddress);
+            taskContext.Exporter.ForceSend(view, taskContext.TaskName, mailAddress);
         }
     }
 }

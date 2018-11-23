@@ -97,6 +97,7 @@ namespace ReportService.Core
                         var task = autofac.Resolve<IRTask>(
                             new NamedParameter("id", dtoTask.Id),
                             new NamedParameter("name", dtoTask.Name),
+                            new NamedParameter("parameters", dtoTask.Parameters),
                             new NamedParameter("schedule", schedules
                                 .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                             new NamedParameter("opers", operations

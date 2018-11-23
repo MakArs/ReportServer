@@ -106,12 +106,9 @@ namespace ReportService.Operations.DataExporters
                 for (i = 0; i < columns.Count - 1; i++)
                 {
                     fullRowData.Append($"@p{i},");
-
                 }
 
                 fullRowData.Append($"@p{i})");
-
-                //var parameters = row.ToArray();
 
                 sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
                     .ExecuteNonQuery();
