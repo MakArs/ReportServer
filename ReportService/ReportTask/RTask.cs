@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Monik.Common;
@@ -21,21 +22,23 @@ namespace ReportService.ReportTask
 
         private readonly IMonik monik;
         private readonly ILifetimeScope autofac;
+        private readonly IRepository repository;
 
-        public RTask(ILogic logic, ILifetimeScope autofac,
-                     IMonik monik, int id,
-                     string name,string parameters, DtoSchedule schedule, List<DtoOperation> opers)
+        public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
+            IMonik monik, int id,
+            string name, string parameters, DtoSchedule schedule, List<DtoOperation> opers)
         {
             this.monik = monik;
+            this.repository = repository;
             Id = id;
             Name = name;
             Schedule = schedule;
             Operations = new List<IOperation>();
 
-            Parameters=new Dictionary<string, object>();
+            Parameters = new Dictionary<string, object>();
             if (!string.IsNullOrEmpty(parameters))
-            Parameters = JsonConvert
-                .DeserializeObject<Dictionary<string, object>>(parameters);
+                Parameters = JsonConvert
+                    .DeserializeObject<Dictionary<string, object>>(parameters);
 
             foreach (var operation in opers)
             {
@@ -72,78 +75,70 @@ namespace ReportService.ReportTask
             this.autofac = autofac;
         } //ctor
 
-        public void Execute()
+        public IRTaskRunContext GetCurrentContext(bool isDefault)
         {
             var context = autofac.Resolve<IRTaskRunContext>();
-            context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
-            context.TaskId = Id;
-            context.TaskName = Name; //can do it by NamedParameter+ctor,but..
-            context.Parameters = Parameters
-                .ToDictionary(pair=>pair.Key,pair=>pair.Value);
 
-            var opersToExecute = Operations.OrderBy(oper => oper.Number).ToList();
+            context.OpersToExecute = isDefault
+                ? Operations.Where(oper => oper.IsDefault)
+                    .OrderBy(oper => oper.Number).ToList()
+                : Operations.OrderBy(oper => oper.Number).ToList();
 
-            if (!opersToExecute.Any())
+            if (!context.OpersToExecute.Any())
             {
                 var msg = $"Task {Id} did not executed (no operations found)";
-                monik.ApplicationInfo(msg);
-                Console.WriteLine(msg);
-                return;
-            }
-
-            var taskWorker = autofac.Resolve<ITaskWorker>();
-            taskWorker.RunOperations(opersToExecute, context);
-        }
-
-        public async Task<string> GetCurrentView()
-        {
-            var opersToExecute = Operations.Where(oper => oper.IsDefault)
-                .OrderBy(oper => oper.Number).ToList();
-
-            if (!opersToExecute.Any())
-            {
-                var msg = $"Task {Id} did not executed (no default operations found)";
                 monik.ApplicationInfo(msg);
                 Console.WriteLine(msg);
                 return null;
             }
 
-            var context = autofac.Resolve<IRTaskRunContext>();
             context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
             context.TaskId = Id;
-            context.TaskName = Name;
+            context.TaskName = Name; //can do it by NamedParameter+ctor,but..
 
+            context.Parameters = Parameters
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+            context.CancelSource = new CancellationTokenSource();
+
+            var dtoTaskInstance = new DtoTaskInstance
+            {
+                TaskId = Id,
+                StartTime = DateTime.Now,
+                Duration = 0,
+                State = (int) InstanceState.InProcess
+            };
+
+            dtoTaskInstance.Id =
+                repository.CreateEntity(dtoTaskInstance);
+
+            context.TaskInstance = dtoTaskInstance;
+
+            return context;
+        }
+
+        public void Execute(IRTaskRunContext context)
+        {
+            var taskWorker = autofac.Resolve<ITaskWorker>();
+            taskWorker.RunOperations(context);
+        }
+
+        public async Task<string> GetCurrentView(IRTaskRunContext context)
+        {
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
             var defaultView =
-                await taskWorker.RunOperationsAndGetLastView(opersToExecute, context);
+                await taskWorker.RunOperationsAndGetLastView(context);
 
             return string.IsNullOrEmpty(defaultView)
                 ? null
                 : defaultView;
         }
 
-        public void SendDefault(string mailAddress)
+        public void SendDefault(IRTaskRunContext context, string mailAddress)
         {
-            var opersToExecute = Operations.Where(oper => oper.IsDefault)
-                .OrderBy(oper => oper.Number).ToList();
-
-            if (!opersToExecute.Any())
-            {
-                var msg = $"Task {Id} did not executed (no default operations found)";
-                monik.ApplicationInfo(msg);
-                Console.WriteLine(msg);
-                return;
-            }
-
-            var context = autofac.Resolve<IRTaskRunContext>();
-            context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
-            context.TaskId = Id;
-            context.TaskName = Name;
-
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
-            taskWorker.RunOperationsAndSendLastView(opersToExecute, context, mailAddress);
+            taskWorker.RunOperationsAndSendLastView(context, mailAddress);
         }
 
         public void UpdateLastTime()

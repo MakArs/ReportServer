@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Interfaces.Core
@@ -32,5 +33,6 @@ namespace ReportService.Interfaces.Core
     public interface IDataImporter : IOperation
     {
         void Execute(IRTaskRunContext taskContext);
+        Task ExecuteAsync(IRTaskRunContext taskContext);
     }
 }

@@ -6,13 +6,11 @@ namespace ReportService.Interfaces.ReportTask
 {
     public interface ITaskWorker
     {
-        void RunOperations(List<IOperation> opers, IRTaskRunContext taskContext);
+        void RunOperations(IRTaskRunContext taskContext);
 
-        Task<string> RunOperationsAndGetLastView(
-            List<IOperation> opers, IRTaskRunContext taskContext);
+        Task<string> RunOperationsAndGetLastView(IRTaskRunContext taskContext);
 
-        void RunOperationsAndSendLastView(List<IOperation> opers,
-                                          IRTaskRunContext taskContext,
-                                          string mailAddress);
+        void RunOperationsAndSendLastView(IRTaskRunContext taskContext,
+            string mailAddress);
     }
 }

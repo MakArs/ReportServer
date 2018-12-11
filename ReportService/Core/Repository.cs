@@ -235,6 +235,7 @@ namespace ReportService.Core
                     {
                         try
                         {
+
                             transContext.CreateCommand(
                                     $@"delete OperInstance where TaskInstanceId in
                                             (select id from TaskInstance where TaskId={id})")
@@ -384,7 +385,7 @@ namespace ReportService.Core
             createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('Operation') IS NULL
                 CREATE TABLE Operation
-                (Id INT PRIMARY KEY IDENTITY,
+                (Id BIGINT PRIMARY KEY IDENTITY,
                 TaskId INT NOT NULL,
                 Number TINYINT NOT NULL,
                 Name NVARCHAR(255) NOT NULL,
@@ -399,7 +400,7 @@ namespace ReportService.Core
             createBaseContext.CreateSimple(@"
                 IF OBJECT_ID('TaskInstance') IS NULL
                 CREATE TABLE TaskInstance
-                (Id INT PRIMARY KEY IDENTITY,
+                (Id BIGINT PRIMARY KEY IDENTITY,
                 TaskID INT NOT NULL,
                 StartTime DATETIME NOT NULL,
                 Duration INT NOT NULL,
@@ -412,9 +413,9 @@ namespace ReportService.Core
             createBaseContext.CreateSimple(@"
                 IF object_id('OperInstance') IS NULL
                 CREATE TABLE OperInstance(
-                Id INT PRIMARY KEY IDENTITY,
-	            TaskInstanceId INT NOT NULL,
-                OperationId INT NOT NULL,
+                Id BIGINT PRIMARY KEY IDENTITY,
+	            TaskInstanceId BIGINT NOT NULL,
+                OperationId BIGINT NOT NULL,
                 StartTime DATETIME NOT NULL,
                 Duration INT NOT NULL,
                 State INT NOT NULL,

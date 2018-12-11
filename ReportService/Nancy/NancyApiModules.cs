@@ -376,6 +376,21 @@ namespace ReportService.Nancy
                 }
             };
 
+            Get["/stop/{taskinstanceid:long}", runAsync: true] = async (parameters, _) =>
+            {
+                try
+                {
+                    var response = (Response) (await logic.StopTaskByInstanceId(parameters.taskinstanceid)).ToString();
+
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
             Delete["/{id:int}"] = parameters =>
             {
                 try

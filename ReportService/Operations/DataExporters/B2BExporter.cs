@@ -36,10 +36,21 @@ namespace ReportService.Operations.DataExporters
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-            if (context.CreateSimple($@"
-                IF OBJECT_ID('{ExportTableName}') IS NOT NULL
+            if (context.CreateSimple($@" IF OBJECT_ID('{ExportTableName}') IS NOT NULL
                 IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {Id})
-                AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
+				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
+                AND  EXISTS(SELECT 1 FROM sys.columns 
+				  WHERE Name = 'Id'
+				  AND Object_ID = Object_ID('{ExportInstanceTableName}'))
+				  AND  EXISTS(SELECT 1 FROM sys.columns 
+				  WHERE Name = 'Created'
+				  AND Object_ID = Object_ID('{ExportInstanceTableName}')) 
+				  AND  EXISTS(SELECT 1 FROM sys.columns 
+				  WHERE Name = 'ReportId'
+				  AND Object_ID = Object_ID('{ExportInstanceTableName}')) 
+				  AND  EXISTS(SELECT 1 FROM sys.columns 
+				  WHERE Name = 'Package'
+				  AND Object_ID = Object_ID('{ExportInstanceTableName}'))  
                 SELECT 1
                 ELSE SELECT 0").ExecuteQueryFirstColumn<int>().First() != 1)
                 return;

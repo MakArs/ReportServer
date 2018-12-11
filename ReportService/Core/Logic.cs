@@ -5,9 +5,9 @@ using Newtonsoft.Json;
 using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.ServiceModel.Dispatcher;
 using System.Threading.Tasks;
 using Autofac.Core;
 using ReportService.Extensions;
@@ -39,6 +39,7 @@ namespace ReportService.Core
         private readonly List<DtoSchedule> schedules;
         private readonly List<IRTask> tasks;
         private readonly List<DtoOperation> operations;
+        private readonly Dictionary<long, IRTaskRunContext> contextsInWork;
 
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
@@ -54,6 +55,7 @@ namespace ReportService.Core
             bot.StartReceiving();
             this.repository = repository;
             packageBuilder = builder;
+            contextsInWork=new Dictionary<long, IRTaskRunContext>();
 
             checkScheduleAndExecuteScheduler =
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
@@ -154,7 +156,37 @@ namespace ReportService.Core
 
             SendServiceInfo($"Отсылка отчёта {task.Id} по расписанию");
 
-            Task.Factory.StartNew(() => task.Execute());
+            var context = task.GetCurrentContext(false);
+
+            if (context == null)
+                return;
+
+            var instanceId = context.TaskInstance.Id;
+
+            contextsInWork.Add(instanceId, context);
+
+            Task.Factory.StartNew(() => task.Execute(context),context.CancelSource.Token)
+                .ContinueWith(_ => EndContextWork(instanceId));
+        }
+
+        private void EndContextWork(long taskInstanceId)
+        {
+            if(!contextsInWork.ContainsKey(taskInstanceId))
+                return;
+            var context = contextsInWork[taskInstanceId];
+
+            context.CancelSource.Dispose();
+            contextsInWork.Remove(taskInstanceId);
+        }
+
+        public void CancelContextWork(long taskInstanceId)
+        {
+            var context = contextsInWork[taskInstanceId];
+            context.CancelSource.Cancel();
+
+            context.TaskInstance.State = (int) InstanceState.Canceled;
+            repository.UpdateEntity(context.TaskInstance);
+            contextsInWork.Remove(taskInstanceId);
         }
 
         private void CreateBase(string connStr)
@@ -205,11 +237,13 @@ namespace ReportService.Core
         {
             var operIds = repository.UpdateOperInstancesAndGetIds();
 
-            SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", operIds)}");
+            if (operIds.Count > 0)
+                SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", operIds)}");
 
             var taskids = repository.UpdateTaskInstancesAndGetIds();
 
-            SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", taskids)}");
+            if (taskids.Count > 0)
+                SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", taskids)}");
         }
 
         public void Stop()
@@ -231,7 +265,17 @@ namespace ReportService.Core
             SendServiceInfo($"Sending default dataset of task {task.Id} to address" +
                             $" {mailAddress} (launched manually)");
 
-            Task.Factory.StartNew(() => task.SendDefault(mailAddress));
+            var context = task.GetCurrentContext(true);
+
+            if (context == null)
+                return $"Task {taskId} stopped";
+
+            var instanceId = context.TaskInstance.Id;
+
+            contextsInWork.Add(instanceId, context);
+
+            Task.Factory.StartNew(() => task.SendDefault(context,mailAddress), context.CancelSource.Token)
+                .ContinueWith(_ => EndContextWork(instanceId));
 
             return $"Task {taskId} default dataset sent to {mailAddress}!";
         }
@@ -249,7 +293,19 @@ namespace ReportService.Core
 
             SendServiceInfo($"Executing task {task.Id} (launched manually)");
 
-            Task.Factory.StartNew(() => task.Execute());
+            var context = task.GetCurrentContext(false);
+
+            if (context == null)
+                return $"Task {taskId} stopped";
+
+            var instanceId = context.TaskInstance.Id;
+
+            contextsInWork.Add(instanceId, context);
+            
+            Task.Factory.StartNew(() =>
+                    task.Execute(context), context.CancelSource.Token)
+                    .ContinueWith(_ => EndContextWork(instanceId));
+
             return $"Task {taskId} executed!";
         }
 
@@ -495,10 +551,22 @@ namespace ReportService.Core
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
-            
-            var view = await task.GetCurrentView();
+
+            var context = task.GetCurrentContext(false);
+
+            if (context == null)
+                return $"Task {taskId} stopped";
+
+            var instanceId = context.TaskInstance.Id;
+
+            contextsInWork.Add(instanceId, context);
+
+            var view = await task.GetCurrentView(context);
+
+            EndContextWork(instanceId);
+
             return string.IsNullOrEmpty(view)
-                ? "This task has not default operations or default dataset is empty.."
+                ? "Default dataset is empty.."
                 : view;
         }
 
@@ -619,6 +687,16 @@ namespace ReportService.Core
         public int CreateTaskByTemplate(ApiTask newTask)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> StopTaskByInstanceId(long taskInstanceId)
+        {
+            if (!contextsInWork.ContainsKey(taskInstanceId))
+                return false;
+
+            await Task.Factory.StartNew(() =>  CancelContextWork(taskInstanceId));
+
+            return true;
         }
 
         private void OnBotUpd(object sender, Telegram.Bot.Args.UpdateEventArgs e)

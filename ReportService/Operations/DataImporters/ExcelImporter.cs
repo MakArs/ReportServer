@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using AutoMapper;
 using OfficeOpenXml;
 using ReportService.Interfaces.Core;
@@ -46,6 +47,11 @@ namespace ReportService.Operations.DataImporters
                 var package = packageBuilder.GetPackage(pack, ExcelParameters);
                 taskContext.Packages[PackageName] = package;
             }
+        }
+
+        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

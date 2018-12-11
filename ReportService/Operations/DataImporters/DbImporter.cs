@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
@@ -58,29 +60,69 @@ namespace ReportService.Operations.DataImporters
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-
             if (!parametersSet)
                 SetParameters(taskContext);
 
             sqlContext.UsingConnection(connectionContext =>
             {
+                var token = taskContext.CancelSource.Token;
+
                 if (values.Count > 0)
-                    connectionContext
-                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
-                            values.ToArray())
-                        .UseReader(reader =>
+                    Task.Run(async () =>
+                        await connectionContext
+                            .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
+                                values.ToArray())
+                            .UseReaderAsync(token, reader =>
+                            {
+                                var pack = packageBuilder.GetPackage(reader);
+                                taskContext.Packages[PackageName] = pack;
+                                return Task.CompletedTask;
+                            })).Wait(token);
+
+                else
+                    Task.Run(async () => await connectionContext
+                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
+                        .UseReaderAsync(token, reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
                             taskContext.Packages[PackageName] = pack;
+                            return Task.CompletedTask;
+                        })).Wait(token);
+
+            });
+        }
+
+        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        {
+            var sqlContext = SqlContextProvider.DefaultInstance
+                .CreateContext(ConnectionString);
+
+            if (!parametersSet)
+                SetParameters(taskContext);
+
+            await sqlContext.UsingConnectionAsync(async connectionContext =>
+            {
+                var token = taskContext.CancelSource.Token;
+
+                if (values.Count > 0)
+                    await connectionContext
+                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
+                            values.ToArray())
+                        .UseReaderAsync(taskContext.CancelSource.Token, reader =>
+                        {
+                            var pack = packageBuilder.GetPackage(reader);
+                            taskContext.Packages[PackageName] = pack;
+                            return Task.CompletedTask;
                         });
 
                 else
-                    connectionContext
+                    await connectionContext
                         .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
-                        .UseReader(reader =>
+                        .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
                             taskContext.Packages[PackageName] = pack;
+                            return Task.CompletedTask;
                         });
             });
         }

@@ -17,7 +17,8 @@ namespace ReportService.Interfaces.ReportTask
     {
         InProcess = 1,
         Success = 2,
-        Failed = 3
+        Failed = 3,
+        Canceled=4
     }
 
     public class RRecepientGroup
@@ -48,9 +49,10 @@ namespace ReportService.Interfaces.ReportTask
         List<IOperation> Operations { get; set; }
         Dictionary<string, object> Parameters { get; set; }
 
-        void Execute();
+        IRTaskRunContext GetCurrentContext(bool isDefault);
+        void Execute(IRTaskRunContext context);
         void UpdateLastTime();
-        Task<string> GetCurrentView();
-        void SendDefault(string mailAddress);
+        Task<string> GetCurrentView(IRTaskRunContext context);
+        void SendDefault(IRTaskRunContext context, string mailAddress);
     }
 }

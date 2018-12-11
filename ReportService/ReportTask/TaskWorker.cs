@@ -20,7 +20,7 @@ namespace ReportService.ReportTask
         private readonly IMonik monik;
 
         public TaskWorker(IRepository repository, IMapper mapper,
-                          IMonik monik, IArchiver archiver)
+            IMonik monik, IArchiver archiver)
         {
             this.repository = repository;
             this.archiver = archiver;
@@ -28,29 +28,28 @@ namespace ReportService.ReportTask
             this.monik = monik;
         }
 
-        public void RunOperations(List<IOperation> opers, IRTaskRunContext taskContext)
+        public void RunOperations(IRTaskRunContext taskContext)
         {
             Stopwatch duration = new Stopwatch();
+
+            var dtoTaskInstance = taskContext.TaskInstance;
 
             duration.Start();
 
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
 
-            var dtoTaskInstance = new DtoTaskInstance
-            {
-                TaskId = taskContext.TaskId,
-                StartTime = DateTime.Now,
-                Duration = 0,
-                State = (int) InstanceState.InProcess
-            };
-
-            dtoTaskInstance.Id =
-                repository.CreateEntity(dtoTaskInstance);
             try
             {
-                foreach (var oper in opers)
+                foreach (var oper in taskContext.OpersToExecute)
                 {
+                    if (taskContext.CancelSource.IsCancellationRequested)
+                    {
+                        taskContext.CancelSource.Dispose();
+                        success = false;
+                        break;
+                    }
+
                     var dtoOperInstance = new DtoOperInstance
                     {
                         TaskInstanceId = dtoTaskInstance.Id,
@@ -71,6 +70,8 @@ namespace ReportService.ReportTask
                         case IDataImporter importer:
                             try
                             {
+                                //Task.Run(async () =>await importer
+                                //     .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
                                 importer.Execute(taskContext);
 
                                 using (var stream = new MemoryStream())
@@ -124,9 +125,11 @@ namespace ReportService.ReportTask
                     }
                 }
 
-                if (exceptions.Count == 0)
+                if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)
                 {
-                    var msg = $"Задача {taskContext.TaskId} успешно выполнена";
+                    var msg = dtoTaskInstance.State == (int) InstanceState.Canceled
+                        ? $"Задача {taskContext.TaskId} остановлена"
+                        : $"Задача {taskContext.TaskId} успешно выполнена";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
                 }
@@ -155,27 +158,27 @@ namespace ReportService.ReportTask
             dtoTaskInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
 
             dtoTaskInstance.State =
-                success ? (int) InstanceState.Success : (int) InstanceState.Failed;
+                success ? (int) InstanceState.Success
+                : dtoTaskInstance.State == (int) InstanceState.Canceled ? (int) InstanceState.Canceled
+                : (int) InstanceState.Failed;
 
-            repository.UpdateEntity(mapper.Map<DtoTaskInstance>(dtoTaskInstance));
+            repository.UpdateEntity(dtoTaskInstance);
         }
 
-        public async Task<string> RunOperationsAndGetLastView(
-            List<IOperation> opers, IRTaskRunContext taskContext)
+        public async Task<string> RunOperationsAndGetLastView(IRTaskRunContext taskContext)
         {
             await Task.Factory.StartNew(() =>
-                RunOperations(opers, taskContext));
+                RunOperations(taskContext));
 
             var val = taskContext.Packages.LastOrDefault().Value;
 
             return taskContext.Exporter.GetDefaultView(taskContext.TaskName, val);
         }
 
-        public async void RunOperationsAndSendLastView(List<IOperation> opers,
-                                                       IRTaskRunContext taskContext,
-                                                       string mailAddress)
+        public async void RunOperationsAndSendLastView(IRTaskRunContext taskContext,
+            string mailAddress)
         {
-            var view = await RunOperationsAndGetLastView(opers, taskContext);
+            var view = await RunOperationsAndGetLastView(taskContext);
 
             if (string.IsNullOrEmpty(view)) return;
 

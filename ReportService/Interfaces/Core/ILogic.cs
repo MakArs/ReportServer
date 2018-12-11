@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Nancy;
 using ReportService.Extensions;
 using ReportService.Nancy;
 
@@ -66,5 +67,6 @@ namespace ReportService.Interfaces.Core
 
         string GetAllB2BExportersJson(string keyParameter);
         int CreateTaskByTemplate(ApiTask newTask);
+        Task<bool> StopTaskByInstanceId(long taskInstanceId);
     }
 }
