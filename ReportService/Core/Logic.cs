@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.ServiceModel.Dispatcher;
 using System.Threading.Tasks;
 using Autofac.Core;
 using ReportService.Extensions;
@@ -18,6 +17,8 @@ using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters;
+using ReportService.Operations.DataImporters;
+using ReportService.ReportTask;
 
 namespace ReportService.Core
 {
@@ -366,7 +367,7 @@ namespace ReportService.Core
             return tr;
         }
 
-        public string GetInWorkEntitiesJson()
+        public string GetEntitiesCountJson()
         {
             var entities = new Dictionary<string, int>
             {

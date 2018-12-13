@@ -132,6 +132,9 @@
     <Reference Include="RazorEngine, Version=3.10.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
       <HintPath>..\packages\RazorEngine.3.10.0\lib\net45\RazorEngine.dll</HintPath>
     </Reference>
+    <Reference Include="Renci.SshNet, Version=2016.1.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
+      <HintPath>..\packages\SSH.NET.2016.1.0\lib\net40\Renci.SshNet.dll</HintPath>
+    </Reference>
     <Reference Include="SevenZipSharp, Version=1.1.106.0, Culture=neutral, PublicKeyToken=c8ff6ba0184838bb, processorArchitecture=MSIL">
       <HintPath>..\packages\Squid-Box.SevenZipSharp.1.1.106\lib\net45\SevenZipSharp.dll</HintPath>
     </Reference>
@@ -183,6 +186,7 @@
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Operations\DataExporters\B2BExporter.cs" />
+    <Compile Include="Operations\DataImporters\SSHImporter.cs" />
     <Compile Include="Protobuf\OperationPackage.cs" />
     <Compile Include="ReportTask\DefaultTaskExporter.cs" />
     <Compile Include="Protobuf\ProtoPackageBuilder.cs" />

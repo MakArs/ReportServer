@@ -59,7 +59,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    string entities = logic.GetInWorkEntitiesJson();
+                    string entities = logic.GetEntitiesCountJson();
                     var response = (Response)entities;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;

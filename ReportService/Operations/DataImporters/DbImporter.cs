@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -88,7 +87,6 @@ namespace ReportService.Operations.DataImporters
                             taskContext.Packages[PackageName] = pack;
                             return Task.CompletedTask;
                         })).Wait(token);
-
             });
         }
 
@@ -102,13 +100,11 @@ namespace ReportService.Operations.DataImporters
 
             await sqlContext.UsingConnectionAsync(async connectionContext =>
             {
-                var token = taskContext.CancelSource.Token;
-
                 if (values.Count > 0)
                     await connectionContext
                         .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
                             values.ToArray())
-                        .UseReaderAsync(taskContext.CancelSource.Token, reader =>
+                        .UseReaderAsync(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
                             taskContext.Packages[PackageName] = pack;
@@ -118,7 +114,7 @@ namespace ReportService.Operations.DataImporters
                 else
                     await connectionContext
                         .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
-                        .UseReaderAsync(taskContext.CancelSource.Token, reader =>
+                        .UseReaderAsync(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
                             taskContext.Packages[PackageName] = pack;

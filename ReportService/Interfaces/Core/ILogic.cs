@@ -23,7 +23,7 @@ namespace ReportService.Interfaces.Core
         string GetAllSchedulesJson();
         string GetAllOperationsJson();
         string GetAllTasksJson();
-        string GetInWorkEntitiesJson();
+        string GetEntitiesCountJson();
 
         int CreateOperationTemplate(DtoOperTemplate operTemplate);
         void UpdateOperationTemplate(DtoOperTemplate operTemplate);

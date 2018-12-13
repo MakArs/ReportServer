@@ -49,9 +49,18 @@ namespace ReportService.Operations.DataImporters
             }
         }
 
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IRTaskRunContext taskContext)
         {
-            throw new System.NotImplementedException();
+           await Task.Run(() =>
+            {
+                var fi = new FileInfo(FilePath);
+
+                using (var pack = new ExcelPackage(fi))
+                {
+                    var package = packageBuilder.GetPackage(pack, ExcelParameters);
+                    taskContext.Packages[PackageName] = package;
+                }
+            });
         }
     }
 }

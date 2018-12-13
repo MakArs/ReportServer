@@ -70,9 +70,9 @@ namespace ReportService.ReportTask
                         case IDataImporter importer:
                             try
                             {
-                                //Task.Run(async () =>await importer
-                                //     .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
-                                importer.Execute(taskContext);
+                                Task.Run(async () => await importer
+                                     .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
+                                //importer.Execute(taskContext);
 
                                 using (var stream = new MemoryStream())
                                 {
