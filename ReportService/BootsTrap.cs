@@ -171,24 +171,24 @@ namespace ReportService
 
         private void RegisterNamedDataExporter<TImplementation, TConfigType>
             (ILifetimeScope container, string name)
-            where TImplementation : IDataExporter
+            where TImplementation : IOperation
             where TConfigType : IExporterConfig
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
-                .Named<IDataExporter>(name)
-                .Keyed<IDataExporter>(typeof(TConfigType)));
+                .Named<IOperation>(name)
+                .Keyed<IOperation>(typeof(TConfigType)));
         }
 
         private void RegisterNamedDataImporter<TImplementation, TConfigType>
             (ILifetimeScope container, string name)
-            where TImplementation : IDataImporter
+            where TImplementation : IOperation
             where TConfigType : IImporterConfig
         {
             container.Update(builder => builder
                 .RegisterType<TImplementation>()
-                .Named<IDataImporter>(name)
-                .Keyed<IDataImporter>(typeof(TConfigType)));
+                .Named<IOperation>(name)
+                .Keyed<IOperation>(typeof(TConfigType)));
         }
     }
 
@@ -211,12 +211,19 @@ namespace ReportService
             CreateMap<DtoOperInstance, DtoTaskInstance>();
 
             CreateMap<DbExporterConfig, DbExporter>();
+            CreateMap<DbExporterConfig, CommonOperationProperties>();
             CreateMap<EmailExporterConfig, EmailDataSender>();
+            CreateMap<EmailExporterConfig, CommonOperationProperties>();
             CreateMap<TelegramExporterConfig, TelegramDataSender>();
+            CreateMap<TelegramExporterConfig, CommonOperationProperties>();
             CreateMap<B2BExporterConfig, B2BExporter>();
+            CreateMap<B2BExporterConfig, CommonOperationProperties>();
             CreateMap<DbImporterConfig, DbImporter>();
+            CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
+            CreateMap<ExcelImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelPackageReadingParameters>();
+            CreateMap<ExcelImporterConfig, CommonOperationProperties>();
         }
     }
 }

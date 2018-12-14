@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.IO;
 using System.Net.Mail;
+using System.Threading.Tasks;
 using Autofac;
 using AutoMapper;
 using Newtonsoft.Json;
@@ -11,8 +12,11 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataExporters
 {
-    public class EmailDataSender : CommonDataExporter
+    public class EmailDataSender : IOperation
     {
+        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+        public bool RunIfVoidPackage { get; set; }
+
         private readonly RecepientAddresses addresses;
         public bool HasHtmlBody;
         public bool HasXlsxAttachment;
@@ -23,9 +27,10 @@ namespace ReportService.Operations.DataExporters
         public string ReportName;
 
         public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac,
-                               EmailExporterConfig config)
+            EmailExporterConfig config)
         {
             mapper.Map(config, this);
+            mapper.Map(config, Properties);
 
             addresses = config.RecepientGroupId > 0
                 ? logic.GetRecepientAddressesByGroupId(config.RecepientGroupId)
@@ -34,9 +39,10 @@ namespace ReportService.Operations.DataExporters
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         } //ctor
 
-        public override void Send(IRTaskRunContext taskContext)
+
+        public void Send(IRTaskRunContext taskContext)
         {
-            var package = taskContext.Packages[PackageName];
+            var package = taskContext.Packages[Properties.PackageName];
 
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
@@ -56,7 +62,7 @@ namespace ReportService.Operations.DataExporters
                 msg.AddRecepientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                    msg.AddRecepientsFromPackage(                        taskContext.Packages[RecepientsDatasetName]);
+                    msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
                 msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
 
@@ -75,7 +81,7 @@ namespace ReportService.Operations.DataExporters
                     {
                         streamJson =
                             new MemoryStream(System.Text.Encoding.UTF8
-                                    .GetBytes(JsonConvert.SerializeObject(package)));
+                                .GetBytes(JsonConvert.SerializeObject(package)));
                         msg.Attachments.Add(new Attachment(streamJson, filenameJson,
                             @"application/json"));
                     }
@@ -101,5 +107,15 @@ namespace ReportService.Operations.DataExporters
                 }
             }
         } //method
+
+        public void Execute(IRTaskRunContext taskContext)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

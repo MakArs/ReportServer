@@ -1,16 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Interfaces.Core
 {
     public interface IOperation
     {
-        int Id { get; set; }
-        bool IsDefault { get; set; }
-        int Number { get; set; }
-        string Name { get; set; }
-        string PackageName { get; set; }
+        CommonOperationProperties Properties { get; set; }
+        void Execute(IRTaskRunContext taskContext);
+        Task ExecuteAsync(IRTaskRunContext taskContext);
     }
 
     public interface IOperationConfig
@@ -18,21 +15,12 @@ namespace ReportService.Interfaces.Core
         string PackageName { get; set; }
     }
 
-    public interface IDataExporter : IOperation
+    public class CommonOperationProperties
     {
-        bool RunIfVoidPackage { get; set; }
-        void Send(IRTaskRunContext taskContext);
-        void Cleanup(ICleanupSettings cleanUpSettings);
-    }
-
-    public interface ICleanupSettings
-    {
-        DateTime KeepingTime { get; set; }
-    }
-
-    public interface IDataImporter : IOperation
-    {
-        void Execute(IRTaskRunContext taskContext);
-        Task ExecuteAsync(IRTaskRunContext taskContext);
+        public int Id { get; set; }
+        public bool IsDefault { get; set; }
+        public int Number { get; set; }
+        public string Name { get; set; }
+        public string PackageName { get; set; }
     }
 }

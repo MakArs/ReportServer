@@ -11,24 +11,22 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataImporters
 {
-    public class DbImporter : IDataImporter
+    public class DbImporter : IOperation
     {
-        private readonly IPackageBuilder packageBuilder;
+        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
 
-        public int Id { get; set; }
-        public bool IsDefault { get; set; }
-        public int Number { get; set; }
-        public string Name { get; set; }
-        public string PackageName { get; set; }
+        private readonly IPackageBuilder packageBuilder;
+        private bool parametersSet;
+        private readonly List<object> values;
+
         public string ConnectionString;
         public string Query;
         public int TimeOut;
-        private readonly List<object> values;
-        private bool parametersSet;
 
         public DbImporter(IMapper mapper, DbImporterConfig config, IPackageBuilder builder)
         {
             mapper.Map(config, this);
+            mapper.Map(config, Properties);
             packageBuilder = builder;
             values = new List<object>();
         }
@@ -67,26 +65,23 @@ namespace ReportService.Operations.DataImporters
                 var token = taskContext.CancelSource.Token;
 
                 if (values.Count > 0)
-                    Task.Run(async () =>
-                        await connectionContext
-                            .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
-                                values.ToArray())
-                            .UseReaderAsync(token, reader =>
-                            {
-                                var pack = packageBuilder.GetPackage(reader);
-                                taskContext.Packages[PackageName] = pack;
-                                return Task.CompletedTask;
-                            })).Wait(token);
-
-                else
-                    Task.Run(async () => await connectionContext
-                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
-                        .UseReaderAsync(token, reader =>
+                    connectionContext
+                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
+                            values.ToArray())
+                        .UseReader(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
-                            taskContext.Packages[PackageName] = pack;
-                            return Task.CompletedTask;
-                        })).Wait(token);
+                            taskContext.Packages[Properties.PackageName] = pack;
+                        });
+
+                else
+                    connectionContext
+                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
+                        .UseReader(reader =>
+                        {
+                            var pack = packageBuilder.GetPackage(reader);
+                            taskContext.Packages[Properties.PackageName] = pack;
+                        });
             });
         }
 
@@ -107,7 +102,7 @@ namespace ReportService.Operations.DataImporters
                         .UseReaderAsync(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
-                            taskContext.Packages[PackageName] = pack;
+                            taskContext.Packages[Properties.PackageName] = pack;
                             return Task.CompletedTask;
                         });
 
@@ -117,7 +112,7 @@ namespace ReportService.Operations.DataImporters
                         .UseReaderAsync(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
-                            taskContext.Packages[PackageName] = pack;
+                            taskContext.Packages[Properties.PackageName] = pack;
                             return Task.CompletedTask;
                         });
             });

@@ -24,19 +24,6 @@ namespace ReportService.Nancy
                 }
             };
 
-            Delete["/{id:int}"] = parameters =>
-            {
-                try
-                {
-                    logic.DeleteOperationTemplate(parameters.id);
-                    return HttpStatusCode.OK;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
             Get["/registeredimporters"] = parameters =>
             {
                 try
@@ -72,6 +59,19 @@ namespace ReportService.Nancy
                     var response = (Response)logic.GetAllOperationsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Delete["/{id:int}"] = parameters =>
+            {
+                try
+                {
+                    logic.DeleteOperationTemplate(parameters.id);
+                    return HttpStatusCode.OK;
                 }
                 catch
                 {
@@ -365,7 +365,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) logic.GetAllTasksJson();
+                    var response = (Response)logic.GetAllTasksJson();
 
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -380,8 +380,37 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) (await logic.StopTaskByInstanceId(parameters.taskinstanceid)).ToString();
+                    var response = (Response)(await logic.StopTaskByInstanceId(parameters.taskinstanceid)).ToString();
 
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/{taskid:int}/instances"] = parameters =>
+            {
+                try
+                {
+                    var response =
+                        (Response)logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/{taskid:int}/currentviews", runAsync: true] = async (parameters, _) =>
+            {
+                try
+                {
+                    var response = (Response)await logic.GetCurrentViewByTaskId(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -410,7 +439,7 @@ namespace ReportService.Nancy
                 {
                     var newTask = this.Bind<ApiTask>();
                     var id = logic.CreateTask(newTask);
-                    var response = (Response) $"{id}";
+                    var response = (Response)$"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -425,42 +454,13 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingTask = this.Bind<ApiTask>
-                        (new BindingConfig {BodyOnly = true});
+                        (new BindingConfig { BodyOnly = true });
 
                     if (parameters.id != existingTask.Id)
                         return HttpStatusCode.BadRequest;
 
                     logic.UpdateTask(existingTask);
                     return HttpStatusCode.OK;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
-            Get["/{taskid:int}/instances"] = parameters =>
-            {
-                try
-                {
-                    var response =
-                        (Response) logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            };
-
-            Get["/{taskid:int}/currentviews", runAsync: true] = async (parameters, _) =>
-            {
-                try
-                {
-                    var response = (Response) await logic.GetCurrentViewByTaskId(parameters.taskid);
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
                 }
                 catch
                 {

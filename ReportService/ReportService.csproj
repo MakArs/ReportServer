@@ -193,7 +193,6 @@
     <Compile Include="Protobuf\ProtoSerializer.cs" />
     <Compile Include="ReportTask\RTaskRunContext.cs" />
     <Compile Include="ReportTask\TaskWorker.cs" />
-    <Compile Include="Operations\DataExporters\CommonDataExporter.cs" />
     <Compile Include="Operations\DataExporters\DbExporter.cs" />
     <Compile Include="Operations\DataExporters\ExporterConfigs.cs" />
     <Compile Include="Operations\DataExporters\TelegramDataSender.cs" />

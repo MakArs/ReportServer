@@ -18,21 +18,19 @@ namespace ReportService.Operations.DataImporters
         public int MaxRowCount;
     }
 
-    public class ExcelImporter : IDataImporter
+    public class ExcelImporter : IOperation
     {
         private readonly IPackageBuilder packageBuilder;
         public ExcelPackageReadingParameters ExcelParameters;
 
-        public int Id { get; set; }
-        public bool IsDefault { get; set; }
-        public int Number { get; set; }
-        public string Name { get; set; }
-        public string PackageName { get; set; }
+        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+
         public string FilePath;
 
         public ExcelImporter(IMapper mapper, ExcelImporterConfig config, IPackageBuilder builder)
         {
             mapper.Map(config, this);
+            mapper.Map(config, Properties);
             ExcelParameters = new ExcelPackageReadingParameters();
             mapper.Map(config, ExcelParameters);
             packageBuilder = builder;
@@ -45,20 +43,20 @@ namespace ReportService.Operations.DataImporters
             using (var pack = new ExcelPackage(fi))
             {
                 var package = packageBuilder.GetPackage(pack, ExcelParameters);
-                taskContext.Packages[PackageName] = package;
+                taskContext.Packages[Properties.PackageName] = package;
             }
         }
 
         public async Task ExecuteAsync(IRTaskRunContext taskContext)
         {
-           await Task.Run(() =>
+            await Task.Run(() =>
             {
                 var fi = new FileInfo(FilePath);
 
                 using (var pack = new ExcelPackage(fi))
                 {
                     var package = packageBuilder.GetPackage(pack, ExcelParameters);
-                    taskContext.Packages[PackageName] = package;
+                    taskContext.Packages[Properties.PackageName] = package;
                 }
             });
         }

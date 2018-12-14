@@ -53,7 +53,7 @@ namespace ReportService.ReportTask
                     var dtoOperInstance = new DtoOperInstance
                     {
                         TaskInstanceId = dtoTaskInstance.Id,
-                        OperationId = oper.Id,
+                        OperationId = oper.Properties.Id,
                         StartTime = DateTime.Now,
                         Duration = 0,
                         State = (int) InstanceState.InProcess
@@ -65,64 +65,93 @@ namespace ReportService.ReportTask
                     Stopwatch operDuration = new Stopwatch();
                     operDuration.Start();
 
-                    switch (oper)
+                    try
                     {
-                        case IDataImporter importer:
-                            try
-                            {
-                                Task.Run(async () => await importer
-                                     .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
-                                //importer.Execute(taskContext);
+                        Task.Run(async () => await oper
+                            .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
+                        //importer.Execute(taskContext);
 
-                                using (var stream = new MemoryStream())
-                                {
-                                    taskContext.Packages[importer.PackageName].WriteTo(stream);
-                                    dtoOperInstance.DataSet = archiver.CompressStream(stream);
-                                }
+                        using (var stream = new MemoryStream())
+                        {
+                            taskContext.Packages[oper.Properties.PackageName].WriteTo(stream);
+                            dtoOperInstance.DataSet = archiver.CompressStream(stream);
+                        }
 
-                                dtoOperInstance.State = (int) InstanceState.Success;
-                                operDuration.Stop();
-                                dtoOperInstance.Duration =
-                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                                repository.UpdateEntity(dtoOperInstance);
-                            }
-                            catch (Exception e)
-                            {
-                                exceptions.Add(new Tuple<Exception, string>(e, importer.Name));
-                                dtoOperInstance.ErrorMessage = e.Message;
-                                dtoOperInstance.State = (int) InstanceState.Failed;
-                                operDuration.Stop();
-                                dtoOperInstance.Duration =
-                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                                repository.UpdateEntity(dtoOperInstance);
-                            }
-
-                            break;
-
-                        case IDataExporter exporter:
-
-                            try
-                            {
-                                exporter.Send(taskContext);
-                                dtoOperInstance.State = (int) InstanceState.Success;
-                                operDuration.Stop();
-                                dtoOperInstance.Duration =
-                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                                repository.UpdateEntity(dtoOperInstance);
-                            }
-                            catch (Exception e)
-                            {
-                                exceptions.Add(new Tuple<Exception, string>(e, exporter.Name));
-                                dtoOperInstance.ErrorMessage = e.Message;
-                                dtoOperInstance.State = (int) InstanceState.Failed;
-                                operDuration.Stop();
-                                dtoOperInstance.Duration =
-                                    Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                                repository.UpdateEntity(dtoOperInstance);
-                            }
-
-                            break;
+                        dtoOperInstance.State = (int) InstanceState.Success;
+                        operDuration.Stop();
+                        dtoOperInstance.Duration =
+                            Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                        repository.UpdateEntity(dtoOperInstance);
                     }
+                    catch (Exception e)
+                    {
+                        exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
+                        dtoOperInstance.ErrorMessage = e.Message;
+                        dtoOperInstance.State = (int) InstanceState.Failed;
+                        operDuration.Stop();
+                        dtoOperInstance.Duration =
+                            Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                        repository.UpdateEntity(dtoOperInstance);
+                    }
+
+                    //switch (oper)
+                    //{
+                    //    case IDataImporter importer:
+                    //        try
+                    //        {
+                    //            Task.Run(async () => await importer
+                    //                 .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
+                    //            //importer.Execute(taskContext);
+
+                    //            using (var stream = new MemoryStream())
+                    //            {
+                    //                taskContext.Packages[importer.PackageName].WriteTo(stream);
+                    //                dtoOperInstance.DataSet = archiver.CompressStream(stream);
+                    //            }
+
+                    //            dtoOperInstance.State = (int) InstanceState.Success;
+                    //            operDuration.Stop();
+                    //            dtoOperInstance.Duration =
+                    //                Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                    //            repository.UpdateEntity(dtoOperInstance);
+                    //        }
+                    //        catch (Exception e)
+                    //        {
+                    //            exceptions.Add(new Tuple<Exception, string>(e, importer.Name));
+                    //            dtoOperInstance.ErrorMessage = e.Message;
+                    //            dtoOperInstance.State = (int) InstanceState.Failed;
+                    //            operDuration.Stop();
+                    //            dtoOperInstance.Duration =
+                    //                Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                    //            repository.UpdateEntity(dtoOperInstance);
+                    //        }
+
+                    //        break;
+
+                    //    case IDataExporter exporter:
+
+                    //        try
+                    //        {
+                    //            exporter.Send(taskContext);
+                    //            dtoOperInstance.State = (int) InstanceState.Success;
+                    //            operDuration.Stop();
+                    //            dtoOperInstance.Duration =
+                    //                Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                    //            repository.UpdateEntity(dtoOperInstance);
+                    //        }
+                    //catch (Exception e)
+                    //{
+                    //    exceptions.Add(new Tuple<Exception, string>(e, exporter.Name));
+                    //    dtoOperInstance.ErrorMessage = e.Message;
+                    //    dtoOperInstance.State = (int) InstanceState.Failed;
+                    //    operDuration.Stop();
+                    //    dtoOperInstance.Duration =
+                    //        Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                    //    repository.UpdateEntity(dtoOperInstance);
+                    //}
+
+                    //break;
+                    //}
                 }
 
                 if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)

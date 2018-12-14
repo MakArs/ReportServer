@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
@@ -10,25 +11,30 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataExporters
 {
-    public class B2BExporter : CommonDataExporter
+    public class B2BExporter : IOperation
     {
+        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+        public bool RunIfVoidPackage { get; set; }
+
+        private readonly IArchiver archiver;
+
+        public string ReportName;
         public string ConnectionString;
         public string ExportTableName;
         public string ExportInstanceTableName;
         public int DbTimeOut;
-        private readonly IArchiver archiver;
-        public string ReportName;
 
         public B2BExporter(IMapper mapper, IArchiver archiver,
             B2BExporterConfig config)
         {
             this.archiver = archiver;
             mapper.Map(config, this);
+            mapper.Map(config, Properties);
         }
 
-        public override void Send(IRTaskRunContext taskContext)
+        public void Send(IRTaskRunContext taskContext)
         {
-            var package = taskContext.Packages[PackageName];
+            var package = taskContext.Packages[Properties.PackageName];
 
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
@@ -37,7 +43,7 @@ namespace ReportService.Operations.DataExporters
                 .CreateContext(ConnectionString);
 
             if (context.CreateSimple($@" IF OBJECT_ID('{ExportTableName}') IS NOT NULL
-                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {Id})
+                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {Properties.Id})
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
                 AND  EXISTS(SELECT 1 FROM sys.columns 
 				  WHERE Name = 'Id'
@@ -65,12 +71,23 @@ namespace ReportService.Operations.DataExporters
 
             var newInstance = new
             {
-                ExportId = Id,
+                ExportId = Properties.Id,
                 ExecuteTime = DateTime.Now,
                 OperationPackage = archivedPackage
             };
 
             context.Insert(ExportInstanceTableName, newInstance, new QueryOptions(DbTimeOut), "Id");
+        }
+
+
+        public void Execute(IRTaskRunContext taskContext)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        {
+            throw new NotImplementedException();
         }
     }
 }

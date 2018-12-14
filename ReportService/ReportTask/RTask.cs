@@ -48,7 +48,7 @@ namespace ReportService.ReportTask
 
                 if (logic.RegisteredImporters.ContainsKey(operType))
                 {
-                    newOper = autofac.ResolveNamed<IDataImporter>(operType,
+                    newOper = autofac.ResolveNamed<IOperation>(operType,
                         new NamedParameter("config",
                             JsonConvert.DeserializeObject(operation.Config,
                                 logic.RegisteredImporters[operType])));
@@ -56,7 +56,7 @@ namespace ReportService.ReportTask
 
                 else
                 {
-                    newOper = autofac.ResolveNamed<IDataExporter>(operType,
+                    newOper = autofac.ResolveNamed<IOperation>(operType,
                         new NamedParameter("config",
                             JsonConvert.DeserializeObject(operation.Config,
                                 logic.RegisteredExporters[operType])));
@@ -64,10 +64,10 @@ namespace ReportService.ReportTask
 
                 if (newOper == null) continue;
 
-                newOper.Id = operation.Id;
-                newOper.Number = operation.Number;
-                newOper.Name = operation.Name;
-                newOper.IsDefault = operation.IsDefault;
+                newOper.Properties.Id = operation.Id;
+                newOper.Properties.Number = operation.Number;
+                newOper.Properties.Name = operation.Name;
+                newOper.Properties.IsDefault = operation.IsDefault;
 
                 Operations.Add(newOper);
             }
@@ -80,9 +80,9 @@ namespace ReportService.ReportTask
             var context = autofac.Resolve<IRTaskRunContext>();
 
             context.OpersToExecute = isDefault
-                ? Operations.Where(oper => oper.IsDefault)
-                    .OrderBy(oper => oper.Number).ToList()
-                : Operations.OrderBy(oper => oper.Number).ToList();
+                ? Operations.Where(oper => oper.Properties.IsDefault)
+                    .OrderBy(oper => oper.Properties.Number).ToList()
+                : Operations.OrderBy(oper => oper.Properties.Number).ToList();
 
             if (!context.OpersToExecute.Any())
             {

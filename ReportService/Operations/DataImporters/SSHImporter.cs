@@ -8,13 +8,9 @@ using ReportService.Protobuf;
 
 namespace ReportService.Operations.DataImporters
 {
-    public class SSHImporter : IDataImporter
+    public class SSHImporter : IOperation
     {
-        public int Id { get; set; }
-        public bool IsDefault { get; set; }
-        public int Number { get; set; }
-        public string Name { get; set; }
-        public string PackageName { get; set; }
+        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public string Host= @"10.0.10.205";
         public string Login= "tester";
         public string Password= "password";

@@ -202,7 +202,7 @@ namespace ReportService.Core
                 autofac //todo:maybe change ugly code (gets autofac registration names)
                     .ComponentRegistry
                     .Registrations
-                    .Where(r => typeof(IDataImporter)
+                    .Where(r => typeof(IOperation)
                         .IsAssignableFrom(r.Activator.LimitType))
                     .Select(r =>
                         new KeyValuePair<string, Type>(
@@ -213,7 +213,7 @@ namespace ReportService.Core
             RegisteredExporters = autofac
                 .ComponentRegistry
                 .Registrations
-                .Where(r => typeof(IDataExporter)
+                .Where(r => typeof(IOperation)
                     .IsAssignableFrom(r.Activator.LimitType))
                 .Select(r =>
                     new KeyValuePair<string, Type>(
@@ -534,7 +534,7 @@ namespace ReportService.Core
                 task.Id,
                 task.Name,
                 task.Schedule?.Schedule,
-                Operations = string.Join("=>", task.Operations.Select(oper => oper.Name))
+                Operations = string.Join("=>", task.Operations.Select(oper => oper.Properties.Name))
             });
 
             var pack = packageBuilder.GetPackage(tasksData);

@@ -1,17 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Google.Protobuf.Collections;
+using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataExporters
 {
-    public class DbExporter : CommonDataExporter
+    public class DbExporter : IOperation
     {
+        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+        public bool RunIfVoidPackage { get; set; }
+
         private readonly IPackageBuilder packageBuilder;
         private readonly Dictionary<ScalarType, string> scalarTypesToSqlTypes;
 
@@ -24,6 +29,7 @@ namespace ReportService.Operations.DataExporters
         public DbExporter(IMapper mapper, DbExporterConfig config, IPackageBuilder builder)
         {
             mapper.Map(config, this);
+            mapper.Map(config, Properties);
             packageBuilder = builder;
 
             scalarTypesToSqlTypes =
@@ -43,6 +49,16 @@ namespace ReportService.Operations.DataExporters
                     {ScalarType.Decimal, "decimal"}
                     // {ScalarType.TimeStamp, typeof(DateTime)}
                 };
+        }
+
+        public void Execute(IRTaskRunContext taskContext)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        {
+            throw new System.NotImplementedException();
         }
 
         private void CreateTableByColumnInfo(DbContext sqlContext, RepeatedField<ColumnInfo> columns)
@@ -66,12 +82,12 @@ namespace ReportService.Operations.DataExporters
                 .ExecuteNonQuery();
         }
 
-        public override void Send(IRTaskRunContext taskContext)
+        public void Send(IRTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-            var package = taskContext.Packages[PackageName];
+            var package = taskContext.Packages[Properties.PackageName];
 
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
