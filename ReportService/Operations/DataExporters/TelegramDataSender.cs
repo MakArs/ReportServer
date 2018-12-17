@@ -31,18 +31,13 @@ namespace ReportService.Operations.DataExporters
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
             bot = botClient;
         }
-
-        public void Execute(IRTaskRunContext taskContext)
-        {
-            throw new System.NotImplementedException();
-        }
-
+        
         public Task ExecuteAsync(IRTaskRunContext taskContext)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Send(IRTaskRunContext taskContext)
+        public void Execute(IRTaskRunContext taskContext)
         {
             var package = taskContext.Packages[PackageName];
             if (!RunIfVoidPackage && package.DataSets.Count == 0)

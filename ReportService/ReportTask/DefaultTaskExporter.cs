@@ -74,8 +74,8 @@ namespace ReportService.ReportTask
                     {
                         new VariantValue {StringValue = pair.Item2},
                         new VariantValue {StringValue = pair.Item1.Message},
-                        new VariantValue {StringValue = pair.Item1.StackTrace},
-                        new VariantValue {StringValue = pair.Item1.Source}
+                        new VariantValue {StringValue = pair.Item1.StackTrace ?? ""},
+                        new VariantValue {StringValue = pair.Item1.Source ?? ""}
                     }
                 });
 

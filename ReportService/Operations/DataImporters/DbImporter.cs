@@ -37,7 +37,7 @@ namespace ReportService.Operations.DataImporters
 
             var selections = paramName.Matches(Query);
 
-            for (int i = 0; i < selections?.Count; i++)
+            for (int i = 0; i < selections.Count; i++)
             {
                 var sel = selections[i].Value;
 
@@ -62,8 +62,6 @@ namespace ReportService.Operations.DataImporters
 
             sqlContext.UsingConnection(connectionContext =>
             {
-                var token = taskContext.CancelSource.Token;
-
                 if (values.Count > 0)
                     connectionContext
                         .CreateSimple(new QueryOptions(TimeOut), $"{Query}",

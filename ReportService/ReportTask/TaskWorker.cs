@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Google.Protobuf;
 using Monik.Common;
+using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 
@@ -83,75 +84,39 @@ namespace ReportService.ReportTask
                             Convert.ToInt32(operDuration.ElapsedMilliseconds);
                         repository.UpdateEntity(dtoOperInstance);
                     }
+
                     catch (Exception e)
                     {
-                        exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
-                        dtoOperInstance.ErrorMessage = e.Message;
-                        dtoOperInstance.State = (int) InstanceState.Failed;
+                        if (e is OperationCanceledException)
+                            dtoOperInstance.State = (int) InstanceState.Canceled;
+
+                        else
+                        {
+                            if (e.InnerException == null)
+                            {
+                                exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
+                                dtoOperInstance.ErrorMessage = e.Message;
+                            }
+
+                            else
+                            {
+                                var allExceptions = e.FromHierarchy(ex => ex.InnerException).ToList();
+
+                                exceptions.AddRange(allExceptions
+                                    .Select(exx => new Tuple<Exception, string>(exx, oper.Properties.Name)));
+
+                                dtoOperInstance.ErrorMessage =
+                                    string.Join("\n", allExceptions.Select(exx => exx.Message));
+                            }
+
+                            dtoOperInstance.State = (int) InstanceState.Failed;
+                        }
+
                         operDuration.Stop();
                         dtoOperInstance.Duration =
                             Convert.ToInt32(operDuration.ElapsedMilliseconds);
                         repository.UpdateEntity(dtoOperInstance);
                     }
-
-                    //switch (oper)
-                    //{
-                    //    case IDataImporter importer:
-                    //        try
-                    //        {
-                    //            Task.Run(async () => await importer
-                    //                 .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
-                    //            //importer.Execute(taskContext);
-
-                    //            using (var stream = new MemoryStream())
-                    //            {
-                    //                taskContext.Packages[importer.PackageName].WriteTo(stream);
-                    //                dtoOperInstance.DataSet = archiver.CompressStream(stream);
-                    //            }
-
-                    //            dtoOperInstance.State = (int) InstanceState.Success;
-                    //            operDuration.Stop();
-                    //            dtoOperInstance.Duration =
-                    //                Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                    //            repository.UpdateEntity(dtoOperInstance);
-                    //        }
-                    //        catch (Exception e)
-                    //        {
-                    //            exceptions.Add(new Tuple<Exception, string>(e, importer.Name));
-                    //            dtoOperInstance.ErrorMessage = e.Message;
-                    //            dtoOperInstance.State = (int) InstanceState.Failed;
-                    //            operDuration.Stop();
-                    //            dtoOperInstance.Duration =
-                    //                Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                    //            repository.UpdateEntity(dtoOperInstance);
-                    //        }
-
-                    //        break;
-
-                    //    case IDataExporter exporter:
-
-                    //        try
-                    //        {
-                    //            exporter.Send(taskContext);
-                    //            dtoOperInstance.State = (int) InstanceState.Success;
-                    //            operDuration.Stop();
-                    //            dtoOperInstance.Duration =
-                    //                Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                    //            repository.UpdateEntity(dtoOperInstance);
-                    //        }
-                    //catch (Exception e)
-                    //{
-                    //    exceptions.Add(new Tuple<Exception, string>(e, exporter.Name));
-                    //    dtoOperInstance.ErrorMessage = e.Message;
-                    //    dtoOperInstance.State = (int) InstanceState.Failed;
-                    //    operDuration.Stop();
-                    //    dtoOperInstance.Duration =
-                    //        Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                    //    repository.UpdateEntity(dtoOperInstance);
-                    //}
-
-                    //break;
-                    //}
                 }
 
                 if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)
@@ -214,4 +179,5 @@ namespace ReportService.ReportTask
             taskContext.Exporter.ForceSend(view, taskContext.TaskName, mailAddress);
         }
     }
+    
 }

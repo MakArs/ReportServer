@@ -47,18 +47,10 @@ namespace ReportService.Operations.DataImporters
             }
         }
 
-        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        public Task ExecuteAsync(IRTaskRunContext taskContext) // todo: cancellation if needed
         {
-            await Task.Run(() =>
-            {
-                var fi = new FileInfo(FilePath);
-
-                using (var pack = new ExcelPackage(fi))
-                {
-                    var package = packageBuilder.GetPackage(pack, ExcelParameters);
-                    taskContext.Packages[Properties.PackageName] = package;
-                }
-            });
+            Execute(taskContext);
+            return Task.CompletedTask;
         }
     }
 }

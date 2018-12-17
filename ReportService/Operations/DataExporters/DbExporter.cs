@@ -51,16 +51,6 @@ namespace ReportService.Operations.DataExporters
                 };
         }
 
-        public void Execute(IRTaskRunContext taskContext)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
-        {
-            throw new System.NotImplementedException();
-        }
-
         private void CreateTableByColumnInfo(DbContext sqlContext, RepeatedField<ColumnInfo> columns)
         {
             StringBuilder createQueryBuilder = new StringBuilder($@" 
@@ -82,7 +72,7 @@ namespace ReportService.Operations.DataExporters
                 .ExecuteNonQuery();
         }
 
-        public void Send(IRTaskRunContext taskContext)
+        public void Execute(IRTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
@@ -128,6 +118,55 @@ namespace ReportService.Operations.DataExporters
 
                 sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
                     .ExecuteNonQuery();
+            }
+        }
+
+        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        {
+            var sqlContext = SqlContextProvider.DefaultInstance
+                .CreateContext(ConnectionString);
+
+            var package = taskContext.Packages[Properties.PackageName];
+
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
+                return;
+
+            var firstSet = packageBuilder.GetPackageValues(package).First();
+
+            //todo:logic for auto-creating table by user-defined list of columns
+            if (DropBefore)
+                await sqlContext.CreateSimple(new QueryOptions(DbTimeOut),
+                        $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
+                    .ExecuteNonQueryAsync();
+
+            var columns = package.DataSets.First().Columns;
+
+            if (CreateTable)
+                CreateTableByColumnInfo(sqlContext, columns);
+
+            StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
+            for (int i = 0; i < columns.Count - 1; i++)
+            {
+                comm.Append($@"[{columns[i].Name}],");
+            }
+
+            comm.Append($@"[{columns.Last().Name}]) VALUES (");
+
+            foreach (var row in firstSet.Rows)
+            {
+
+                var fullRowData = new StringBuilder(comm.ToString());
+                int i;
+
+                for (i = 0; i < columns.Count - 1; i++)
+                {
+                    fullRowData.Append($"@p{i},");
+                }
+
+                fullRowData.Append($"@p{i})");
+
+                await sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
+                    .ExecuteNonQueryAsync();
             }
         }
     }
