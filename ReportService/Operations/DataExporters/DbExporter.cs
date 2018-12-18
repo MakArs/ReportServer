@@ -51,9 +51,9 @@ namespace ReportService.Operations.DataExporters
                 };
         }
 
-        private void CreateTableByColumnInfo(DbContext sqlContext, RepeatedField<ColumnInfo> columns)
+        private string CreateTableByColumnInfo(RepeatedField<ColumnInfo> columns)
         {
-            StringBuilder createQueryBuilder = new StringBuilder($@" 
+            StringBuilder createQueryBuilder = new StringBuilder($@"
                 IF OBJECT_ID('{TableName}') IS NULL
                 CREATE TABLE {TableName}
                 (");
@@ -68,8 +68,7 @@ namespace ReportService.Operations.DataExporters
             createQueryBuilder.Length--;
             createQueryBuilder.Append("); ");
 
-            sqlContext.CreateSimple(new QueryOptions(DbTimeOut), createQueryBuilder.ToString())
-                .ExecuteNonQuery();
+            return createQueryBuilder.ToString();
         }
 
         public void Execute(IRTaskRunContext taskContext)
@@ -84,16 +83,16 @@ namespace ReportService.Operations.DataExporters
 
             var firstSet = packageBuilder.GetPackageValues(package).First();
 
-            //todo:logic for auto-creating table by user-defined list of columns
+            var columns = package.DataSets.First().Columns;
+
+            if (CreateTable)
+                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), CreateTableByColumnInfo(columns))
+                    .ExecuteNonQuery();
+
             if (DropBefore)
                 sqlContext.CreateSimple(new QueryOptions(DbTimeOut),
                         $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
                     .ExecuteNonQuery();
-
-            var columns = package.DataSets.First().Columns;
-
-            if (CreateTable)
-                CreateTableByColumnInfo(sqlContext, columns);
 
             StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
             for (int i = 0; i < columns.Count - 1; i++)
@@ -126,48 +125,55 @@ namespace ReportService.Operations.DataExporters
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-            var package = taskContext.Packages[Properties.PackageName];
+            var token = taskContext.CancelSource.Token;
 
-            if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                return;
-
-            var firstSet = packageBuilder.GetPackageValues(package).First();
-
-            //todo:logic for auto-creating table by user-defined list of columns
-            if (DropBefore)
-                await sqlContext.CreateSimple(new QueryOptions(DbTimeOut),
-                        $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
-                    .ExecuteNonQueryAsync();
-
-            var columns = package.DataSets.First().Columns;
-
-            if (CreateTable)
-                CreateTableByColumnInfo(sqlContext, columns);
-
-            StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
-            for (int i = 0; i < columns.Count - 1; i++)
+            await sqlContext.UsingConnectionAsync(async connectionContext =>
             {
-                comm.Append($@"[{columns[i].Name}],");
-            }
+                var package = taskContext.Packages[Properties.PackageName];
 
-            comm.Append($@"[{columns.Last().Name}]) VALUES (");
+                if (!RunIfVoidPackage && package.DataSets.Count == 0)
+                    return;
 
-            foreach (var row in firstSet.Rows)
-            {
+                var firstSet = packageBuilder.GetPackageValues(package).First();
 
-                var fullRowData = new StringBuilder(comm.ToString());
-                int i;
+                var columns = package.DataSets.First().Columns;
 
-                for (i = 0; i < columns.Count - 1; i++)
+                if (CreateTable)
+                    await connectionContext.CreateSimple(new QueryOptions(DbTimeOut), CreateTableByColumnInfo(columns))
+                        .ExecuteNonQueryAsync(token);
+
+                //todo:logic for auto-creating table by user-defined list of columns
+                if (DropBefore)
+                    await connectionContext.CreateSimple(new QueryOptions(DbTimeOut),
+                            $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
+                        .ExecuteNonQueryAsync(token);
+
+                StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
+                for (int i = 0; i < columns.Count - 1; i++)
                 {
-                    fullRowData.Append($"@p{i},");
+                    comm.Append($@"[{columns[i].Name}],");
                 }
 
-                fullRowData.Append($"@p{i})");
+                comm.Append($@"[{columns.Last().Name}]) VALUES (");
 
-                await sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
-                    .ExecuteNonQueryAsync();
-            }
+                foreach (var row in firstSet.Rows)
+                {
+
+                    var fullRowData = new StringBuilder(comm.ToString());
+                    int i;
+
+                    for (i = 0; i < columns.Count - 1; i++)
+                    {
+                        fullRowData.Append($"@p{i},");
+                    }
+
+                    fullRowData.Append($"@p{i})");
+
+                    await connectionContext
+                        .CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
+                        .ExecuteNonQueryAsync(token);
+                }
+            });
         }
     }
 }

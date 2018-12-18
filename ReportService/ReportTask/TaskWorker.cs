@@ -68,9 +68,9 @@ namespace ReportService.ReportTask
 
                     try
                     {
+                         //oper.Execute(taskContext);
                         Task.Run(async () => await oper
                             .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
-                        //importer.Execute(taskContext);
 
                         using (var stream = new MemoryStream())
                         {

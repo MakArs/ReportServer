@@ -32,9 +32,15 @@ namespace ReportService.Operations.DataExporters
             bot = botClient;
         }
         
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IRTaskRunContext taskContext)
         {
-            throw new System.NotImplementedException();
+            var package = taskContext.Packages[PackageName];
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
+                return;
+
+            await bot.SendTextMessageAsync(channel.ChatId,
+                viewExecutor.ExecuteTelegramView(package, ReportName),
+                ParseMode.Markdown, cancellationToken: taskContext.CancelSource.Token);
         }
 
         public void Execute(IRTaskRunContext taskContext)

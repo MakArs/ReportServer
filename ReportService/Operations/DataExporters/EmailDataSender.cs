@@ -110,11 +110,9 @@ namespace ReportService.Operations.DataExporters
 
         public async Task ExecuteAsync(IRTaskRunContext taskContext)
         {
-           // using (taskContext.CancelSource.Token.Register(() =>
-             //   throw new NotImplementedException("Operation was canceled3312")))
-         //   {
                 var package = taskContext.Packages[Properties.PackageName];
                 
+                if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
@@ -168,7 +166,6 @@ namespace ReportService.Operations.DataExporters
                         {
                             client.EnableSsl = true;
                             client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                            await Task.Delay(20000);
                             using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
                                 await client.SendMailAsync(msg);
                         }
@@ -180,7 +177,6 @@ namespace ReportService.Operations.DataExporters
                         streamXlsx?.Dispose();
                     }
                 }
-           // }
         }
     }
 }

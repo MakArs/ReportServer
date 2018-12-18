@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -60,6 +61,32 @@ namespace ReportService.Operations.DataImporters
             if (!parametersSet)
                 SetParameters(taskContext);
 
+            //sqlContext.UsingConnection(connectionContext =>
+            //{
+            //    var token = taskContext.CancelSource.Token;
+
+            //    if (values.Count > 0)
+            //        Task.Run(async () =>
+            //            await connectionContext
+            //                .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
+            //                    values.ToArray())
+            //                .UseReaderAsync(reader =>
+            //                {
+            //                    var pack = packageBuilder.GetPackage(reader);
+            //                    taskContext.Packages[Properties.PackageName] = pack;
+            //                    return Task.CompletedTask;
+            //                })).Wait(token);
+            //    else
+            //Task.Run(async () => await connectionContext
+            //    .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
+            //    .UseReaderAsync(reader =>
+            //    {
+            //        var pack = packageBuilder.GetPackage(reader);
+            //        taskContext.Packages[Properties.PackageName] = pack;
+            //        return Task.CompletedTask;
+            //    })).Wait(token);
+            //});
+
             sqlContext.UsingConnection(connectionContext =>
             {
                 if (values.Count > 0)
@@ -91,29 +118,26 @@ namespace ReportService.Operations.DataImporters
             if (!parametersSet)
                 SetParameters(taskContext);
 
-            await sqlContext.UsingConnectionAsync(async connectionContext =>
-            {
-                if (values.Count > 0)
-                    await connectionContext
-                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
-                            values.ToArray())
-                        .UseReaderAsync(reader =>
-                        {
-                            var pack = packageBuilder.GetPackage(reader);
-                            taskContext.Packages[Properties.PackageName] = pack;
-                            return Task.CompletedTask;
-                        });
+            if (values.Count > 0)
+                await sqlContext
+                    .CreateSimple(new QueryOptions(TimeOut), $"{Query}",
+                        values.ToArray())
+                    .UseReaderAsync(taskContext.CancelSource.Token, reader =>
+                    {
+                        var pack = packageBuilder.GetPackage(reader);
+                        taskContext.Packages[Properties.PackageName] = pack;
+                        return Task.CompletedTask;
+                    });
 
-                else
-                    await connectionContext
-                        .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
-                        .UseReaderAsync(reader =>
-                        {
-                            var pack = packageBuilder.GetPackage(reader);
-                            taskContext.Packages[Properties.PackageName] = pack;
-                            return Task.CompletedTask;
-                        });
-            });
+            else
+                await sqlContext
+                    .CreateSimple(new QueryOptions(TimeOut), $"{Query}")
+                    .UseReaderAsync(taskContext.CancelSource.Token, reader =>
+                    {
+                        var pack = packageBuilder.GetPackage(reader);
+                        taskContext.Packages[Properties.PackageName] = pack;
+                        return Task.CompletedTask;
+                    });
         }
     }
 }
