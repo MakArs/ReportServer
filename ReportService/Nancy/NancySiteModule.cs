@@ -13,7 +13,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) $"{await logic.GetTaskList_HtmlPage()}";
+                    var response = (Response) $"{await logic.GetTasksList_HtmlPage()}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -55,7 +55,22 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/inwork"] = parameters =>
+            Get["/tasks/inwork", runAsync: true] = async (parameters, token) =>
+            {
+                try
+                {
+                    string entities = await logic.GetTasksInWorkList_HtmlPage();
+                    var response = (Response)entities;
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/entities"] = parameters =>
             {
                 try
                 {

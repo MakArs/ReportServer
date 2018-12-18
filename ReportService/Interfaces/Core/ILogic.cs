@@ -44,7 +44,8 @@ namespace ReportService.Interfaces.Core
         int CreateTask(ApiTask task);
         void UpdateTask(ApiTask task);
         void DeleteTask(int taskId);
-        Task<string> GetTaskList_HtmlPage();
+        Task<string> GetTasksList_HtmlPage();
+        Task<string> GetTasksInWorkList_HtmlPage();
         Task<string> GetCurrentViewByTaskId(int id);
 
         void DeleteTaskInstanceById(int id);

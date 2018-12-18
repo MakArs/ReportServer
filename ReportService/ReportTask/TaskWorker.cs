@@ -17,21 +17,35 @@ namespace ReportService.ReportTask
     {
         private readonly IRepository repository;
         private readonly IMapper mapper;
-        private readonly IArchiver archiver;
         private readonly IMonik monik;
 
         public TaskWorker(IRepository repository, IMapper mapper,
-            IMonik monik, IArchiver archiver)
+            IMonik monik)
         {
             this.repository = repository;
-            this.archiver = archiver;
             this.mapper = mapper;
             this.monik = monik;
+        }
+
+        private string GetOperationStateFromInstance(string operName, DtoOperInstance instance)
+        {
+            var state = EnumExtensions.EnumHelper.GetEnumValue<InstanceState>(instance.State);
+
+            return operName +
+                   $" (State: {state.ToString()}," +
+                   $" started: {instance.StartTime}" +
+                   (instance.Duration > 0
+                       ? $", duration: {instance.Duration / 60000} m {(instance.Duration % 60000) / 1000.0:f0} s"
+                       : "")
+                   + ")";
         }
 
         public void RunOperations(IRTaskRunContext taskContext)
         {
             Stopwatch duration = new Stopwatch();
+
+            taskContext.PackageStates = taskContext.OpersToExecute
+                .Select(oper => oper.Properties.Name + " (Not started) ").ToList();
 
             var dtoTaskInstance = taskContext.TaskInstance;
 
@@ -63,20 +77,20 @@ namespace ReportService.ReportTask
                     dtoOperInstance.Id =
                         repository.CreateEntity(dtoOperInstance);
 
+                    taskContext.PackageStates[oper.Properties.Number - 1] =
+                        GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
+
                     Stopwatch operDuration = new Stopwatch();
                     operDuration.Start();
 
                     try
                     {
-                         //oper.Execute(taskContext);
                         Task.Run(async () => await oper
                             .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
 
-                        using (var stream = new MemoryStream())
-                        {
-                            taskContext.Packages[oper.Properties.PackageName].WriteTo(stream);
-                            dtoOperInstance.DataSet = archiver.CompressStream(stream);
-                        }
+                        if (oper.Properties.NeedSavePackage)
+                            dtoOperInstance.DataSet =
+                                taskContext.GetCompressedPackage(oper.Properties.PackageName);
 
                         dtoOperInstance.State = (int) InstanceState.Success;
                         operDuration.Stop();
@@ -116,6 +130,12 @@ namespace ReportService.ReportTask
                         dtoOperInstance.Duration =
                             Convert.ToInt32(operDuration.ElapsedMilliseconds);
                         repository.UpdateEntity(dtoOperInstance);
+                    }
+
+                    finally
+                    {
+                        taskContext.PackageStates[oper.Properties.Number - 1] =
+                            GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
                     }
                 }
 
@@ -179,5 +199,4 @@ namespace ReportService.ReportTask
             taskContext.Exporter.ForceSend(view, taskContext.TaskName, mailAddress);
         }
     }
-    
 }

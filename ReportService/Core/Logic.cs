@@ -17,8 +17,6 @@ using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters;
-using ReportService.Operations.DataImporters;
-using ReportService.ReportTask;
 
 namespace ReportService.Core
 {
@@ -46,7 +44,7 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
-                     IMapper mapper, IArchiver archiver, ITelegramBotClient bot,IPackageBuilder builder)
+            IMapper mapper, IArchiver archiver, ITelegramBotClient bot, IPackageBuilder builder)
         {
             this.autofac = autofac;
             this.mapper = mapper;
@@ -56,7 +54,7 @@ namespace ReportService.Core
             bot.StartReceiving();
             this.repository = repository;
             packageBuilder = builder;
-            contextsInWork=new Dictionary<long, IRTaskRunContext>();
+            contextsInWork = new Dictionary<long, IRTaskRunContext>();
 
             checkScheduleAndExecuteScheduler =
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
@@ -166,13 +164,13 @@ namespace ReportService.Core
 
             contextsInWork.Add(instanceId, context);
 
-            Task.Factory.StartNew(() => task.Execute(context),context.CancelSource.Token)
+            Task.Factory.StartNew(() => task.Execute(context), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
         }
 
         private void EndContextWork(long taskInstanceId)
         {
-            if(!contextsInWork.ContainsKey(taskInstanceId))
+            if (!contextsInWork.ContainsKey(taskInstanceId))
                 return;
             var context = contextsInWork[taskInstanceId];
 
@@ -275,7 +273,7 @@ namespace ReportService.Core
 
             contextsInWork.Add(instanceId, context);
 
-            Task.Factory.StartNew(() => task.SendDefault(context,mailAddress), context.CancelSource.Token)
+            Task.Factory.StartNew(() => task.SendDefault(context, mailAddress), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
 
             return $"Task {taskId} default dataset sent to {mailAddress}!";
@@ -302,10 +300,10 @@ namespace ReportService.Core
             var instanceId = context.TaskInstance.Id;
 
             contextsInWork.Add(instanceId, context);
-            
+
             Task.Factory.StartNew(() =>
                     task.Execute(context), context.CancelSource.Token)
-                    .ContinueWith(_ => EndContextWork(instanceId));
+                .ContinueWith(_ => EndContextWork(instanceId));
 
             return $"Task {taskId} executed!";
         }
@@ -523,7 +521,7 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted task {taskId}");
         }
 
-        public async Task<string> GetTaskList_HtmlPage()
+        public async Task<string> GetTasksList_HtmlPage()
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -538,6 +536,27 @@ namespace ReportService.Core
             });
 
             var pack = packageBuilder.GetPackage(tasksData);
+
+            return await Task.Factory.StartNew(() =>
+                tableView.ExecuteHtml("Current tasks list", pack));
+        }
+
+        public async Task<string> GetTasksInWorkList_HtmlPage()
+        {
+            List<IRTaskRunContext> tasksInWork;
+            lock (this)
+                tasksInWork = contextsInWork.Select(pair => pair.Value).ToList();
+
+            var inWorkData = tasksInWork.Select(context => new
+            {
+                context.TaskId,
+                context.TaskName,
+                TaskInstanceId = context.TaskInstance.Id,
+                TaskStarted = context.TaskInstance.StartTime,
+                OperationStates = string.Join(" => ", context.PackageStates)
+            });
+
+            var pack = packageBuilder.GetPackage(inWorkData);
 
             return await Task.Factory.StartNew(() =>
                 tableView.ExecuteHtml("Current tasks list", pack));
@@ -602,7 +621,7 @@ namespace ReportService.Core
                 });
 
             var pack = packageBuilder.GetPackage(instances);
-            
+
             return await Task.Factory.StartNew(() =>
                 tableView.ExecuteHtml("Task executions history", pack));
         }
@@ -695,7 +714,7 @@ namespace ReportService.Core
             if (!contextsInWork.ContainsKey(taskInstanceId))
                 return false;
 
-            await Task.Factory.StartNew(() =>  CancelContextWork(taskInstanceId));
+            await Task.Factory.StartNew(() => CancelContextWork(taskInstanceId));
 
             return true;
         }

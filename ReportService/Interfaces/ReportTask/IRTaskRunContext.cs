@@ -7,6 +7,7 @@ namespace ReportService.Interfaces.ReportTask
     public interface IRTaskRunContext
     {
         Dictionary<string, OperationPackage> Packages { get; set; }
+        List<string> PackageStates { get; set; }
         List<IOperation> OpersToExecute { get; set; }
         int TaskId { get; set; }
         DtoTaskInstance TaskInstance { get; set; }
@@ -14,5 +15,7 @@ namespace ReportService.Interfaces.ReportTask
         string TaskName { get; set; }
         IDefaultTaskExporter Exporter { get; set; }
         Dictionary<string, object> Parameters { get; set; }
+
+        byte[] GetCompressedPackage(string packageName);
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,10 +23,12 @@ namespace ReportService.Operations.DataImporters
         public string Query;
         public int TimeOut;
 
-        public DbImporter(IMapper mapper, DbImporterConfig config, IPackageBuilder builder)
+        public DbImporter(IMapper mapper, DbImporterConfig config,
+            IPackageBuilder builder)
         {
             mapper.Map(config, this);
             mapper.Map(config, Properties);
+            Properties.NeedSavePackage = true;
             packageBuilder = builder;
             values = new List<object>();
         }

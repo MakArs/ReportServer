@@ -31,6 +31,7 @@ namespace ReportService.Operations.DataImporters
         {
             mapper.Map(config, this);
             mapper.Map(config, Properties);
+            Properties.NeedSavePackage = true;
             ExcelParameters = new ExcelPackageReadingParameters();
             mapper.Map(config, ExcelParameters);
             packageBuilder = builder;
