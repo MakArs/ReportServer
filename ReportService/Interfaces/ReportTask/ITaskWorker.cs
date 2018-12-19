@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using ReportService.Interfaces.Core;
+﻿using System.Threading.Tasks;
 
 namespace ReportService.Interfaces.ReportTask
 {

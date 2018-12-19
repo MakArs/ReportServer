@@ -18,6 +18,13 @@ namespace ReportService.Operations.DataImporters
         public int MaxRowCount;
     }
 
+    public class CsvImporterConfig : IImporterConfig
+    {
+        public string PackageName { get; set; }
+        public string FilePath;
+        public int MaxRowCount;
+    }
+
     public class DbImporterConfig : IImporterConfig
     {
         public string PackageName { get; set; }

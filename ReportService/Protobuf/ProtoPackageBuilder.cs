@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using CsvHelper;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OfficeOpenXml;
@@ -304,6 +305,60 @@ namespace ReportService.Protobuf
             }
 
             return columns;
+        }
+
+        #endregion
+
+        #region CsvReaderToPackage
+
+        public OperationPackage GetPackage(CsvReader reader) //todo: logic for maintaining multiple datasets, mb 
+        {
+            var date = DateTime.Now.ToUniversalTime();
+
+            var queryPackage = new OperationPackage
+            {
+                Created = ((DateTimeOffset)date).ToUnixTimeSeconds()
+            };
+
+            if (!reader.Read())
+                return queryPackage;
+
+            var columns = new RepeatedField<ColumnInfo>();
+
+            reader.ReadHeader();
+            var headers = reader.Context.HeaderRecord;
+
+            foreach (var header in headers)
+                columns.Add(new ColumnInfo
+                {
+                    Name =header,
+                    Type = ScalarType.String
+                });
+        
+            var rows = new RepeatedField<Row>();
+
+            while (reader.Read())
+            {
+                var row = new Row();
+
+                foreach (var record in reader.Context.Record)
+                    row.Values.Add(new VariantValue
+                    {
+                        StringValue = record
+                    });
+
+                rows.Add(row);
+            }
+
+            var set = new DataSet
+            {
+                Columns = { columns },
+                Rows = { rows }
+            };
+
+            queryPackage.DataSets.Add(set);
+
+            return queryPackage;
         }
 
         #endregion

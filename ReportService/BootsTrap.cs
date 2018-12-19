@@ -50,6 +50,9 @@ namespace ReportService
             RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
                 (existingContainer, "CommonExcelImporter");
 
+            RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>
+                (existingContainer, "CommonCsvImporter");
+
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (existingContainer, "CommonEmailSender");
 
@@ -224,6 +227,8 @@ namespace ReportService
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelPackageReadingParameters>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
+            CreateMap<CsvImporterConfig, CsvImporter>();
+            CreateMap<CsvImporterConfig, CommonOperationProperties>();
         }
     }
 }

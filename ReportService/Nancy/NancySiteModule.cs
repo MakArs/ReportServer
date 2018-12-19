@@ -55,7 +55,7 @@ namespace ReportService.Nancy
                 }
             };
 
-            Get["/tasks/inwork", runAsync: true] = async (parameters, token) =>
+            Get["/tasks/inwork.html", runAsync: true] = async (parameters, token) =>
             {
                 try
                 {

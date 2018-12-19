@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Google.Protobuf;
 using Monik.Common;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;

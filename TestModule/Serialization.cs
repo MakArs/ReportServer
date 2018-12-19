@@ -222,7 +222,6 @@ namespace TestModule
             var packfrm = bldr.GetPackage(opers);
 
             var deser = bldr.GetPackageValues(packfrm);
-
         }
     }
 }
