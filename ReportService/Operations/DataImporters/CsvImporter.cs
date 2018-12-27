@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using CsvHelper;
-using CsvHelper.Configuration;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
@@ -16,7 +11,7 @@ namespace ReportService.Operations.DataImporters
     public class CsvImporter : IOperation
     {
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
-        public int MaxRowCount;
+        public string Delimiter;
         public string FilePath;
 
         private readonly IPackageBuilder packageBuilder;
@@ -35,6 +30,7 @@ namespace ReportService.Operations.DataImporters
             {
                 using (var csvReader = new CsvReader(textReader))
                 {
+                    csvReader.Configuration.Delimiter = Delimiter;
                     taskContext.Packages[Properties.PackageName] = packageBuilder.GetPackage(csvReader);
                 }
             }

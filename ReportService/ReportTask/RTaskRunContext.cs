@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Google.Protobuf;
 using ReportService.Interfaces.Core;

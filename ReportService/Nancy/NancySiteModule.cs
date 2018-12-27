@@ -7,6 +7,7 @@ namespace ReportService.Nancy
     {
         public SiteModule(ILogic logic)
         {
+            // this.RequiresClaims();
             ModulePath = "/site";
 
             Get["/tasks.html", runAsync: true] = async (parameters, token) =>
@@ -40,12 +41,12 @@ namespace ReportService.Nancy
 
             Get["/sendto"] = parameters =>
             {
-                int    id   = Request.Query.id;
+                int id = Request.Query.id;
                 string mail = Request.Query.address;
                 try
                 {
                     string sentReps = logic.SendDefault(id, mail);
-                    var    response = (Response) sentReps;
+                    var response = (Response) sentReps;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -60,7 +61,7 @@ namespace ReportService.Nancy
                 try
                 {
                     string entities = await logic.GetTasksInWorkList_HtmlPage();
-                    var response = (Response)entities;
+                    var response = (Response) entities;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -75,7 +76,7 @@ namespace ReportService.Nancy
                 try
                 {
                     string entities = logic.GetEntitiesCountJson();
-                    var response = (Response)entities;
+                    var response = (Response) entities;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -90,7 +91,7 @@ namespace ReportService.Nancy
                 try
                 {
                     string sentReps = logic.ForceExecute(parameters.id);
-                    var response = (Response)sentReps;
+                    var response = (Response) sentReps;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }

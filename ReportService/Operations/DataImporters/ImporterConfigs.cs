@@ -22,7 +22,7 @@ namespace ReportService.Operations.DataImporters
     {
         public string PackageName { get; set; }
         public string FilePath;
-        public int MaxRowCount;
+        public string Delimiter;
     }
 
     public class DbImporterConfig : IImporterConfig

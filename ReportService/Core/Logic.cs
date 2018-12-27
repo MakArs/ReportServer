@@ -17,6 +17,7 @@ using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters;
+using ReportService.Operations.DataImporters;
 
 namespace ReportService.Core
 {
@@ -193,31 +194,30 @@ namespace ReportService.Core
             repository.CreateBase(connStr);
         }
 
-        public void Start()
+        private Dictionary<string, Type> GetRegistrationsByTypeAndKeyType<T,TU>() 
         {
-            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
-            RegisteredImporters =
-                autofac //todo:maybe change ugly code (gets autofac registration names)
-                    .ComponentRegistry
-                    .Registrations
-                    .Where(r => typeof(IOperation)
-                        .IsAssignableFrom(r.Activator.LimitType))
-                    .Select(r =>
-                        new KeyValuePair<string, Type>(
-                            (r.Services.ToList().First() as KeyedService)?.ServiceKey.ToString(),
-                            (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
-                    ).ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            RegisteredExporters = autofac
+            return autofac //todo:maybe change ugly code (gets autofac registration names)
                 .ComponentRegistry
                 .Registrations
-                .Where(r => typeof(IOperation)
+                .Where(r => typeof(T)
                     .IsAssignableFrom(r.Activator.LimitType))
+                .Where(r=>
+                {
+                    var serviceKey = ((KeyedService) r.Services.ToList().Last())?.ServiceKey;
+                    return serviceKey != null && ((Type) serviceKey).GetInterfaces().Contains(typeof(TU));
+                })
                 .Select(r =>
                     new KeyValuePair<string, Type>(
                         (r.Services.ToList().First() as KeyedService)?.ServiceKey.ToString(),
                         (r.Services.ToList().Last() as KeyedService)?.ServiceKey as Type)
                 ).ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        public void Start()
+        {
+            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            RegisteredImporters = GetRegistrationsByTypeAndKeyType<IOperation, IImporterConfig>();
+            RegisteredExporters = GetRegistrationsByTypeAndKeyType<IOperation, IExporterConfig>();
 
             UpdateDtoEntitiesList(operTemplates);
             UpdateDtoEntitiesList(recepientGroups);

@@ -1,9 +1,32 @@
 ﻿using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
 using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy
 {
+    public class GeneralModule : NancyBaseModule
+    {
+        public GeneralModule()
+        {
+            ModulePath = "/api/v2";
+
+            Get[""] = parameters =>
+            {
+                try
+                {
+                    var response = new Response {StatusCode = HttpStatusCode.OK};
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+        }
+    }
+
     public class OpersModule : NancyBaseModule
     {
         public OpersModule(ILogic logic)
@@ -28,7 +51,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllRegisteredImportersJson();
+                    var response = (Response) logic.GetAllRegisteredImportersJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -42,7 +65,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllRegisteredExportersJson();
+                    var response = (Response) logic.GetAllRegisteredExportersJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -56,7 +79,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllOperationsJson();
+                    var response = (Response) logic.GetAllOperationsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -100,7 +123,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingOper = this.Bind<DtoOperTemplate>
-                        (new BindingConfig { BodyOnly = true });
+                        (new BindingConfig {BodyOnly = true});
 
                     if (parameters.id != existingOper.Id)
                         return HttpStatusCode.BadRequest;
@@ -155,7 +178,7 @@ namespace ReportService.Nancy
                 {
                     var newReport = this.Bind<DtoRecepientGroup>();
                     var id = logic.CreateRecepientGroup(newReport);
-                    var response = (Response)$"{id}";
+                    var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -171,7 +194,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingGroup = this.Bind<DtoRecepientGroup>
-                        (new BindingConfig { BodyOnly = true });
+                        (new BindingConfig {BodyOnly = true});
 
                     if (parameters.id != existingGroup.Id)
                         return HttpStatusCode.BadRequest;
@@ -197,7 +220,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllTelegramChannelsJson();
+                    var response = (Response) logic.GetAllTelegramChannelsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -213,7 +236,7 @@ namespace ReportService.Nancy
                 {
                     var newTelegramChannel = this.Bind<DtoTelegramChannel>();
                     var id = logic.CreateTelegramChannel(newTelegramChannel);
-                    var response = (Response)$"{id}";
+                    var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -228,7 +251,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingTelegramChannel = this.Bind<DtoTelegramChannel>
-                        (new BindingConfig { BodyOnly = true });
+                        (new BindingConfig {BodyOnly = true});
 
                     if (parameters.id != existingTelegramChannel.Id)
                         return HttpStatusCode.BadRequest;
@@ -255,7 +278,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllTelegramChannelsJson();
+                    var response = (Response) logic.GetAllTelegramChannelsJson();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -264,14 +287,14 @@ namespace ReportService.Nancy
                     return HttpStatusCode.InternalServerError;
                 }
             };
-            
+
             Post[""] = parameters =>
             {
                 try
                 {
                     var apiTask = this.Bind<ApiTask>();
                     var id = logic.CreateTask(apiTask);
-                    var response = (Response)$"{id}";
+                    var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -322,7 +345,7 @@ namespace ReportService.Nancy
                 {
                     var newSchedule = this.Bind<DtoSchedule>();
                     var id = logic.CreateSchedule(newSchedule);
-                    var response = (Response)$"{id}";
+                    var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -338,7 +361,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingSchedule = this.Bind<DtoSchedule>
-                        (new BindingConfig { BodyOnly = true });
+                        (new BindingConfig {BodyOnly = true});
 
                     if (parameters.id != existingSchedule.Id)
                         return HttpStatusCode.BadRequest;
@@ -365,7 +388,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetAllTasksJson();
+                    var response = (Response) logic.GetAllTasksJson();
 
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -380,7 +403,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)(await logic.StopTaskByInstanceId(parameters.taskinstanceid)).ToString();
+                    var response = (Response) (await logic.StopTaskByInstanceId(parameters.taskinstanceid)).ToString();
 
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
@@ -396,7 +419,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var response =
-                        (Response)logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
+                        (Response) logic.GetAllTaskInstancesByTaskIdJson(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -410,7 +433,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)await logic.GetCurrentViewByTaskId(parameters.taskid);
+                    var response = (Response) await logic.GetCurrentViewByTaskId(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -439,7 +462,7 @@ namespace ReportService.Nancy
                 {
                     var newTask = this.Bind<ApiTask>();
                     var id = logic.CreateTask(newTask);
-                    var response = (Response)$"{id}";
+                    var response = (Response) $"{id}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -454,7 +477,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var existingTask = this.Bind<ApiTask>
-                        (new BindingConfig { BodyOnly = true });
+                        (new BindingConfig {BodyOnly = true});
 
                     if (parameters.id != existingTask.Id)
                         return HttpStatusCode.BadRequest;
@@ -508,7 +531,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetOperInstancesByTaskInstanceIdJson(parameters.instanceid);
+                    var response = (Response) logic.GetOperInstancesByTaskInstanceIdJson(parameters.instanceid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -522,7 +545,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response)logic.GetFullOperInstanceByIdJson(parameters.id);
+                    var response = (Response) logic.GetFullOperInstanceByIdJson(parameters.id);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -534,4 +557,3 @@ namespace ReportService.Nancy
         }
     } //Instances&OperInstancesModule
 }
-
