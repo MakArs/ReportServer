@@ -31,6 +31,8 @@ namespace ReportService.Nancy
     {
         public OpersModule(ILogic logic)
         {
+            this.RequiresClaims(ViewPermission);
+
             ModulePath = "/api/v2/opertemplates";
 
             Get[""] = parameters =>
@@ -91,6 +93,7 @@ namespace ReportService.Nancy
 
             Delete["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     logic.DeleteOperationTemplate(parameters.id);
@@ -104,6 +107,7 @@ namespace ReportService.Nancy
 
             Post[""] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var newOper = this.Bind<DtoOperTemplate>();
@@ -120,6 +124,7 @@ namespace ReportService.Nancy
 
             Put["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var existingOper = this.Bind<DtoOperTemplate>
@@ -161,6 +166,7 @@ namespace ReportService.Nancy
 
             Delete["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     logic.DeleteRecepientGroup(parameters.id);
@@ -174,6 +180,7 @@ namespace ReportService.Nancy
 
             Post[""] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var newReport = this.Bind<DtoRecepientGroup>();
@@ -191,6 +198,7 @@ namespace ReportService.Nancy
 
             Put["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var existingGroup = this.Bind<DtoRecepientGroup>
@@ -232,6 +240,7 @@ namespace ReportService.Nancy
 
             Post[""] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var newTelegramChannel = this.Bind<DtoTelegramChannel>();
@@ -248,6 +257,7 @@ namespace ReportService.Nancy
 
             Put["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var existingTelegramChannel = this.Bind<DtoTelegramChannel>
@@ -290,6 +300,7 @@ namespace ReportService.Nancy
 
             Post[""] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var apiTask = this.Bind<ApiTask>();
@@ -328,6 +339,7 @@ namespace ReportService.Nancy
 
             Delete["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     logic.DeleteSchedule(parameters.id);
@@ -341,6 +353,7 @@ namespace ReportService.Nancy
 
             Post[""] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var newSchedule = this.Bind<DtoSchedule>();
@@ -358,6 +371,7 @@ namespace ReportService.Nancy
 
             Put["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var existingSchedule = this.Bind<DtoSchedule>
@@ -445,6 +459,7 @@ namespace ReportService.Nancy
 
             Delete["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     logic.DeleteTask(parameters.id);
@@ -458,6 +473,7 @@ namespace ReportService.Nancy
 
             Post[""] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var newTask = this.Bind<ApiTask>();
@@ -474,6 +490,7 @@ namespace ReportService.Nancy
 
             Put["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     var existingTask = this.Bind<ApiTask>
@@ -501,6 +518,7 @@ namespace ReportService.Nancy
 
             Delete["/{id:int}"] = parameters =>
             {
+                this.RequiresClaims(EditPermission);
                 try
                 {
                     logic.DeleteTaskInstanceById(parameters.id);

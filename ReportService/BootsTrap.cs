@@ -3,9 +3,13 @@ using System.Configuration;
 using System.Net;
 using Autofac;
 using AutoMapper;
+using Domain0.Auth.Nancy;
+using Domain0.Tokens;
+using Microsoft.IdentityModel.Tokens;
 using Monik.Client;
 using Monik.Common;
 using Nancy;
+using Nancy.Authentication.Stateless;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using Newtonsoft.Json;
@@ -149,6 +153,21 @@ namespace ReportService
 
             existingContainer //why?
                 .RegisterInstance<ILifetimeScope, ILifetimeScope>(existingContainer);
+
+            existingContainer.RegisterInstance<TokenValidationSettings, TokenValidationSettings>(
+                new TokenValidationSettings
+                {
+                    Audience = ConfigurationManager.AppSettings["Token_Audience"],
+                    Issuer = ConfigurationManager.AppSettings["Token_Issuer"],
+                    Keys = new[]
+                    {
+                        new KeyInfo
+                        {
+                            Key = ConfigurationManager.AppSettings["Token_Secret"],
+                            Alg = ConfigurationManager.AppSettings["Token_Alg"]
+                        }
+                    }
+                });
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container,
@@ -160,8 +179,9 @@ namespace ReportService
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines,
             NancyContext context)
         {
-            // No registrations should be performed in here, however you may
-            // resolve things that are needed during request startup.
+            base.RequestStartup(container, pipelines, context);
+            pipelines.AddDomain0Auth(container
+                .Resolve<TokenValidationSettings>());
         }
 
         private void RegisterNamedViewExecutor<TImplementation>

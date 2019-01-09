@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using Nancy;
 using ReportService.Interfaces.Core;
 
@@ -28,5 +29,7 @@ namespace ReportService.Nancy
 
     public class NancyBaseModule : NancyModule
     {
+        protected string ViewPermission = ConfigurationManager.AppSettings["Permissions_View"];
+        protected string EditPermission = ConfigurationManager.AppSettings["Permissions_Edit"];
     }
 }
