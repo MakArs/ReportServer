@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System;
+using OfficeOpenXml.Style;
 
 namespace ReportService.Extensions
 {
@@ -60,7 +61,7 @@ namespace ReportService.Extensions
 
                 case DateTime dateTimeValue:
                     rng.Value = dateTimeValue;
-                    rng.Style.Numberformat.Format = "dd.mm.yyyy";
+                    rng.Style.Numberformat.Format = dateTimeValue.TimeOfDay==TimeSpan.Zero? "dd.mm.yyyy": "dd.mm.yyyy HH:mm:ss";
                     break;
 
                 default:

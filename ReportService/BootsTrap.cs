@@ -5,11 +5,9 @@ using Autofac;
 using AutoMapper;
 using Domain0.Auth.Nancy;
 using Domain0.Tokens;
-using Microsoft.IdentityModel.Tokens;
 using Monik.Client;
 using Monik.Common;
 using Nancy;
-using Nancy.Authentication.Stateless;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using Newtonsoft.Json;
@@ -56,6 +54,9 @@ namespace ReportService
 
             RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>
                 (existingContainer, "CommonCsvImporter");
+
+            RegisterNamedDataImporter<SshImporter, SshImporterConfig>
+                (existingContainer, "CommonSshImporter");
 
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (existingContainer, "CommonEmailSender");
@@ -249,6 +250,8 @@ namespace ReportService
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
             CreateMap<CsvImporterConfig, CsvImporter>();
             CreateMap<CsvImporterConfig, CommonOperationProperties>();
+            CreateMap<SshImporterConfig, SshImporter>();
+            CreateMap<SshImporterConfig, CommonOperationProperties>();
         }
     }
 }

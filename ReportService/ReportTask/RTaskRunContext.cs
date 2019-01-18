@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Google.Protobuf;
@@ -23,11 +24,36 @@ namespace ReportService.ReportTask
         public IDefaultTaskExporter Exporter { get; set; }
         public Dictionary<string, object> Parameters { get; set; }
 
+        public string DataFolderPath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                                        $@"\ReportServer\{TaskInstance.Id}";
+
         private readonly IArchiver archiver;
 
         public RTaskRunContext(IArchiver archiver)
         {
             this.archiver = archiver;
+        }
+
+        public void CreateDataFolder()
+        {
+            Directory.CreateDirectory(DataFolderPath);
+        }
+
+        public void RemoveDataFolder()
+        {
+            DirectoryInfo di = new DirectoryInfo(DataFolderPath);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+
+            foreach (DirectoryInfo dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+
+            di.Delete();
         }
 
         public byte[] GetCompressedPackage(string packageName)

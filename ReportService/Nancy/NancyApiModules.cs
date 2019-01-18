@@ -1,6 +1,9 @@
-﻿using Nancy;
+﻿using System.Linq;
+using Domain0.Tokens;
+using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
+using Newtonsoft.Json;
 using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy
@@ -16,6 +19,27 @@ namespace ReportService.Nancy
                 try
                 {
                     var response = new Response {StatusCode = HttpStatusCode.OK};
+                    return response;
+                }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/roles"] = parameters =>
+            {
+                try
+                {
+                    var claims = Context.CurrentUser.Claims.ToList();
+                    ApiUserRole role = claims.Contains(EditPermission)
+                        ? ApiUserRole.Editor
+                        : claims.Contains(ViewPermission)
+                            ? ApiUserRole.Viewer
+                            : ApiUserRole.NoRole;
+
+                    var response = (Response) JsonConvert.SerializeObject(role);
+                    response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
                 catch

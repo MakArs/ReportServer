@@ -27,6 +27,13 @@ namespace ReportService.Nancy
         public string OperName;
     }
 
+    public enum ApiUserRole
+    {
+        Viewer,
+        Editor,
+        NoRole
+    }
+
     public class NancyBaseModule : NancyModule
     {
         protected string ViewPermission = ConfigurationManager.AppSettings["Permissions_View"];

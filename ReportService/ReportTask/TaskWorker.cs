@@ -8,6 +8,7 @@ using Monik.Common;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataImporters;
 
 namespace ReportService.ReportTask
 {
@@ -42,12 +43,20 @@ namespace ReportService.ReportTask
         {
             Stopwatch duration = new Stopwatch();
 
+            duration.Start();
+
+            bool deleteFolder = false;
+
+            if (taskContext.OpersToExecute.Any(oper => oper is SshImporter))
+            {
+                deleteFolder = true;
+                taskContext.CreateDataFolder();
+            }
+
             taskContext.PackageStates = taskContext.OpersToExecute
                 .Select(oper => oper.Properties.Name + " (Not started) ").ToList();
 
             var dtoTaskInstance = taskContext.TaskInstance;
-
-            duration.Start();
 
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
@@ -166,6 +175,9 @@ namespace ReportService.ReportTask
             }
 
             duration.Stop();
+
+            if (deleteFolder)
+                taskContext.RemoveDataFolder();
 
             dtoTaskInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
 

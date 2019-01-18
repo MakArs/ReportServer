@@ -15,7 +15,10 @@ namespace ReportService.Interfaces.ReportTask
         string TaskName { get; set; }
         IDefaultTaskExporter Exporter { get; set; }
         Dictionary<string, object> Parameters { get; set; }
+        string DataFolderPath { get; }
 
         byte[] GetCompressedPackage(string packageName);
+        void CreateDataFolder();
+        void RemoveDataFolder();
     }
 }

@@ -18,6 +18,15 @@ namespace ReportService.Operations.DataImporters
         public int MaxRowCount;
     }
 
+    public class SshImporterConfig : IImporterConfig
+    {
+        public string PackageName { get; set; }
+        public string Host;
+        public string Login;
+        public string Password;
+        public string FilePath;
+    }
+
     public class CsvImporterConfig : IImporterConfig
     {
         public string PackageName { get; set; }
