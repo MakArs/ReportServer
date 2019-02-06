@@ -25,7 +25,8 @@ namespace ReportService.Operations.DataImporters
 
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
 
-        public string FilePath;
+        public string FileFolder;
+        public string FileName;
 
         public ExcelImporter(IMapper mapper, ExcelImporterConfig config, IPackageBuilder builder)
         {
@@ -39,7 +40,10 @@ namespace ReportService.Operations.DataImporters
 
         public void Execute(IRTaskRunContext taskContext)
         {
-            var fi = new FileInfo(FilePath);
+            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath :
+                FileFolder, FileName);
+
+            var fi = new FileInfo(fullPath);
 
             using (var pack = new ExcelPackage(fi))
             {

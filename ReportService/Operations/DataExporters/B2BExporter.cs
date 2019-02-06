@@ -71,7 +71,7 @@ namespace ReportService.Operations.DataExporters
 
             var newInstance = new
             {
-                ExportId = Properties.Id,
+                ReportId = taskContext.TaskId,
                 ExecuteTime = DateTime.Now,
                 OperationPackage = archivedPackage
             };
@@ -89,8 +89,8 @@ namespace ReportService.Operations.DataExporters
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-            if (await context.CreateSimple($@"IF OBJECT_ID('{ExportTableName}') IS NOT NULL
-                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {Properties.Id})
+             if (await context.CreateSimple($@"IF OBJECT_ID('{ExportTableName}') IS NOT NULL
+                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {taskContext.TaskId})
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
                 AND  EXISTS(SELECT 1 FROM sys.columns 
 				  WHERE Name = 'Id'
@@ -99,10 +99,10 @@ namespace ReportService.Operations.DataExporters
 				  WHERE Name = 'Created'
 				  AND Object_ID = Object_ID('{ExportInstanceTableName}')) 
 				  AND  EXISTS(SELECT 1 FROM sys.columns 
-				  WHERE Name = 'ReportId'
+				  WHERE Name = 'ReportID'
 				  AND Object_ID = Object_ID('{ExportInstanceTableName}')) 
 				  AND  EXISTS(SELECT 1 FROM sys.columns 
-				  WHERE Name = 'Package'
+				  WHERE Name = 'DataPackage'
 				  AND Object_ID = Object_ID('{ExportInstanceTableName}'))  
                 SELECT 1
                 ELSE SELECT 0").ExecuteQueryFirstColumnAsync<int>().First() != 1)
@@ -118,9 +118,9 @@ namespace ReportService.Operations.DataExporters
 
             var newInstance = new
             {
-                ExportId = Properties.Id,
-                ExecuteTime = DateTime.Now,
-                OperationPackage = archivedPackage
+                ReportID = taskContext.TaskId,
+                Created = DateTime.Now,
+                DataPackage = archivedPackage
             };
 
             await context.InsertAsync(ExportInstanceTableName, newInstance, new QueryOptions(DbTimeOut), "Id");

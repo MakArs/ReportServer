@@ -70,6 +70,9 @@ namespace ReportService
             RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
                 (existingContainer, "CommonB2BExporter");
 
+            RegisterNamedDataExporter<SshExporter, SshExporterConfig>
+                (existingContainer, "CommonSshExporter");
+
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
             RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer,
                 "CommonTableViewEx");
@@ -252,6 +255,8 @@ namespace ReportService
             CreateMap<CsvImporterConfig, CommonOperationProperties>();
             CreateMap<SshImporterConfig, SshImporter>();
             CreateMap<SshImporterConfig, CommonOperationProperties>();
+            CreateMap<SshExporterConfig, SshExporter>();
+            CreateMap<SshExporterConfig, CommonOperationProperties>();
         }
     }
 }

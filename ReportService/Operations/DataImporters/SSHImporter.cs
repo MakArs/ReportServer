@@ -29,7 +29,7 @@ namespace ReportService.Operations.DataImporters
                 using (FileStream fstr =
                     File.Create(Path.Combine(taskContext.DataFolderPath, Path.GetFileName(FilePath))))
                 {
-                    client.DownloadFile($"{FilePath}", fstr);
+                    client.DownloadFile(FilePath, fstr);
                 }
             }
         }

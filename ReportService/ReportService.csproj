@@ -314,6 +314,7 @@
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
     <Compile Include="Operations\DataExporters\B2BExporter.cs" />
+    <Compile Include="Operations\DataExporters\SshExporter.cs" />
     <Compile Include="Operations\DataImporters\CsvImporter.cs" />
     <Compile Include="Operations\DataImporters\SshImporter.cs" />
     <Compile Include="Protobuf\OperationPackage.cs" />

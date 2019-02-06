@@ -12,7 +12,8 @@ namespace ReportService.Operations.DataImporters
     {
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public string Delimiter;
-        public string FilePath;
+        public string FileFolder;
+        public string FileName;
 
         private readonly IPackageBuilder packageBuilder;
 
@@ -26,7 +27,11 @@ namespace ReportService.Operations.DataImporters
 
         public void Execute(IRTaskRunContext taskContext)
         {
-            using (var textReader = File.OpenText(FilePath))
+            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath :
+                FileFolder, FileName);
+
+            using (var textReader =
+                File.OpenText(fullPath))
             {
                 using (var csvReader = new CsvReader(textReader))
                 {

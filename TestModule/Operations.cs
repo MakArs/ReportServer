@@ -53,7 +53,8 @@ namespace TestModule
             var csvimp = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
                 new NamedParameter("config", new CsvImporterConfig
                 {
-                    FilePath = @"C:\ArsMak\rep171302.csv",
+                    FileFolder = @"C:\ArsMak",
+                    FileName = @"rep171302.csv",
                     PackageName = "package0101",
                     Delimiter = ";"
                 }));
@@ -61,7 +62,8 @@ namespace TestModule
             var csvimp2 = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
                 new NamedParameter("config", new CsvImporterConfig
                 {
-                    FilePath = @"C:\ArsMak\rep171303.csv",
+                    FileFolder = @"C:\ArsMak\rep171303.csv",
+                    FileName = null,
                     PackageName = "package0102",
                     Delimiter = ","
                 }));
@@ -69,7 +71,8 @@ namespace TestModule
             var csvimp3 = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
                 new NamedParameter("config", new CsvImporterConfig
                 {
-                    FilePath = @"C:\ArsMak\rep171304.csv",
+                    FileFolder = @"C:\ArsMak\",
+                    FileName = @"rep171304.csv",
                     PackageName = "package0103",
                     Delimiter = "\\t"
                 }));
@@ -77,7 +80,8 @@ namespace TestModule
             var csvimp4 = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
                 new NamedParameter("config", new CsvImporterConfig
                 {
-                    FilePath = @"C:\ArsMak\rep171305.csv",
+                    FileFolder = @"C:\ArsMak\",
+                    FileName = @"rep171305.csv",
                     PackageName = "package0104",
                     Delimiter = "\\r\\n"
                 }));
@@ -85,7 +89,8 @@ namespace TestModule
             var csvimp5 = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
                 new NamedParameter("config", new CsvImporterConfig
                 {
-                    FilePath = @"C:\ArsMak\rep171306.csv",
+                    FileFolder = @"C:\ArsMak\",
+                    FileName = @"rep171306.csv",
                     PackageName = "package0105",
                     Delimiter = "|"
                 }));
@@ -93,7 +98,8 @@ namespace TestModule
             var csvimp6 = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
                 new NamedParameter("config", new CsvImporterConfig
                 {
-                    FilePath = @"C:\ArsMak\rep171307.csv",
+                    FileFolder = @"C:\ArsMak\",
+                    FileName = @"rep171307.csv",
                     PackageName = "package0106",
                     Delimiter = "."
                 }));

@@ -9,7 +9,8 @@ namespace ReportService.Operations.DataImporters
     public class ExcelImporterConfig : IImporterConfig
     {
         public string PackageName { get; set; }
-        public string FilePath;
+        public string FileFolder;
+        public string FileName;
         public string ScheetName;
         public bool SkipEmptyRows;
         public string[] ColumnList;
@@ -30,7 +31,8 @@ namespace ReportService.Operations.DataImporters
     public class CsvImporterConfig : IImporterConfig
     {
         public string PackageName { get; set; }
-        public string FilePath;
+        public string FileFolder;
+        public string FileName;
         public string Delimiter;
     }
 
