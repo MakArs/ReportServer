@@ -43,6 +43,8 @@ namespace ReportService.Operations.DataExporters
     {
         public string PackageName { get; set; }
         public bool RunIfVoidPackage { get; set; }
+        public string FileFolder;
+        public string FileName;
         public bool ConvertPackageToXlsx;
         public bool ConvertPackageToJson;
         public bool ConvertPackageToCsv;

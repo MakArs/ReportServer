@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CsvHelper;
 using OfficeOpenXml;
 using RazorEngine;
 using RazorEngine.Configuration;
@@ -34,7 +37,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             var serv = RazorEngineService.Create(templateConfig);
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
-            
+
 
             if (!package.DataSets.Any()) return "No information obtained by query";
 
@@ -51,7 +54,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         }
 
         public virtual string ExecuteTelegramView(OperationPackage package,
-                                                  string reportName = "Отчёт")
+            string reportName = "Отчёт")
         {
             var packageValues = packageBuilder.GetPackageValues(package);
 
@@ -109,12 +112,54 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 foreach (var value in row)
                 {
                     j++;
-                    ws.Cells[i + 1, j].SetObjValue(value,"");
+                    ws.Cells[i + 1, j].SetObjValue(value, "");
                 }
             }
 
             ws.Cells[1, 1, i, propNum].AutoFitColumns();
             return pack;
+        }
+
+        public byte[] ExecuteCsv(OperationPackage package, string delimiter = ";") //byte[] because closing inner streams causes closing of external one
+        {
+            var csvStream = new MemoryStream();
+            try
+            {
+
+                var firstSet = packageBuilder.GetPackageValues(package).First();
+
+                using (var writerStream = new StreamWriter(csvStream))
+                {
+                    using (var csvWriter = new CsvWriter(writerStream))
+                    {
+                        csvWriter.Configuration.Delimiter = delimiter;
+                        foreach (var head in firstSet.Headers)
+                        {
+                            csvWriter.WriteField(head);
+                        }
+
+                        csvWriter.NextRecord();
+
+                        foreach (var row in firstSet.Rows)
+                        {
+                            foreach (var value in row)
+                                csvWriter.WriteField(value);
+
+                            csvWriter.NextRecord();
+                        }
+
+                        writerStream.Flush();
+                        csvStream.Position = 0;
+                    }
+                }
+
+                return csvStream.ToArray();
+            }
+
+            finally
+            {
+                csvStream.Dispose();
+            }
         }
     } //class
 }

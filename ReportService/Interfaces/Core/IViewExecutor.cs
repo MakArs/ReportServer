@@ -1,4 +1,5 @@
-﻿using OfficeOpenXml;
+﻿using System.IO;
+using OfficeOpenXml;
 
 namespace ReportService.Interfaces.Core
 {
@@ -7,5 +8,6 @@ namespace ReportService.Interfaces.Core
         string ExecuteHtml(string viewTemplate, OperationPackage package);
         string ExecuteTelegramView(OperationPackage package, string reportName = "Отчёт");
         ExcelPackage ExecuteXlsx(OperationPackage package, string reportName);
+        byte[] ExecuteCsv(OperationPackage package, string delimiterr = ";");
     }
 }
