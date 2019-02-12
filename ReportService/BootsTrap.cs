@@ -82,7 +82,6 @@ namespace ReportService
             existingContainer
                 .RegisterImplementation<IRTask, RTask>();
 
-
             // Partial bootstrapper for private named implementations registration
             (this as IPrivateBootstrapper)?
                 .PrivateConfigureApplicationContainer(existingContainer);

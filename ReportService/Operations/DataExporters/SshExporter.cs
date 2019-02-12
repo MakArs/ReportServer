@@ -1,10 +1,12 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using AutoMapper;
 using Newtonsoft.Json;
 using Renci.SshNet;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataExporters
@@ -22,6 +24,7 @@ namespace ReportService.Operations.DataExporters
         public bool ConvertPackageToJson;
         public bool ConvertPackageToCsv;
         public bool ConvertPackageToXml;
+        public bool UseAllSets;
         public string Host;
         public string Login;
         public string Password;
@@ -64,7 +67,7 @@ namespace ReportService.Operations.DataExporters
         {
             var filenameXlsx = $@"{Properties.PackageName}.xlsx";
 
-            using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName))
+            using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName,UseAllSets))
             {
                 using (var streamXlsx =
                     new MemoryStream())
@@ -79,7 +82,7 @@ namespace ReportService.Operations.DataExporters
         private void SaveCsvPackageToServer(OperationPackage package, SftpClient client)
         {
             var filenameCsv = $@"{Properties.PackageName}.csv";
-            var csvBytes = viewExecutor.ExecuteCsv(package);
+            var csvBytes = viewExecutor.ExecuteCsv(package,useAllSets:UseAllSets);
             using (var csvStream = new MemoryStream(csvBytes))
                 client.UploadFile(csvStream, Path.Combine(FolderPath, filenameCsv));
         }
@@ -88,8 +91,16 @@ namespace ReportService.Operations.DataExporters
         {
             var filenameJson = $@"{Properties.PackageName}.json";
 
+            var builder = autofac.Resolve<IPackageBuilder>();
+
+            var sets = builder.GetPackageValues(package);
+
+            var dataToSave = UseAllSets
+                ? JsonConvert.SerializeObject(sets)
+                : JsonConvert.SerializeObject(sets.First());
+            
             using (var streamJson = new MemoryStream(System.Text.Encoding.UTF8
-                .GetBytes(JsonConvert.SerializeObject(package))))
+                .GetBytes(dataToSave)))
             {
                 client.UploadFile(streamJson, Path.Combine(FolderPath, filenameJson));
             }

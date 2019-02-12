@@ -34,7 +34,7 @@ namespace ReportService.Protobuf
                     {typeof(DateTimeOffset), ScalarType.DateTimeOffset},
                     {typeof(char[]), ScalarType.String},
                     {typeof(short), ScalarType.Int16},
-                    {typeof(TimeSpan), ScalarType.TimeSpan},//
+                    {typeof(TimeSpan), ScalarType.TimeSpan}, //
                     {typeof(byte), ScalarType.Int8}
                 };
         }
@@ -120,7 +120,8 @@ namespace ReportService.Protobuf
                 queryPackage.DataSets.Add(GetDataSet(reader));
 
             for (int i = 0; i < queryPackage.DataSets.Count; i++)
-                queryPackage.DataSets[i].Name = $"Dataset{i + 1}";
+                if (string.IsNullOrEmpty(queryPackage.DataSets[i].Name))
+                    queryPackage.DataSets[i].Name = $"Dataset{i + 1}";
 
             return queryPackage;
         }
@@ -160,14 +161,31 @@ namespace ReportService.Protobuf
             {
                 firstValueRow = excelParameters.FirstDataRow + 1;
 
-                foreach (var column in excelParameters.ColumnList)
-                    columns.Add(new ColumnInfo
+                if (excelParameters.ColumnList.Length > 0)
+                    foreach (var column in excelParameters.ColumnList)
+                        columns.Add(new ColumnInfo
+                        {
+                            Name = sheet
+                                .Cells[$"{column}{excelParameters.FirstDataRow}"]
+                                .Text,
+                            Type = ScalarType.String
+                        });
+
+                else
+                {
+                    var lastcol = sheet.Cells.End.Column;
+                    var firstcol = sheet.Cells.Start.Column;
+                    for (int i = firstcol; i < lastcol + 1; i++)
                     {
-                        Name = sheet
-                            .Cells[$"{column}{excelParameters.FirstDataRow}"]
-                            .Text,
-                        Type = ScalarType.String
-                    });
+                        columns.Add(new ColumnInfo
+                        {
+                            Name = sheet
+                                .Cells[$"{i}{excelParameters.FirstDataRow}"]
+                                .Text,
+                            Type = ScalarType.String
+                        });
+                    }
+                }
             }
 
             else
@@ -202,11 +220,16 @@ namespace ReportService.Protobuf
 
             var set = new DataSet
             {
+                Name = sheet.Name,
                 Columns = {columns},
                 Rows = {rows}
             };
 
             queryPackage.DataSets.Add(set);
+
+            for (int i = 0; i < queryPackage.DataSets.Count; i++)
+                if (string.IsNullOrEmpty(queryPackage.DataSets[i].Name))
+                    queryPackage.DataSets[i].Name = $"Dataset{i + 1}";
 
             return queryPackage;
         }
@@ -317,7 +340,7 @@ namespace ReportService.Protobuf
 
             var queryPackage = new OperationPackage
             {
-                Created = ((DateTimeOffset)date).ToUnixTimeSeconds()
+                Created = ((DateTimeOffset) date).ToUnixTimeSeconds()
             };
 
             if (!reader.Read())
@@ -331,10 +354,10 @@ namespace ReportService.Protobuf
             foreach (var header in headers)
                 columns.Add(new ColumnInfo
                 {
-                    Name =header,
+                    Name = header,
                     Type = ScalarType.String
                 });
-        
+
             var rows = new RepeatedField<Row>();
 
             while (reader.Read())
@@ -352,8 +375,9 @@ namespace ReportService.Protobuf
 
             var set = new DataSet
             {
-                Columns = { columns },
-                Rows = { rows }
+                Name = "Dataset1",
+                Columns = {columns},
+                Rows = {rows}
             };
 
             queryPackage.DataSets.Add(set);
@@ -422,7 +446,7 @@ namespace ReportService.Protobuf
 
                     case ScalarType.DateTime:
                         varValue.DateTime = value is DateTime dateval
-                            ? ((DateTimeOffset) dateval.Add(dateval-dateval.ToUniversalTime()))
+                            ? ((DateTimeOffset) dateval.Add(dateval - dateval.ToUniversalTime()))
                             .ToUnixTimeSeconds() //fix saving utc datetime
                             : 0;
                         break;

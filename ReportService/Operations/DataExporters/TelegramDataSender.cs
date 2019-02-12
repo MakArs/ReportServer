@@ -14,6 +14,7 @@ namespace ReportService.Operations.DataExporters
         public string PackageName { get; set; }
 
         public bool RunIfVoidPackage { get; set; }
+        public bool UseAllSets;
 
         private readonly ITelegramBotClient bot;
         private readonly DtoTelegramChannel channel;
@@ -39,7 +40,7 @@ namespace ReportService.Operations.DataExporters
                 return;
 
             await bot.SendTextMessageAsync(channel.ChatId,
-                viewExecutor.ExecuteTelegramView(package, ReportName),
+                viewExecutor.ExecuteTelegramView(package, ReportName,UseAllSets),
                 ParseMode.Markdown, cancellationToken: taskContext.CancelSource.Token);
         }
 

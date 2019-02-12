@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -53,46 +52,53 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             return Engine.Razor.Run("somekey", null, model);
         }
 
+        private string AddDataSetToTelegView(string tmRep, DataSetContent content)
+        {
+            tmRep = tmRep.Insert(tmRep.Length,
+                Environment.NewLine + Environment.NewLine + $"_{content.Name}_");
+
+            tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine +
+                                               string.Join(" | ",
+                                                   content.Headers.Select(head =>
+                                                       Regex.Replace(head, @"([[*_])",
+                                                           @"\$1"))));
+
+            foreach (var row in content.Rows)
+                tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine + string.Join(" | ", row
+                                                       .Select(val =>
+                                                           val is string strVal
+                                                               ? Regex.Replace(strVal,
+                                                                   @"([[*_])", @"\$1")
+                                                               : val)));
+            return tmRep;
+        }
+
         public virtual string ExecuteTelegramView(OperationPackage package,
-            string reportName = "Отчёт")
+            string reportName = "Отчёт", bool useAllSets = false)
         {
             var packageValues = packageBuilder.GetPackageValues(package);
 
             var tmRep = $@"*{reportName}*";
 
-            foreach (var dataset in packageValues)
+            if (useAllSets)
             {
-                tmRep = tmRep.Insert(tmRep.Length,
-                    Environment.NewLine + Environment.NewLine + $"_{dataset.Name}_");
-
-                tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine +
-                                                   string.Join(" | ",
-                                                       dataset.Headers.Select(head =>
-                                                           Regex.Replace(head, @"([[*_])",
-                                                               @"\$1"))));
-
-                foreach (var row in dataset.Rows)
-                    tmRep = tmRep.Insert(tmRep.Length, Environment.NewLine + string.Join(" | ", row
-                                                           .Select(val =>
-                                                               val is string strVal
-                                                                   ? Regex.Replace(strVal,
-                                                                       @"([[*_])", @"\$1")
-                                                                   : val)));
+                foreach (var dataset in packageValues)
+                    tmRep = AddDataSetToTelegView(tmRep, dataset);
             }
+
+            else
+                tmRep = AddDataSetToTelegView(tmRep, packageValues.First());
 
             return tmRep;
         }
 
-        public ExcelPackage ExecuteXlsx(OperationPackage package, string reportName)
+        private void AddDataSetToExcel(ExcelPackage inPackage, DataSetContent content)
         {
-            var pack = new ExcelPackage();
-            var ws = pack.Workbook.Worksheets.Add(reportName);
-
-            var firstSet = packageBuilder.GetPackageValues(package).First();
-
+            var ws = inPackage.Workbook.Worksheets.Add(
+                string.IsNullOrEmpty(content.Name) ? "NoNamedList" : content.Name);
             var propNum = 0;
 
-            foreach (string header in firstSet.Headers)
+            foreach (string header in content.Headers)
                 ws.Cells[1, ++propNum].Value = header;
 
             using (ExcelRange rng = ws.Cells[1, 1, 1, propNum])
@@ -104,7 +110,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             int i = 0;
 
-            foreach (var row in firstSet.Rows)
+            foreach (var row in content.Rows)
             {
                 i++;
                 int j = 0;
@@ -117,35 +123,84 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             }
 
             ws.Cells[1, 1, i, propNum].AutoFitColumns();
+
+            // return inPackage;
+        }
+
+        public ExcelPackage ExecuteXlsx(OperationPackage package, string reportName, bool useAllSets = false)
+        {
+            var pack = new ExcelPackage();
+
+            var packageContent = packageBuilder.GetPackageValues(package);
+
+            if (useAllSets)
+            {
+                for (int i = 0; i < packageContent.Count; i++)
+                {
+                    AddDataSetToExcel(pack, packageContent[i]);
+                    if (pack.Workbook.Worksheets[i].Name == "NoNamedList")
+                        pack.Workbook.Worksheets[i].Name = $"Dataset{i + 1}";
+                }
+                // foreach (var set in packageContent)
+            }
+
+            else AddDataSetToExcel(pack, packageContent.First());
+
             return pack;
         }
 
-        public byte[] ExecuteCsv(OperationPackage package, string delimiter = ";") //byte[] because closing inner streams causes closing of external one
+        public byte[]
+            ExecuteCsv(OperationPackage package,
+                string delimiter = ";",
+                bool useAllSets = false) //byte[] because closing inner streams causes closing of external one
         {
             var csvStream = new MemoryStream();
             try
             {
-
-                var firstSet = packageBuilder.GetPackageValues(package).First();
-
                 using (var writerStream = new StreamWriter(csvStream))
                 {
                     using (var csvWriter = new CsvWriter(writerStream))
                     {
                         csvWriter.Configuration.Delimiter = delimiter;
-                        foreach (var head in firstSet.Headers)
-                        {
-                            csvWriter.WriteField(head);
-                        }
 
-                        csvWriter.NextRecord();
-
-                        foreach (var row in firstSet.Rows)
+                        if (!useAllSets)
                         {
-                            foreach (var value in row)
-                                csvWriter.WriteField(value);
+                            var firstSet = packageBuilder.GetPackageValues(package).First();
+                            foreach (var head in firstSet.Headers)
+                            {
+                                csvWriter.WriteField(head);
+                            }
 
                             csvWriter.NextRecord();
+
+                            foreach (var row in firstSet.Rows)
+                            {
+                                foreach (var value in row)
+                                    csvWriter.WriteField(value);
+
+                                csvWriter.NextRecord();
+                            }
+                        }
+
+                        else
+                        {
+                            foreach (var dataSet in packageBuilder.GetPackageValues(package))
+                            {
+                                foreach (var head in dataSet.Headers)
+                                {
+                                    csvWriter.WriteField(head);
+                                }
+
+                                csvWriter.NextRecord();
+
+                                foreach (var row in dataSet.Rows)
+                                {
+                                    foreach (var value in row)
+                                        csvWriter.WriteField(value);
+
+                                    csvWriter.NextRecord();
+                                }
+                            }
                         }
 
                         writerStream.Flush();

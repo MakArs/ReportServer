@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using Autofac;
@@ -8,6 +9,7 @@ using AutoMapper;
 using Newtonsoft.Json;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataExporters
@@ -25,10 +27,14 @@ namespace ReportService.Operations.DataExporters
         private readonly IViewExecutor viewExecutor;
         public string ViewTemplate;
         public string ReportName;
+        public bool UseAllSetsJson;
+        public bool UseAllSetsXlsx;
+        private readonly IPackageBuilder builder;
 
         public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac,
-            EmailExporterConfig config)
+            EmailExporterConfig config,IPackageBuilder builder)
         {
+            this.builder = builder;
             mapper.Map(config, this);
             mapper.Map(config, Properties);
 
@@ -38,8 +44,7 @@ namespace ReportService.Operations.DataExporters
 
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         } //ctor
-
-
+        
         public void Execute(IRTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
@@ -79,9 +84,14 @@ namespace ReportService.Operations.DataExporters
                 {
                     if (HasJsonAttachment)
                     {
+                        var sets = builder.GetPackageValues(package);
+                        var dataToSave = UseAllSetsJson
+                            ? JsonConvert.SerializeObject(sets)
+                            : JsonConvert.SerializeObject(sets.First());
+
                         streamJson =
                             new MemoryStream(System.Text.Encoding.UTF8
-                                .GetBytes(JsonConvert.SerializeObject(package)));
+                                .GetBytes(dataToSave));
                         msg.Attachments.Add(new Attachment(streamJson, filenameJson,
                             @"application/json"));
                     }
@@ -89,7 +99,7 @@ namespace ReportService.Operations.DataExporters
                     if (HasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        var excel = viewExecutor.ExecuteXlsx(package, ReportName);
+                        var excel = viewExecutor.ExecuteXlsx(package, ReportName, UseAllSetsXlsx);
                         excel.SaveAs(streamXlsx);
                         excel.Dispose();
                         streamXlsx.Position = 0;
@@ -110,73 +120,78 @@ namespace ReportService.Operations.DataExporters
 
         public async Task ExecuteAsync(IRTaskRunContext taskContext)
         {
-                var package = taskContext.Packages[Properties.PackageName];
-                
-                if (!RunIfVoidPackage && package.DataSets.Count == 0)
+            var package = taskContext.Packages[Properties.PackageName];
+
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
-                string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
+            string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
 
-                string filenameJson = $@"{filename}.json";
-                string filenameXlsx = $@"{filename}.xlsx";
+            string filenameJson = $@"{filename}.json";
+            string filenameXlsx = $@"{filename}.xlsx";
 
-                using (var msg = new MailMessage())
+            using (var msg = new MailMessage())
+            {
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
+                msg.AddRecepientsFromGroup(addresses);
+
+                if (!string.IsNullOrEmpty(RecepientsDatasetName))
+                    msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
+
+                msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
+
+                if (HasHtmlBody)
                 {
-                    msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-                    msg.AddRecepientsFromGroup(addresses);
+                    msg.IsBodyHtml = true;
+                    msg.Body = viewExecutor.ExecuteHtml(ViewTemplate, package);
+                }
 
-                    if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                        msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
+                MemoryStream streamJson = null;
+                MemoryStream streamXlsx = null;
 
-                    msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
-
-                    if (HasHtmlBody)
+                try
+                {
+                    if (HasJsonAttachment)
                     {
-                        msg.IsBodyHtml = true;
-                        msg.Body = viewExecutor.ExecuteHtml(ViewTemplate, package);
+                        var sets=builder.GetPackageValues(package);
+                        var dataToSave = UseAllSetsJson
+                            ? JsonConvert.SerializeObject(sets)
+                            : JsonConvert.SerializeObject(sets.First());
+
+                        streamJson =
+                            new MemoryStream(System.Text.Encoding.UTF8
+                                .GetBytes(dataToSave));
+                        msg.Attachments.Add(new Attachment(streamJson, filenameJson,
+                            @"application/json"));
                     }
 
-                    MemoryStream streamJson = null;
-                    MemoryStream streamXlsx = null;
-
-                    try
+                    if (HasXlsxAttachment)
                     {
-                        if (HasJsonAttachment)
-                        {
-                            streamJson =
-                                new MemoryStream(System.Text.Encoding.UTF8
-                                    .GetBytes(JsonConvert.SerializeObject(package)));
-                            msg.Attachments.Add(new Attachment(streamJson, filenameJson,
-                                @"application/json"));
-                        }
-
-                        if (HasXlsxAttachment)
-                        {
-                            streamXlsx = new MemoryStream();
-                            var excel = viewExecutor.ExecuteXlsx(package, ReportName);
-                            excel.SaveAs(streamXlsx);
-                            excel.Dispose();
-                            streamXlsx.Position = 0;
-                            msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
-                                @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-                        }
-
-                        using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
-                        {
-                            client.EnableSsl = true;
-                            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                            using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
-                                await client.SendMailAsync(msg);
-                        }
+                        streamXlsx = new MemoryStream();
+                        var excel = viewExecutor.ExecuteXlsx(package, ReportName, UseAllSetsXlsx);
+                        excel.SaveAs(streamXlsx);
+                        excel.Dispose();
+                        streamXlsx.Position = 0;
+                        msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
+                            @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
                     }
-                    finally
-                    {
-                        streamJson?.Dispose();
 
-                        streamXlsx?.Dispose();
+                    using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
+                    {
+                        client.EnableSsl = true;
+                        client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                        using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
+                            await client.SendMailAsync(msg);
                     }
                 }
+                finally
+                {
+                    streamJson?.Dispose();
+
+                    streamXlsx?.Dispose();
+                }
+            }
         }
     }
 }

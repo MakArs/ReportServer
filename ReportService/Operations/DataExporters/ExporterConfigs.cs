@@ -24,7 +24,9 @@ namespace ReportService.Operations.DataExporters
         public bool RunIfVoidPackage { get; set; }
         public bool HasHtmlBody;
         public bool HasJsonAttachment;
+        public bool UseAllSetsJson;
         public bool HasXlsxAttachment;
+        public bool UseAllSetsXlsx;
         public string RecepientsDatasetName;
         public int RecepientGroupId;
         public string ViewTemplate;
@@ -36,6 +38,7 @@ namespace ReportService.Operations.DataExporters
         public string PackageName { get; set; }
         public bool RunIfVoidPackage { get; set; }
         public int TelegramChannelId;
+        public bool UseAllSets;
         public string ReportName;
     }
 
@@ -49,6 +52,7 @@ namespace ReportService.Operations.DataExporters
         public bool ConvertPackageToJson;
         public bool ConvertPackageToCsv;
         public bool ConvertPackageToXml;
+        public bool UseAllSets;
         public string Host;
         public string Login;
         public string Password;
