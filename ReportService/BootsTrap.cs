@@ -95,7 +95,7 @@ namespace ReportService
             existingContainer
                 .RegisterInstance<IMonikSender, AzureSender>(logSender);
 
-            var monikSettings = new ClientSettings()
+            var monikSettings = new ClientSettings
             {
                 SourceName = "ReportServer",
                 InstanceName = ConfigurationManager.AppSettings["InstanceName"],
@@ -130,7 +130,8 @@ namespace ReportService
 
             existingContainer.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
-            existingContainer.RegisterImplementation<IArchiver, Archiver7Zip>();
+            existingContainer.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
+            existingContainer.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
 
             existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
 
