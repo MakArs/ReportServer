@@ -41,9 +41,10 @@ namespace ReportService.Operations.DataExporters
 
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
+            
 
             if (context.CreateSimple($@" IF OBJECT_ID('{ExportTableName}') IS NOT NULL
-                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {Properties.Id})
+                IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {taskContext.TaskId})
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
                 AND  EXISTS(SELECT 1 FROM sys.columns 
 				  WHERE Name = 'Id'
@@ -55,7 +56,7 @@ namespace ReportService.Operations.DataExporters
 				  WHERE Name = 'ReportId'
 				  AND Object_ID = Object_ID('{ExportInstanceTableName}')) 
 				  AND  EXISTS(SELECT 1 FROM sys.columns 
-				  WHERE Name = 'Package'
+				  WHERE Name = 'DataPackage'
 				  AND Object_ID = Object_ID('{ExportInstanceTableName}'))  
                 SELECT 1
                 ELSE SELECT 0").ExecuteQueryFirstColumn<int>().First() != 1)
@@ -89,7 +90,11 @@ namespace ReportService.Operations.DataExporters
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
 
-             if (await context.CreateSimple($@"IF OBJECT_ID('{ExportTableName}') IS NOT NULL
+
+            //Properties.Id = 3;
+            //taskContext.TaskId = 3;
+
+            if (await context.CreateSimple($@"IF OBJECT_ID('{ExportTableName}') IS NOT NULL
                 IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {taskContext.TaskId})
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
                 AND  EXISTS(SELECT 1 FROM sys.columns 

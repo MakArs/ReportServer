@@ -126,7 +126,7 @@ namespace ReportService.Operations.DataExporters
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
-            string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
+            string filename = ReportName + $" {DateTime.Now:dd.MM.yy}";
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";

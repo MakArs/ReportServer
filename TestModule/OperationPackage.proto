@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ReportService;
 
-import "timestamp.proto";
+import "google/protobuf/timestamp.proto";
 
 message OperationPackage
 {
@@ -58,8 +58,8 @@ message VariantValue
 	bool BoolValue=4;
 	string StringValue=5;
 	bytes BytesValue=6;
-	int64 DateTime=7;
-	google.protobuf.Timestamp TimeStamp=8;
+	int64 DateTimeValue=7;
+	google.protobuf.Timestamp TimeStampValue=8;
 	int32 Int16Value=9;
 	int32 Int8Value=10;
 	int64 DateTimeOffsetValue=11;

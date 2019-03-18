@@ -120,6 +120,7 @@ namespace ReportService
 
             var mapperConfig =
                 new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
+
             // Hint: add to ctor if many profileSs needed: cfg.AddProfile(typeof(AutoMapperProfile));
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
                 mapperConfig);
@@ -130,8 +131,20 @@ namespace ReportService
 
             existingContainer.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
-            existingContainer.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
+
             existingContainer.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
+            existingContainer.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
+
+            switch (ConfigurationManager.AppSettings["ArchiveFormat"])
+            {
+                case "Zip":
+                    existingContainer.RegisterImplementation<IArchiver, ArchiverZip>();
+                    break;
+                case "7Zip":
+                    existingContainer.RegisterImplementation<IArchiver, Archiver7Zip>();
+                    break;
+            }
+         
 
             existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
 
