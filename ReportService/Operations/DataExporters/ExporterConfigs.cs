@@ -22,6 +22,7 @@ namespace ReportService.Operations.DataExporters
     {
         public string PackageName { get; set; }
         public bool RunIfVoidPackage { get; set; }
+        public bool DateInName;
         public bool HasHtmlBody;
         public bool HasJsonAttachment;
         public bool UseAllSetsJson;
@@ -46,6 +47,7 @@ namespace ReportService.Operations.DataExporters
     {
         public string PackageName { get; set; }
         public bool RunIfVoidPackage { get; set; }
+        public bool DateInName;
         public string FileFolder;
         public string FileName;
         public bool ConvertPackageToXlsx;

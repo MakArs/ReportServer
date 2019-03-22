@@ -97,7 +97,9 @@ namespace ReportService.ReportTask
             context.TaskName = Name; //can do it by NamedParameter+ctor,but..
 
             context.Parameters = Parameters
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
+                .ToDictionary(pair => pair.Key, 
+                    pair => repository.GetBaseQueryResult("select "+pair.Value.ToString()));
+
             context.CancelSource = new CancellationTokenSource();
 
             var dtoTaskInstance = new DtoTaskInstance

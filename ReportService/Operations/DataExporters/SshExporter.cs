@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -17,6 +18,7 @@ namespace ReportService.Operations.DataExporters
         private readonly IViewExecutor viewExecutor;
         private readonly ILifetimeScope autofac;
 
+        public bool DateInName;
         public string FileFolder;
         public string FileName;
         public bool RunIfVoidPackage { get; set; }
@@ -65,7 +67,11 @@ namespace ReportService.Operations.DataExporters
 
         private void SaveXlsxPackageToServer(OperationPackage package, SftpClient client)
         {
-            var filenameXlsx = $@"{Properties.PackageName}.xlsx";
+            var filenameXlsx = $@"{Properties.PackageName}"
+                               + (DateInName
+                                   ? $" {DateTime.Now:dd.MM.yy}"
+                                   : null) 
+                               + ".xlsx";
 
             using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName,UseAllSets))
             {
@@ -81,7 +87,11 @@ namespace ReportService.Operations.DataExporters
 
         private void SaveCsvPackageToServer(OperationPackage package, SftpClient client)
         {
-            var filenameCsv = $@"{Properties.PackageName}.csv";
+            var filenameCsv = $@"{Properties.PackageName}"
+                              + (DateInName
+                                  ? $" {DateTime.Now:dd.MM.yy}"
+                                  : null)
+                              + ".csv";
             var csvBytes = viewExecutor.ExecuteCsv(package,useAllSets:UseAllSets);
             using (var csvStream = new MemoryStream(csvBytes))
                 client.UploadFile(csvStream, Path.Combine(FolderPath, filenameCsv));
@@ -89,7 +99,11 @@ namespace ReportService.Operations.DataExporters
 
         private void SaveJsonPackageToServer(OperationPackage package, SftpClient client)
         {
-            var filenameJson = $@"{Properties.PackageName}.json";
+            var filenameJson = $@"{Properties.PackageName}"
+                               + (DateInName
+                                   ? $" {DateTime.Now:dd.MM.yy}"
+                                   : null)
+                               + ".json";
 
             var builder = autofac.Resolve<IPackageBuilder>();
 

@@ -20,6 +20,7 @@ namespace ReportService.Operations.DataExporters
         public bool RunIfVoidPackage { get; set; }
 
         private readonly RecepientAddresses addresses;
+        public bool DateInName;
         public bool HasHtmlBody;
         public bool HasXlsxAttachment;
         public bool HasJsonAttachment;
@@ -44,7 +45,7 @@ namespace ReportService.Operations.DataExporters
 
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         } //ctor
-        
+
         public void Execute(IRTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
@@ -52,7 +53,10 @@ namespace ReportService.Operations.DataExporters
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
 
-            string filename = ReportName + $" {DateTime.Now:dd.MM.yy HH:mm:ss}";
+            string filename = taskContext.SetStringParameters(ReportName)
+                              + (DateInName
+                                  ? null
+                                  : $" {DateTime.Now:dd.MM.yy}");
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
@@ -69,7 +73,7 @@ namespace ReportService.Operations.DataExporters
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
                     msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
-                msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
+                msg.Subject = filename;
 
                 if (HasHtmlBody)
                 {
@@ -99,7 +103,7 @@ namespace ReportService.Operations.DataExporters
                     if (HasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        var excel = viewExecutor.ExecuteXlsx(package, ReportName, UseAllSetsXlsx);
+                        var excel = viewExecutor.ExecuteXlsx(package, filename, UseAllSetsXlsx);
                         excel.SaveAs(streamXlsx);
                         excel.Dispose();
                         streamXlsx.Position = 0;
@@ -126,7 +130,10 @@ namespace ReportService.Operations.DataExporters
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
-            string filename = ReportName + $" {DateTime.Now:dd.MM.yy}";
+            string filename = taskContext.SetStringParameters(ReportName)
+                              + (DateInName
+                                  ? $" {DateTime.Now:dd.MM.yy}"
+                                  : null);
 
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
@@ -139,7 +146,7 @@ namespace ReportService.Operations.DataExporters
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
                     msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
-                msg.Subject = ReportName + $" {DateTime.Now:dd.MM.yy}";
+                msg.Subject = filename;
 
                 if (HasHtmlBody)
                 {
@@ -169,7 +176,7 @@ namespace ReportService.Operations.DataExporters
                     if (HasXlsxAttachment)
                     {
                         streamXlsx = new MemoryStream();
-                        var excel = viewExecutor.ExecuteXlsx(package, ReportName, UseAllSetsXlsx);
+                        var excel = viewExecutor.ExecuteXlsx(package, filename, UseAllSetsXlsx);
                         excel.SaveAs(streamXlsx);
                         excel.Dispose();
                         streamXlsx.Position = 0;
