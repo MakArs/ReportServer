@@ -122,8 +122,12 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 }
             }
 
-            ws.Cells[1, 1, i, propNum].AutoFitColumns();
+            ws.Cells[1, 1, i, propNum].AutoFitColumns(5,50);
 
+            for (int j = 1; j <= propNum; j++)
+            {
+                ws.Column(j).Style.WrapText = true;
+            }
             // return inPackage;
         }
 
