@@ -541,6 +541,13 @@ namespace ReportService.Core
                 tableView.ExecuteHtml("Current tasks list", pack));
         }
 
+        public string GetWorkingTasksByIdJson(int id)
+        {
+            return JsonConvert.SerializeObject(contextsInWork.Select(cont => cont.Value)
+                .Where(rtask => rtask.TaskId == id)
+                .Select(rtask=>rtask.TaskInstance.Id).ToList());
+        }
+
         public async Task<string> GetTasksInWorkList_HtmlPage()
         {
             List<IRTaskRunContext> tasksInWork;

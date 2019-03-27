@@ -19,6 +19,15 @@ namespace ReportService.Core
             this.monik = monik;
         } //ctor
 
+        public object GetBaseQueryResult(string query)
+        {
+            object result = context
+                    .CreateSimple(new QueryOptions(30), query)
+                    .ExecuteQueryFirstColumn<object>().ToList().First();
+           
+            return result;
+        }
+        
         public List<DtoTaskInstance> GetInstancesByTaskId(int taskId)
         {
             try

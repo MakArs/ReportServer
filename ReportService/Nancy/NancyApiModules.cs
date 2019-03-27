@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Domain0.Tokens;
+using System.Threading.Tasks;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -441,8 +441,9 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) (await logic.StopTaskByInstanceId(parameters.taskinstanceid)).ToString();
+                    var stopped = await logic.StopTaskByInstanceId(parameters.taskinstanceid);
 
+                    var response = (Response) stopped.ToString();
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -475,6 +476,42 @@ namespace ReportService.Nancy
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/run-{id:int}"] = parameters =>
+            {
+                this.RequiresClaims(EditPermission);
+
+                try
+                {
+                    string sentReps = logic.ForceExecute(parameters.id);
+                    var response = (Response)sentReps;
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+
+                catch
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+            };
+
+            Get["/working-{taskId:int}"] = parameters =>
+            {
+                this.RequiresClaims(ViewPermission);
+
+                try
+                {
+                    string sentReps = logic.GetWorkingTasksByIdJson(parameters.taskId); 
+                    var response = (Response)sentReps;
+                    response.StatusCode = HttpStatusCode.OK;
+                    return response;
+                }
+
                 catch
                 {
                     return HttpStatusCode.InternalServerError;

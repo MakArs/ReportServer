@@ -46,6 +46,7 @@ namespace ReportService.Interfaces.Core
         void DeleteTask(int taskId);
         Task<string> GetTasksList_HtmlPage();
         Task<string> GetTasksInWorkList_HtmlPage();
+        string GetWorkingTasksByIdJson(int id);
         Task<string> GetCurrentViewByTaskId(int id);
 
         void DeleteTaskInstanceById(int id);

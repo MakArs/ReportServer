@@ -82,6 +82,7 @@ namespace ReportService.Interfaces.Core
 
     public interface IRepository
     {
+        object GetBaseQueryResult(string query);
         List<DtoTaskInstance> GetInstancesByTaskId(int taskId);
         List<DtoOperInstance> GetOperInstancesByTaskInstanceId(int taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(int operInstanceId);

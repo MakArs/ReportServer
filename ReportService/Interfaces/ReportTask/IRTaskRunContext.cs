@@ -20,5 +20,7 @@ namespace ReportService.Interfaces.ReportTask
         byte[] GetCompressedPackage(string packageName);
         void CreateDataFolder();
         void RemoveDataFolder();
+        string SetQueryParameters(List<object> parametersList, string innerString);
+        string SetStringParameters(string innerString);
     }
 }
