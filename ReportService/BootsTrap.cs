@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Linq;
 using System.Net;
 using Autofac;
 using AutoMapper;
@@ -57,6 +58,9 @@ namespace ReportService
 
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>
                 (existingContainer, "CommonSshImporter");
+
+            RegisterNamedDataImporter<HistoryImporter, HistoryImporterConfig>
+                (existingContainer, "CommonHistoryImporter");
 
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (existingContainer, "CommonEmailSender");
@@ -258,7 +262,9 @@ namespace ReportService
             CreateMap<TelegramExporterConfig, CommonOperationProperties>();
             CreateMap<B2BExporterConfig, B2BExporter>();
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
-            CreateMap<DbImporterConfig, DbImporter>();
+            CreateMap<DbImporterConfig, DbImporter>()
+                .ForMember("DataSetNames",opt=>
+                    opt.MapFrom(s=>s.DataSetNames.Split(';').ToList()));
             CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
@@ -270,6 +276,8 @@ namespace ReportService
             CreateMap<SshImporterConfig, CommonOperationProperties>();
             CreateMap<SshExporterConfig, SshExporter>();
             CreateMap<SshExporterConfig, CommonOperationProperties>();
+            CreateMap<HistoryImporterConfig, HistoryImporter>();
+            CreateMap<HistoryImporterConfig, CommonOperationProperties>();
         }
     }
 }

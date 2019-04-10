@@ -18,6 +18,7 @@ namespace ReportService.Operations.DataImporters
         public string ConnectionString;
         public string Query;
         public int TimeOut;
+        public List<string> DataSetNames;
 
         public DbImporter(IMapper mapper, DbImporterConfig config,
             IPackageBuilder builder)
@@ -45,6 +46,8 @@ namespace ReportService.Operations.DataImporters
                         .UseReader(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
+                            for (int i = 0; i < DataSetNames.Count; i++)
+                                pack.DataSets[i].Name = DataSetNames[i];
                             taskContext.Packages[Properties.PackageName] = pack;
                         });
 
@@ -54,6 +57,8 @@ namespace ReportService.Operations.DataImporters
                         .UseReader(reader =>
                         {
                             var pack = packageBuilder.GetPackage(reader);
+                            for (int i = 0; i < DataSetNames.Count; i++)
+                                pack.DataSets[i].Name = DataSetNames[i];
                             taskContext.Packages[Properties.PackageName] = pack;
                         });
             });
@@ -74,6 +79,8 @@ namespace ReportService.Operations.DataImporters
                     .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                     {
                         var pack = packageBuilder.GetPackage(reader);
+                        for (int i = 0; i < DataSetNames.Count; i++)
+                            pack.DataSets[i].Name = DataSetNames[i];
                         taskContext.Packages[Properties.PackageName] = pack;
                         return Task.CompletedTask;
                     });
@@ -84,6 +91,8 @@ namespace ReportService.Operations.DataImporters
                     .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                     {
                         var pack = packageBuilder.GetPackage(reader);
+                        for (int i = 0; i < DataSetNames.Count; i++)
+                            pack.DataSets[i].Name = DataSetNames[i];
                         taskContext.Packages[Properties.PackageName] = pack;
                         return Task.CompletedTask;
                     });

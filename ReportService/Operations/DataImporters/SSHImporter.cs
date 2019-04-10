@@ -10,10 +10,10 @@ namespace ReportService.Operations.DataImporters
     public class SshImporter : IOperation
     {
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
-        public string Host; // = @"10.0.10.205";
-        public string Login; // = "tester";
-        public string Password; // = "password";
-        public string FilePath; // = @"412412\newfile2.txt";
+        public string Host;
+        public string Login; 
+        public string Password; 
+        public string FilePath; 
 
         public SshImporter(IMapper mapper, SshImporterConfig config)
         {
@@ -28,9 +28,7 @@ namespace ReportService.Operations.DataImporters
                 client.Connect();
                 using (FileStream fstr =
                     File.Create(Path.Combine(taskContext.DataFolderPath, Path.GetFileName(FilePath))))
-                {
                     client.DownloadFile(FilePath, fstr);
-                }
             }
         }
 

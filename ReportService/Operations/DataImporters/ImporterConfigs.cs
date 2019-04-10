@@ -34,6 +34,7 @@ namespace ReportService.Operations.DataImporters
         public string FileFolder;
         public string FileName;
         public string Delimiter;
+        public string DataSetName;
     }
 
     public class DbImporterConfig : IImporterConfig
@@ -42,5 +43,12 @@ namespace ReportService.Operations.DataImporters
         public string ConnectionString;
         public string Query;
         public int TimeOut;
+        public string DataSetNames;
+    }
+
+    public class HistoryImporterConfig : IImporterConfig
+    {
+        public string PackageName { get; set; }
+        public long OperInstanceId;
     }
 }

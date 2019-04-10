@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CsvHelper;
@@ -14,6 +15,7 @@ namespace ReportService.Operations.DataImporters
         public string Delimiter;
         public string FileFolder;
         public string FileName;
+        public string DataSetName;
 
         private readonly IPackageBuilder packageBuilder;
 
@@ -36,7 +38,10 @@ namespace ReportService.Operations.DataImporters
                 using (var csvReader = new CsvReader(textReader))
                 {
                     csvReader.Configuration.Delimiter = Delimiter;
-                    taskContext.Packages[Properties.PackageName] = packageBuilder.GetPackage(csvReader);
+                    var pack = packageBuilder.GetPackage(csvReader);
+                    pack.DataSets.First().Name = DataSetName;
+
+                    taskContext.Packages[Properties.PackageName] = pack;
                 }
             }
         }
