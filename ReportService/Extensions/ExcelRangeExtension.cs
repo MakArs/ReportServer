@@ -61,9 +61,11 @@ namespace ReportService.Extensions
 
                 case DateTime dateTimeValue:
                     rng.Value = dateTimeValue;
-                    rng.Style.Numberformat.Format = dateTimeValue.TimeOfDay==TimeSpan.Zero? "dd.mm.yyyy": "dd.mm.yyyy HH:mm:ss";
+                    rng.Style.Numberformat.Format = dateTimeValue.TimeOfDay==TimeSpan.Zero //todo: change logic in some way
+                        ? "dd.mm.yyyy"
+                        : "dd.mm.yyyy HH:mm:ss";
                     break;
-
+                       
                 default:
                     rng.Value = value?.ToString();
                     break;

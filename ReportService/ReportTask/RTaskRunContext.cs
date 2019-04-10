@@ -100,6 +100,11 @@ namespace ReportService.ReportTask
                 if (!Parameters.ContainsKey(repl.Value))
                     throw new DataException($"There is no parameter {repl.Value} in the task");
 
+
+                if (Parameters[repl.Value] is DateTime dateTimeValue &&
+                    dateTimeValue.TimeOfDay == TimeSpan.Zero)
+                    return $"{dateTimeValue:dd.MM.yy}";
+                else
                 return Parameters[repl.Value].ToString();
             });
 

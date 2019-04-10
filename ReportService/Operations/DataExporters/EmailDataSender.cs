@@ -53,7 +53,9 @@ namespace ReportService.Operations.DataExporters
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
 
-            string filename = taskContext.SetStringParameters(ReportName)
+            string filename = (string.IsNullOrEmpty(ReportName)
+                                  ? $@"{Properties.PackageName}"
+                                  : taskContext.SetStringParameters(ReportName))
                               + (DateInName
                                   ? null
                                   : $" {DateTime.Now:dd.MM.yy}");
@@ -64,6 +66,7 @@ namespace ReportService.Operations.DataExporters
             using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
             using (var msg = new MailMessage())
             {
+                client.DeliveryFormat = SmtpDeliveryFormat.International;
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
@@ -130,7 +133,9 @@ namespace ReportService.Operations.DataExporters
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
-            string filename = taskContext.SetStringParameters(ReportName)
+            string filename = (string.IsNullOrEmpty(ReportName)
+                ? $@"{Properties.PackageName}"
+                :taskContext.SetStringParameters(ReportName))
                               + (DateInName
                                   ? $" {DateTime.Now:dd.MM.yy}"
                                   : null);
@@ -186,6 +191,7 @@ namespace ReportService.Operations.DataExporters
 
                     using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
                     {
+                        client.DeliveryFormat = SmtpDeliveryFormat.International;
                         client.EnableSsl = true;
                         client.DeliveryMethod = SmtpDeliveryMethod.Network;
                         using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
