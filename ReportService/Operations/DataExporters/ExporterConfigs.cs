@@ -55,10 +55,12 @@ namespace ReportService.Operations.DataExporters
         public bool ConvertPackageToCsv;
         public bool ConvertPackageToXml;
         public bool UseAllSets;
+        public string PackageRename;
         public string Host;
         public string Login;
         public string Password;
         public string FolderPath;
+        public int ClearInterval;
     }
 
     public class B2BExporterConfig : IExporterConfig

@@ -264,7 +264,10 @@ namespace ReportService
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
             CreateMap<DbImporterConfig, DbImporter>()
                 .ForMember("DataSetNames",opt=>
-                    opt.MapFrom(s=>s.DataSetNames.Split(';').ToList()));
+                    opt.MapFrom(s=>s.DataSetNames.Split(new[] { ';' },
+                            StringSplitOptions.RemoveEmptyEntries)
+                        .Where(name=>!string.IsNullOrWhiteSpace(name))
+                        .ToList()));
             CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();

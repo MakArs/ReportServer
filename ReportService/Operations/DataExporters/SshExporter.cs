@@ -27,10 +27,12 @@ namespace ReportService.Operations.DataExporters
         public bool ConvertPackageToCsv;
         public bool ConvertPackageToXml;
         public bool UseAllSets;
+        public string PackageRename;
         public string Host;
         public string Login;
         public string Password;
         public string FolderPath;
+        public int ClearInterval;
 
         public SshExporter(IMapper mapper, ILifetimeScope autofac, SshExporterConfig config)
         {
@@ -51,26 +53,43 @@ namespace ReportService.Operations.DataExporters
             {
                 client.Connect();
 
+                if (ClearInterval > 0)
+                    CleanupFolder(client);
+
                 if (!string.IsNullOrEmpty(FileName))
-                    SaveFileToServer(taskContext, package, client);
+                    SaveFileToServer(taskContext, client);
+
+                var fileName = (string.IsNullOrEmpty(PackageRename)
+                                   ? $@"{Properties.PackageName}"
+                                   : taskContext.SetStringParameters(PackageRename))
+                               + (DateInName
+                                   ? $" {DateTime.Now:dd.MM.yy}"
+                                   : null);
 
                 if (ConvertPackageToXlsx)
-                    SaveXlsxPackageToServer(package, client);
+                    SaveXlsxPackageToServer(package,fileName, client);
 
                 if (ConvertPackageToJson)
-                    SaveJsonPackageToServer(package, client);
+                    SaveJsonPackageToServer(package, fileName, client);
 
                 if (ConvertPackageToCsv)
-                    SaveCsvPackageToServer(package, client);
+                    SaveCsvPackageToServer(package, fileName, client);
             }
         }
 
-        private void SaveXlsxPackageToServer(OperationPackage package, SftpClient client)
+        private void CleanupFolder(SftpClient client)
         {
-            var filenameXlsx = $@"{Properties.PackageName}"
-                               + (DateInName
-                                   ? $" {DateTime.Now:dd.MM.yy}"
-                                   : null) 
+            var times = client.ListDirectory(FolderPath).ToList();
+            var cutOff = DateTime.Now.AddDays(-ClearInterval);
+            var oldfiles = times.Where(file => file.LastWriteTime < cutOff)
+                .ToList();
+            foreach (var file in oldfiles)
+                client.DeleteFile(file.FullName);
+        }
+
+        private void SaveXlsxPackageToServer(OperationPackage package,string fileName, SftpClient client)
+        {
+            var filenameXlsx =fileName
                                + ".xlsx";
 
             using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName,UseAllSets))
@@ -85,24 +104,18 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        private void SaveCsvPackageToServer(OperationPackage package, SftpClient client)
+        private void SaveCsvPackageToServer(OperationPackage package,string fileName, SftpClient client)
         {
-            var filenameCsv = $@"{Properties.PackageName}"
-                              + (DateInName
-                                  ? $" {DateTime.Now:dd.MM.yy}"
-                                  : null)
+            var filenameCsv = fileName
                               + ".csv";
             var csvBytes = viewExecutor.ExecuteCsv(package,useAllSets:UseAllSets);
             using (var csvStream = new MemoryStream(csvBytes))
                 client.UploadFile(csvStream, Path.Combine(FolderPath, filenameCsv));
         }
 
-        private void SaveJsonPackageToServer(OperationPackage package, SftpClient client)
+        private void SaveJsonPackageToServer(OperationPackage package, string fileName, SftpClient client)
         {
-            var filenameJson = $@"{Properties.PackageName}"
-                               + (DateInName
-                                   ? $" {DateTime.Now:dd.MM.yy}"
-                                   : null)
+            var filenameJson = fileName
                                + ".json";
 
             var builder = autofac.Resolve<IPackageBuilder>();
@@ -120,7 +133,7 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        private void SaveFileToServer(IRTaskRunContext taskContext, OperationPackage package, SftpClient client)
+        private void SaveFileToServer(IRTaskRunContext taskContext, SftpClient client)
         {
             var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
                 FileName);
