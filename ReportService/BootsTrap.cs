@@ -38,7 +38,7 @@ namespace ReportService
 
         public ILifetimeScope Container => ApplicationContainer;
 
-        protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
+     protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {
             Global = Container;
             ILogic log = Container.Resolve<ILogic>();
@@ -190,7 +190,7 @@ namespace ReportService
                     }
                 });
         }
-
+        
         protected override void ConfigureRequestContainer(ILifetimeScope container,
             NancyContext context)
         {

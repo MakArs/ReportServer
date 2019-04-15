@@ -149,8 +149,8 @@ namespace ReportService.ReportTask
                 if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)
                 {
                     var msg = dtoTaskInstance.State == (int) InstanceState.Canceled
-                        ? $"Задача {taskContext.TaskId} остановлена"
-                        : $"Задача {taskContext.TaskId} успешно выполнена";
+                        ? $"Task {taskContext.TaskId} stopped"
+                        : $"Task {taskContext.TaskId} completed successfully";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
                 }
@@ -159,7 +159,7 @@ namespace ReportService.ReportTask
                 {
                     success = false;
                     taskContext.Exporter.SendError(exceptions, taskContext.TaskName);
-                    var msg = $"Задача {taskContext.TaskId} выполнена с ошибками";
+                    var msg = $"Task {taskContext.TaskId} completed with errors";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
                 }
@@ -169,7 +169,7 @@ namespace ReportService.ReportTask
             {
                 success = false;
                 taskContext.Exporter.SendError(exceptions, taskContext.TaskName);
-                var msg = $"Задача {taskContext.TaskId} не выполнена.Возникла ошибка: {e.Message}";
+                var msg = $"Task {taskContext.TaskId} is not completed. An error has occurred: {e.Message}";
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
             }

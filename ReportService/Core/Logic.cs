@@ -154,7 +154,7 @@ namespace ReportService.Core
         {
             task.UpdateLastTime();
 
-            SendServiceInfo($"Отсылка отчёта {task.Id} по расписанию");
+            SendServiceInfo($"Executing task {task.Id} (scheduled)");
 
             var context = task.GetCurrentContext(false);
 

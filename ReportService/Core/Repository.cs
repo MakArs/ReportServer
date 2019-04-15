@@ -38,7 +38,7 @@ namespace ReportService.Core
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting task instances: " +
-                               $"({e.Message})");
+                               $"{e.Message}");
                 throw;
             }
         }
@@ -56,7 +56,7 @@ namespace ReportService.Core
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting operation instances: " +
-                               $"({e.Message})");
+                               $"{e.Message}");
                 throw;
             }
         }
@@ -75,7 +75,7 @@ namespace ReportService.Core
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting operation instance data: " +
-                               $"({e.Message})");
+                               $"{e.Message}");
                 throw;
             }
         }
@@ -160,7 +160,7 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while updating прои" +
+                SendAppWarning("Error occured while updating " +
                                $"{tableName} record: {e.Message}");
             }
         }
