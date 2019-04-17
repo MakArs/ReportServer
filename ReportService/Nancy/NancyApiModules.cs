@@ -31,11 +31,14 @@ namespace ReportService.Nancy
                 try
                 {
                     var claims = Context.CurrentUser.Claims.ToList();
-                    ApiUserRole role = claims.Contains(EditPermission)
-                        ? ApiUserRole.Editor
-                        : claims.Contains(ViewPermission)
-                            ? ApiUserRole.Viewer
-                            : ApiUserRole.NoRole;
+                    ApiUserRole role = ApiUserRole.NoRole;
+
+                    if (claims.Contains(EditPermission))
+                        role = ApiUserRole.Editor;
+                    else if (claims.Contains(StopRunPermission))
+                        role = ApiUserRole.StopRunner;
+                    else if (claims.Contains(ViewPermission))
+                        role = ApiUserRole.Viewer;
 
                     var response = (Response) JsonConvert.SerializeObject(role);
                     response.StatusCode = HttpStatusCode.OK;
@@ -54,7 +57,7 @@ namespace ReportService.Nancy
     {
         public OpersModule(ILogic logic)
         {
-            this.RequiresClaims(ViewPermission);
+            this.RequiresAnyClaim(ViewPermission,StopRunPermission, EditPermission);
 
             ModulePath = "/api/v2/opertemplates";
 
@@ -171,6 +174,8 @@ namespace ReportService.Nancy
     {
         public RecepientGroupsModule(ILogic logic)
         {
+            this.RequiresAnyClaim(ViewPermission, StopRunPermission, EditPermission);
+
             ModulePath = "/api/v2/recepientgroups";
 
             Get[""] = parameters =>
@@ -245,6 +250,8 @@ namespace ReportService.Nancy
     {
         public TelegramModule(ILogic logic)
         {
+            this.RequiresAnyClaim(ViewPermission, StopRunPermission, EditPermission);
+
             ModulePath = "/api/v2/telegrams";
 
             Get[""] = parameters =>
@@ -344,6 +351,8 @@ namespace ReportService.Nancy
     {
         public ScheduleModule(ILogic logic)
         {
+            this.RequiresAnyClaim(ViewPermission, StopRunPermission, EditPermission);
+
             ModulePath = "/api/v2/schedules";
 
             Get[""] = parameters =>
@@ -419,6 +428,8 @@ namespace ReportService.Nancy
     {
         public TasksModule(ILogic logic)
         {
+            this.RequiresAnyClaim(ViewPermission, StopRunPermission, EditPermission);
+
             ModulePath = "/api/v2/tasks";
 
             Get[""] = parameters =>
@@ -438,9 +449,10 @@ namespace ReportService.Nancy
 
             Get["/stop/{taskinstanceid:long}", runAsync: true] = async (parameters, _) =>
             {
+                this.RequiresAnyClaim(EditPermission, StopRunPermission);
                 try
                 {
-                    var stopped = await logic.StopTaskByInstanceId(parameters.taskinstanceid);
+                    var stopped = await logic.StopTaskByInstanceIdAsync(parameters.taskinstanceid);
 
                     var response = (Response) stopped.ToString();
                     response.StatusCode = HttpStatusCode.OK;
@@ -471,7 +483,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) await logic.GetCurrentViewByTaskId(parameters.taskid);
+                    var response = (Response) await logic.GetCurrentViewByTaskIdAsync(parameters.taskid);
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -483,7 +495,7 @@ namespace ReportService.Nancy
 
             Get["/run-{id:int}"] = parameters =>
             {
-                this.RequiresClaims(EditPermission);
+                this.RequiresAnyClaim(EditPermission, StopRunPermission);
 
                 try
                 {
@@ -501,8 +513,6 @@ namespace ReportService.Nancy
 
             Get["/working-{taskId:int}"] = parameters =>
             {
-                this.RequiresClaims(ViewPermission);
-
                 try
                 {
                     string sentReps = logic.GetWorkingTasksByIdJson(parameters.taskId); 
@@ -574,6 +584,8 @@ namespace ReportService.Nancy
     {
         public InstancesModule(ILogic logic)
         {
+            this.RequiresAnyClaim(ViewPermission, StopRunPermission, EditPermission);
+
             ModulePath = "/api/v2/instances";
 
             Delete["/{id:int}"] = parameters =>

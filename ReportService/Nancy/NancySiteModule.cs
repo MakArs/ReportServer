@@ -14,7 +14,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    var response = (Response) $"{await logic.GetTasksList_HtmlPage()}";
+                    var response = (Response) $"{await logic.GetTasksList_HtmlPageAsync()}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -29,7 +29,7 @@ namespace ReportService.Nancy
                 try
                 {
                     var response = (Response) $@"{await logic
-                        .GetFullInstanceList_HtmlPage(parameters.id)}";
+                        .GetFullInstanceList_HtmlPageAsync(parameters.id)}";
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
                 }
@@ -60,7 +60,7 @@ namespace ReportService.Nancy
             {
                 try
                 {
-                    string entities = await logic.GetTasksInWorkList_HtmlPage();
+                    string entities = await logic.GetTasksInWorkList_HtmlPageAsync();
                     var response = (Response) entities;
                     response.StatusCode = HttpStatusCode.OK;
                     return response;
