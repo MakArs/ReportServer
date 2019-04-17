@@ -521,7 +521,7 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted task {taskId}");
         }
 
-        public async Task<string> GetTasksList_HtmlPage()
+        public async Task<string> GetTasksList_HtmlPageAsync()
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -548,7 +548,7 @@ namespace ReportService.Core
                 .Select(rtask=>rtask.TaskInstance.Id).ToList());
         }
 
-        public async Task<string> GetTasksInWorkList_HtmlPage()
+        public async Task<string> GetTasksInWorkList_HtmlPageAsync()
         {
             List<IRTaskRunContext> tasksInWork;
             lock (this)
@@ -569,7 +569,7 @@ namespace ReportService.Core
                 tableView.ExecuteHtml("Current tasks list", pack));
         }
 
-        public async Task<string> GetCurrentViewByTaskId(int taskId)
+        public async Task<string> GetCurrentViewByTaskIdAsync(int taskId)
         {
             List<IRTask> currentTasks;
             lock (this)
@@ -588,7 +588,7 @@ namespace ReportService.Core
 
             contextsInWork.Add(instanceId, context);
 
-            var view = await task.GetCurrentView(context);
+            var view = await task.GetCurrentViewAsync(context);
 
             EndContextWork(instanceId);
 
@@ -615,7 +615,7 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
         }
 
-        public async Task<string> GetFullInstanceList_HtmlPage(
+        public async Task<string> GetFullInstanceList_HtmlPageAsync(
             int taskId)
         {
             var instances = repository.GetInstancesByTaskId(taskId)
@@ -716,7 +716,7 @@ namespace ReportService.Core
             throw new NotImplementedException();
         }
 
-        public async Task<bool> StopTaskByInstanceId(long taskInstanceId)
+        public async Task<bool> StopTaskByInstanceIdAsync(long taskInstanceId)
         {
             if (!contextsInWork.ContainsKey(taskInstanceId))
                 return false;

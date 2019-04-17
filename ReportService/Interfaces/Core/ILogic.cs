@@ -44,15 +44,15 @@ namespace ReportService.Interfaces.Core
         int CreateTask(ApiTask task);
         void UpdateTask(ApiTask task);
         void DeleteTask(int taskId);
-        Task<string> GetTasksList_HtmlPage();
-        Task<string> GetTasksInWorkList_HtmlPage();
+        Task<string> GetTasksList_HtmlPageAsync();
+        Task<string> GetTasksInWorkList_HtmlPageAsync();
         string GetWorkingTasksByIdJson(int id);
-        Task<string> GetCurrentViewByTaskId(int id);
+        Task<string> GetCurrentViewByTaskIdAsync(int id);
 
         void DeleteTaskInstanceById(int id);
         string GetAllTaskInstancesJson();
         string GetAllTaskInstancesByTaskIdJson(int taskId);
-        Task<string> GetFullInstanceList_HtmlPage(int taskId);
+        Task<string> GetFullInstanceList_HtmlPageAsync(int taskId);
 
         void DeleteOperInstanceById(int operInstanceId);
         string GetOperInstancesByTaskInstanceIdJson(int id);
@@ -68,6 +68,6 @@ namespace ReportService.Interfaces.Core
 
         string GetAllB2BExportersJson(string keyParameter);
         int CreateTaskByTemplate(ApiTask newTask);
-        Task<bool> StopTaskByInstanceId(long taskInstanceId);
+        Task<bool> StopTaskByInstanceIdAsync(long taskInstanceId);
     }
 }

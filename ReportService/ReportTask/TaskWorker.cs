@@ -189,7 +189,7 @@ namespace ReportService.ReportTask
             repository.UpdateEntity(dtoTaskInstance);
         }
 
-        public async Task<string> RunOperationsAndGetLastView(IRTaskRunContext taskContext)
+        public async Task<string> RunOperationsAndGetLastViewAsync(IRTaskRunContext taskContext)
         {
             await Task.Factory.StartNew(() =>
                 RunOperations(taskContext));
@@ -199,10 +199,11 @@ namespace ReportService.ReportTask
             return taskContext.Exporter.GetDefaultView(taskContext.TaskName, val);
         }
 
-        public async void RunOperationsAndSendLastView(IRTaskRunContext taskContext,
+
+        public async Task RunOperationsAndSendLastViewAsync(IRTaskRunContext taskContext,
             string mailAddress)
         {
-            var view = await RunOperationsAndGetLastView(taskContext);
+            var view = await RunOperationsAndGetLastViewAsync(taskContext);
 
             if (string.IsNullOrEmpty(view)) return;
 

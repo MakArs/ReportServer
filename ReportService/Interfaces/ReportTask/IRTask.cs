@@ -52,7 +52,7 @@ namespace ReportService.Interfaces.ReportTask
         IRTaskRunContext GetCurrentContext(bool isDefault);
         void Execute(IRTaskRunContext context);
         void UpdateLastTime();
-        Task<string> GetCurrentView(IRTaskRunContext context);
+        Task<string> GetCurrentViewAsync(IRTaskRunContext context);
         void SendDefault(IRTaskRunContext context, string mailAddress);
     }
 }

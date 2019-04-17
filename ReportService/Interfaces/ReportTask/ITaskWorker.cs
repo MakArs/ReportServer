@@ -6,9 +6,9 @@ namespace ReportService.Interfaces.ReportTask
     {
         void RunOperations(IRTaskRunContext taskContext);
 
-        Task<string> RunOperationsAndGetLastView(IRTaskRunContext taskContext);
+        Task<string> RunOperationsAndGetLastViewAsync(IRTaskRunContext taskContext);
 
-        void RunOperationsAndSendLastView(IRTaskRunContext taskContext,
+        Task RunOperationsAndSendLastViewAsync(IRTaskRunContext taskContext,
             string mailAddress);
     }
 }

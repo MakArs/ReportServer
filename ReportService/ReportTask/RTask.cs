@@ -124,12 +124,12 @@ namespace ReportService.ReportTask
             taskWorker.RunOperations(context);
         }
 
-        public async Task<string> GetCurrentView(IRTaskRunContext context)
+        public async Task<string> GetCurrentViewAsync(IRTaskRunContext context)
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
             var defaultView =
-                await taskWorker.RunOperationsAndGetLastView(context);
+                await taskWorker.RunOperationsAndGetLastViewAsync(context);
 
             return string.IsNullOrEmpty(defaultView)
                 ? null
@@ -140,7 +140,7 @@ namespace ReportService.ReportTask
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
-            taskWorker.RunOperationsAndSendLastView(context, mailAddress);
+            taskWorker.RunOperationsAndSendLastViewAsync(context, mailAddress);
         }
 
         public void UpdateLastTime()
