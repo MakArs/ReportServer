@@ -207,26 +207,29 @@
     <Reference Include="Monik.Client.Azure, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Monik.Client.Azure.1.0.24\lib\net462\Monik.Client.Azure.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy, Version=1.4.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.1.4.5\lib\net40\Nancy.dll</HintPath>
+    <Reference Include="Nancy, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.2.0.0-clinteastwood\lib\net452\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Authentication.Basic, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.Authentication.Basic.1.4.1\lib\net40\Nancy.Authentication.Basic.dll</HintPath>
+    <Reference Include="Nancy.Authentication.Stateless, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Authentication.Stateless.2.0.0-clinteastwood\lib\net452\Nancy.Authentication.Stateless.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Authentication.Stateless, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.Authentication.Stateless.1.4.1\lib\net40\Nancy.Authentication.Stateless.dll</HintPath>
+    <Reference Include="Nancy.Bootstrappers.Autofac, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Bootstrappers.Autofac.2.0.0-clinteastwood\lib\net452\Nancy.Bootstrappers.Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Bootstrappers.Autofac, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.Bootstrappers.Autofac.1.4.1\lib\net40\Nancy.Bootstrappers.Autofac.dll</HintPath>
+    <Reference Include="Nancy.Hosting.Self, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Hosting.Self.2.0.0-clinteastwood\lib\net452\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.Hosting.Self.1.4.1\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+    <Reference Include="Nancy.Metadata.Modules, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Metadata.Modules.2.0.0-clinteastwood\lib\net452\Nancy.Metadata.Modules.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Metadata.Modules, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.Metadata.Modules.1.4.1\lib\net40\Nancy.Metadata.Modules.dll</HintPath>
+    <Reference Include="Nancy.Swagger, Version=2.2.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Swagger.2.2.53-alpha\lib\net452\Nancy.Swagger.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Swagger, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nancy.Swagger.2.1.1-alpha\lib\Net462\Nancy.Swagger.dll</HintPath>
+    <Reference Include="Nancy.Swagger.Annotations, Version=2.2.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Swagger.Annotations.2.2.53-alpha\lib\net452\Nancy.Swagger.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy.Validation.DataAnnotations, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Validation.DataAnnotations.2.0.0-clinteastwood\lib\net452\Nancy.Validation.DataAnnotations.dll</HintPath>
     </Reference>
     <Reference Include="NCrontab, Version=3.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NCrontab.3.3.1\lib\net35\NCrontab.dll</HintPath>
@@ -249,9 +252,6 @@
     </Reference>
     <Reference Include="Swagger.ObjectModel, Version=2.2.53.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Swagger.ObjectModel.2.2.53-alpha\lib\net452\Swagger.ObjectModel.dll</HintPath>
-    </Reference>
-    <Reference Include="Swagger.ObjectModel.JsonNET, Version=1.0.15.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Swagger.ObjectModel.JsonNET.1.0.15-alpha\lib\net452\Swagger.ObjectModel.JsonNET.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -343,6 +343,7 @@
     <Compile Include="Core\ArchiverZip.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
+    <Compile Include="Nancy\NancyExtensions.cs" />
     <Compile Include="Operations\DataExporters\B2BExporter.cs" />
     <Compile Include="Operations\DataExporters\SshExporter.cs" />
     <Compile Include="Operations\DataImporters\CsvImporter.cs" />
@@ -401,9 +402,13 @@
     <None Include="AppTemplate.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config">
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-bundle.js.map" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-standalone-preset.js.map" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.css.map" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js.map" />
+    <EmbeddedResource Include="packages.config">
       <SubType>Designer</SubType>
-    </None>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\ReportPlugins\*.cs">
@@ -423,12 +428,23 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Content Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </Content>
+    <EmbeddedResource Include="Nancy\SwaggerDist\favicon-16x16.png" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\favicon-32x32.png" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\index.html" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\oauth2-redirect.html" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-bundle.js" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-standalone-preset.js" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.css" />
+    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js" />
   </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\AsyncUsageAnalyzers.1.0.0-alpha003\analyzers\dotnet\AsyncUsageAnalyzers.dll" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

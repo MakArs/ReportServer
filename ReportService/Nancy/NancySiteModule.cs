@@ -3,14 +3,14 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy
 {
-    public class SiteModule : NancyBaseModule
+    public sealed class SiteModule : NancyBaseModule
     {
         public SiteModule(ILogic logic)
         {
             // this.RequiresClaims();
             ModulePath = "/site";
 
-            Get["/tasks.html", runAsync: true] = async (parameters, token) =>
+            Get("/tasks.html", async (parameters, token) =>
             {
                 try
                 {
@@ -22,9 +22,9 @@ namespace ReportService.Nancy
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-            };
+            },name: "GetAllTasksHtml");
 
-            Get["/tasks-{id:int}.html", runAsync: true] = async (parameters, token) =>
+            Get("/tasks-{id:int}.html",  async (parameters, token) =>
             {
                 try
                 {
@@ -37,9 +37,9 @@ namespace ReportService.Nancy
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-            };
+            }, name: "GetAllTaskInstancesHtml");
 
-            Get["/sendto"] = parameters =>
+            Get("/sendto", parameters =>
             {
                 int id = Request.Query.id;
                 string mail = Request.Query.address;
@@ -54,9 +54,9 @@ namespace ReportService.Nancy
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-            };
+            }, name: "RunTasksToEmail");
 
-            Get["/tasks/inwork.html", runAsync: true] = async (parameters, token) =>
+            Get("/tasks/inwork.html", async (parameters, token) =>
             {
                 try
                 {
@@ -69,9 +69,9 @@ namespace ReportService.Nancy
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-            };
+            }, name: "GetAllInWorkTasksHtml");
 
-            Get["/entities"] = parameters =>
+            Get("/entities", parameters =>
             {
                 try
                 {
@@ -84,9 +84,9 @@ namespace ReportService.Nancy
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-            };
+            }, name: "GetAllEntitiesHtml");
 
-            Get["/run-{id:int}/confirm"] = parameters =>
+            Get("/run-{id:int}/confirm", parameters =>
             {
                 try
                 {
@@ -99,7 +99,7 @@ namespace ReportService.Nancy
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-            };
+            }, name: "RunTask");
         }
     } //class
 }

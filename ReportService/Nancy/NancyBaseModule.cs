@@ -37,6 +37,7 @@ namespace ReportService.Nancy
 
     public class NancyBaseModule : NancyModule
     {
+        protected string PermissionsType = "permissions";
         protected string ViewPermission = ConfigurationManager.AppSettings["Permissions_View"];
         protected string EditPermission = ConfigurationManager.AppSettings["Permissions_Edit"];
         protected string StopRunPermission = ConfigurationManager.AppSettings["Permissions_StopRun"];

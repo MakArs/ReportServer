@@ -4,13 +4,16 @@ using System.Linq;
 using System.Net;
 using Autofac;
 using AutoMapper;
-using Domain0.Auth.Nancy;
 using Domain0.Tokens;
 using Monik.Client;
 using Monik.Common;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
+using Nancy.Conventions;
+using Nancy.Swagger;
+using Nancy.Swagger.Annotations;
+using Nancy.Swagger.Services;
 using Newtonsoft.Json;
 using ReportService.Core;
 using ReportService.Extensions;
@@ -23,6 +26,7 @@ using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters;
 using ReportService.Protobuf;
 using ReportService.ReportTask;
+using Swagger.ObjectModel;
 using Telegram.Bot;
 
 namespace ReportService
@@ -38,11 +42,51 @@ namespace ReportService
 
         public ILifetimeScope Container => ApplicationContainer;
 
-     protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
+        protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {
+            SwaggerMetadataProvider.SetInfo("Reporting service", "v2", "Reporting service docs", new Contact()
+            {
+                EmailAddress = "makarov.a@smartdriving.io"
+            });
+
+
+            var modelCatalog = container.Resolve<ISwaggerModelCatalog>();
+
+            //SwaggerMetadataProvider.SetSwaggerRoot(
+            //    externalDocumentation: new ExternalDocumentation
+            //    {
+            //        Description = "descr",
+            //        Url = "https://localhost:12345/"
+            //    },
+            //    schemes: new[] { Schemes.Http }
+            //);
+
+            container.Update(builder => builder
+                .RegisterType<SwaggerAnnotationsProvider>()
+                .As<ISwaggerMetadataProvider>());
             Global = Container;
             ILogic log = Container.Resolve<ILogic>();
             log.Start();
+
+            SwaggerAnnotationsConfig.ShowOnlyAnnotatedRoutes = true;
+
+
+        }
+
+        protected override void ConfigureConventions(NancyConventions nancyConventions)
+        {
+            base.ConfigureConventions(nancyConventions);
+            // Add swagger
+
+            //nancyConventions.StaticContentsConventions.Add(
+            //    StaticContentConventionBuilder.AddDirectory("Nancy/SwaggerDist") //why does not work?
+            //);
+
+            //nancyConventions.StaticContentsConventions
+            //    .AddDirectory("/swagger-ui", "/ReportService/Nancy/SwaggerDist");
+
+            nancyConventions.StaticContentsConventions
+            .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
@@ -190,17 +234,21 @@ namespace ReportService
                     }
                 });
         }
-        
+
+
         protected override void ConfigureRequestContainer(ILifetimeScope container,
             NancyContext context)
         {
             // Perform registrations that should have a request lifetime
+                var provider = container.Resolve<ISwaggerMetadataProvider>();
+                var swaggerJson = provider.GetSwaggerJson(context);
         }
 
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines,
             NancyContext context)
         {
             base.RequestStartup(container, pipelines, context);
+
             pipelines.AddDomain0Auth(container
                 .Resolve<TokenValidationSettings>());
         }

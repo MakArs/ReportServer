@@ -106,7 +106,7 @@ namespace ReportService.Core
                                 .Where(oper => oper.TaskId == dtoTask.Id)
                                 .Where(oper => !oper.IsDeleted).ToList()));
 
-                        // might be replaced with saved time from db
+                        //todo: might be replaced with saved time from db
                         task.UpdateLastTime();
                         tasks.Add(task);
                     }
