@@ -28,7 +28,7 @@ namespace ReportService.ReportTask
 
         private string GetOperationStateFromInstance(string operName, DtoOperInstance instance)
         {
-            var state = EnumExtensions.EnumHelper.GetEnumValue<InstanceState>(instance.State);
+            var state = (InstanceState)(instance.State);
 
             return operName +
                    $" (State: {state.ToString()}," +

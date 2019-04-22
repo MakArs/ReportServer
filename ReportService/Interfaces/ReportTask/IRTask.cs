@@ -28,9 +28,9 @@ namespace ReportService.Interfaces.ReportTask
         public string Addresses { get; set; }
         public string AddressesBcc { get; set; }
 
-        public RecepientAddresses GetAddresses()
+        public RecipientAddresses GetAddresses()
         {
-            return new RecepientAddresses
+            return new RecipientAddresses
             {
                 To = Addresses.Split(new[] {';'},
                     StringSplitOptions.RemoveEmptyEntries).ToList(),

@@ -7,6 +7,14 @@ namespace ReportService.Extensions
     {
         public static IEnumerable<TSource> FromHierarchy<TSource>(
             this TSource source,
+            Func<TSource, TSource> nextItem)
+            where TSource : class
+        {
+            return FromHierarchy(source, nextItem, s => s != null);
+        }
+
+        private static IEnumerable<TSource> FromHierarchy<TSource>(
+            this TSource source,
             Func<TSource, TSource> nextItem,
             Func<TSource, bool> canContinue)
         {
@@ -14,14 +22,6 @@ namespace ReportService.Extensions
             {
                 yield return current;
             }
-        }
-
-        public static IEnumerable<TSource> FromHierarchy<TSource>(
-            this TSource source,
-            Func<TSource, TSource> nextItem)
-            where TSource : class
-        {
-            return FromHierarchy(source, nextItem, s => s != null);
         }
     }
 }

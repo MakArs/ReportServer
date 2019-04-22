@@ -31,7 +31,7 @@ namespace ReportService.Interfaces.Core
         int CreateRecepientGroup(DtoRecepientGroup group);
         void UpdateRecepientGroup(DtoRecepientGroup group);
         void DeleteRecepientGroup(int id);
-        RecepientAddresses GetRecepientAddressesByGroupId(int groupId);
+        RecipientAddresses GetRecepientAddressesByGroupId(int groupId);
 
         int CreateTelegramChannel(DtoTelegramChannel channel);
         void UpdateTelegramChannel(DtoTelegramChannel channel);

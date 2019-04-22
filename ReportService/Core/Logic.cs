@@ -444,7 +444,7 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted recepient group {id}");
         }
 
-        public RecepientAddresses GetRecepientAddressesByGroupId(int groupId)
+        public RecipientAddresses GetRecepientAddressesByGroupId(int groupId)
         {
             return mapper.Map<RRecepientGroup>(recepientGroups
                 .FirstOrDefault(group => group.Id == groupId)).GetAddresses();

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
 
 namespace ReportService.Extensions
 {
-    [SuppressMessage("ReSharper", "IdentifierTypo")]
-    public class RecepientAddresses
+    public class RecipientAddresses
     {
         public List<string> To = new List<string>();
         public List<string> Bcc = new List<string>();
@@ -16,7 +14,7 @@ namespace ReportService.Extensions
     public static class MailMessageExtension
     {
         public static void AddRecepientsFromGroup(this MailMessage msg,
-            RecepientAddresses addresses)
+            RecipientAddresses addresses)
         {
             AddAddressesToCollection(addresses.To, msg.To);
             AddAddressesToCollection(addresses.Bcc, msg.Bcc);

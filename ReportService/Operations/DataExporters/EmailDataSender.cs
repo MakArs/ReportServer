@@ -19,7 +19,7 @@ namespace ReportService.Operations.DataExporters
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool RunIfVoidPackage { get; set; }
 
-        private readonly RecepientAddresses addresses;
+        private readonly RecipientAddresses addresses;
         public bool DateInName;
         public bool HasHtmlBody;
         public bool HasXlsxAttachment;
@@ -33,7 +33,7 @@ namespace ReportService.Operations.DataExporters
         private readonly IPackageBuilder builder;
 
         public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac,
-            EmailExporterConfig config,IPackageBuilder builder)
+            EmailExporterConfig config, IPackageBuilder builder)
         {
             this.builder = builder;
             mapper.Map(config, this);
@@ -41,7 +41,7 @@ namespace ReportService.Operations.DataExporters
 
             addresses = config.RecepientGroupId > 0
                 ? logic.GetRecepientAddressesByGroupId(config.RecepientGroupId)
-                : new RecepientAddresses();
+                : new RecipientAddresses();
 
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         } //ctor
@@ -114,8 +114,24 @@ namespace ReportService.Operations.DataExporters
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
                     }
 
-                    client.Send(msg);
+                    var tryCount = 0;
+                    while (tryCount < 3)
+                    {
+                        try
+                        {
+                            client.Send(msg);
+                            break;
+                        }
+                        catch(Exception exc)
+                        {
+                            if (tryCount == 2)
+                                throw new Exception("Message not sent",exc);
+                            else
+                            tryCount++;
+                        }
+                    }
                 }
+
                 finally
                 {
                     streamJson?.Dispose();
@@ -134,8 +150,8 @@ namespace ReportService.Operations.DataExporters
                     return;
 
             string filename = (string.IsNullOrEmpty(ReportName)
-                ? $@"{Properties.PackageName}"
-                :taskContext.SetStringParameters(ReportName))
+                                  ? $@"{Properties.PackageName}"
+                                  : taskContext.SetStringParameters(ReportName))
                               + (DateInName
                                   ? $" {DateTime.Now:dd.MM.yy}"
                                   : null);
@@ -166,7 +182,7 @@ namespace ReportService.Operations.DataExporters
                 {
                     if (HasJsonAttachment)
                     {
-                        var sets=builder.GetPackageValues(package);
+                        var sets = builder.GetPackageValues(package);
                         var dataToSave = UseAllSetsJson
                             ? JsonConvert.SerializeObject(sets)
                             : JsonConvert.SerializeObject(sets.First());
@@ -195,7 +211,24 @@ namespace ReportService.Operations.DataExporters
                         client.EnableSsl = true;
                         client.DeliveryMethod = SmtpDeliveryMethod.Network;
                         using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
-                            await client.SendMailAsync(msg);
+                        {
+                            var tryCount = 0;
+                            while (tryCount < 3)
+                            {
+                                try
+                                {
+                                    await client.SendMailAsync(msg);
+                                    break;
+                                }
+                                catch(Exception exc)
+                                {
+                                    if (tryCount == 2)
+                                        throw new Exception("Message not sent", exc);
+                                    else
+                                        tryCount++;
+                                }
+                            }
+                        }
                     }
                 }
                 finally
