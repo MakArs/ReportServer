@@ -49,18 +49,6 @@ namespace ReportService
                 EmailAddress = "makarov.a@smartdriving.io"
             });
 
-
-            var modelCatalog = container.Resolve<ISwaggerModelCatalog>();
-
-            //SwaggerMetadataProvider.SetSwaggerRoot(
-            //    externalDocumentation: new ExternalDocumentation
-            //    {
-            //        Description = "descr",
-            //        Url = "https://localhost:12345/"
-            //    },
-            //    schemes: new[] { Schemes.Http }
-            //);
-
             container.Update(builder => builder
                 .RegisterType<SwaggerAnnotationsProvider>()
                 .As<ISwaggerMetadataProvider>());
@@ -69,8 +57,6 @@ namespace ReportService
             log.Start();
 
             SwaggerAnnotationsConfig.ShowOnlyAnnotatedRoutes = true;
-
-
         }
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)
@@ -240,8 +226,6 @@ namespace ReportService
             NancyContext context)
         {
             // Perform registrations that should have a request lifetime
-                var provider = container.Resolve<ISwaggerMetadataProvider>();
-                var swaggerJson = provider.GetSwaggerJson(context);
         }
 
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines,

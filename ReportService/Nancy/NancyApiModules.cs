@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -17,14 +19,14 @@ namespace ReportService.Nancy
 
         [Route(nameof(IsAlive))]
         [Route(HttpMethod.Get, IsAliveRoute)]
-        [Route(Tags = new[] { "General" },Summary = "Method for checking if service is alive")]
+        [Route(Tags = new[] {"General"}, Summary = "Method for checking if service is alive")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
-        public object IsAlive()
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response IsAlive()
         {
             try
             {
-                var response = new Response {StatusCode = HttpStatusCode.OK};
-                return response;
+                return HttpStatusCode.OK;
             }
             catch
             {
@@ -34,8 +36,9 @@ namespace ReportService.Nancy
 
         [Route(nameof(GetUserRole))]
         [Route(HttpMethod.Get, GetRoleRoute)]
-        [Route(Tags = new[] { "General" }, Summary = "Method for getting role of request user")]
+        [Route(Tags = new[] {"General"}, Summary = "Method for getting role of request user")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
         public Response GetUserRole()
         {
             try
@@ -70,13 +73,199 @@ namespace ReportService.Nancy
                 name: nameof(IsAlive));
 
             Get(GetRoleRoute, _ =>
-                GetUserRole(), name: nameof(GetUserRole));
+                GetUserRole(), 
+                name: nameof(GetUserRole));
 
         }
     }
 
     public sealed class OpersModule : NancyBaseModule
     {
+        public const string GetOperationTemplatesRoute = "/api/v2/opertemplates";
+        public const string GetRegisteredImportersRoute = "/api/v2/opertemplates/registeredimporters";
+        public const string GetRegisteredExportersRoute = "/api/v2/opertemplates/registeredexporters";
+        public const string GetTaskOperationsRoute = "/api/v2/opertemplates/taskopers";
+        public const string DeleteOperationTemplateRoute = "/api/v2/opertemplates/{id:int}";
+        public const string PostOperationTemplateRoute = "/api/v2/opertemplates";
+        public const string PutOperationTemplateRoute = "/api/v2/opertemplates/{id:int}";
+
+        [Route(nameof(GetAllTemplates))]
+        [Route(HttpMethod.Get, GetOperationTemplatesRoute)]
+        [Route(Tags = new[] {"Operation templates"},
+            Summary = "Method for receiving all operation templates in service")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success", Model = typeof(DtoOperTemplate))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response GetAllTemplates(ILogic logic)
+        {
+            try
+            {
+                var response = (Response) logic.GetAllOperTemplatesJson();
+                response.StatusCode = HttpStatusCode.OK;
+                return response;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        [Route(nameof(GetImporters))]
+        [Route(HttpMethod.Get, GetRegisteredImportersRoute)]
+        [Route(Tags = new[] {"Operation templates"},
+            Summary = "Method for receiving all importer types registered in service")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success", Model = typeof(Dictionary<string, string>))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response GetImporters(ILogic logic)
+        {
+            try
+            {
+                var response = (Response) logic.GetAllRegisteredImportersJson();
+                response.StatusCode = HttpStatusCode.OK;
+                return response;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        [Route(nameof(GetExporters))]
+        [Route(HttpMethod.Get, GetRegisteredExportersRoute)]
+        [Route(Tags = new[] {"Operation templates"},
+            Summary = "Method for receiving all exporter types registered in service")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success", Model = typeof(Dictionary<string, string>))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response GetExporters(ILogic logic)
+        {
+            try
+            {
+                var response = (Response) logic.GetAllRegisteredExportersJson();
+                response.StatusCode = HttpStatusCode.OK;
+                return response;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        [Route(nameof(GetAllOperations))]
+        [Route(HttpMethod.Get, GetTaskOperationsRoute)]
+        [Route(Tags = new[] {"Operation templates"},
+            Summary = "Method for receiving all operations binded to tasks in service")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success", Model = typeof(DtoOperation))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response GetAllOperations(ILogic logic)
+        {
+            try
+            {
+                var response = (Response) logic.GetAllOperationsJson();
+                response.StatusCode = HttpStatusCode.OK;
+                return response;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        [Route(nameof(DeleteTemplate))]
+        [Route(HttpMethod.Delete, DeleteOperationTemplateRoute)]
+        [Route(Tags = new[] {"Operation templates"}, Summary = "Method for deleting operation template by ID")]
+        [RouteParam(
+            ParamIn = ParameterIn.Path,
+            Name = "id",
+            ParamType = typeof(int),
+            Required = true,
+            Description = "Id of operation template that you need to delete")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response DeleteTemplate(ILogic logic)
+        {
+            this.RequiresClaims(c => c.Type == PermissionsType
+                                     && c.Value.Contains(EditPermission));
+            try
+            {
+                logic.DeleteOperationTemplate(Context.Parameters.id);
+                return HttpStatusCode.OK;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+
+        [Route(nameof(CreateTemplate))]
+        [Route(HttpMethod.Post, PostOperationTemplateRoute)]
+        [Route(Consumes = new[] { "application/json" })]
+        [Route(Tags = new[] {"Operation templates"}, Summary = "Method for creating operation template")]
+        [RouteParam(
+            ParamIn = ParameterIn.Body,
+            Name = "operation template",
+            ParamType = typeof(DtoOperTemplate),
+            Required = true,
+            Description = "New operation template")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success", Model = typeof(int))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response CreateTemplate(ILogic logic)
+        {
+            this.RequiresClaims(c => c.Type == PermissionsType
+                                     && c.Value.Contains(EditPermission));
+            try
+            {
+                var newOper = this.Bind<DtoOperTemplate>();
+                var id = logic.CreateOperationTemplate(newOper);
+                var response = (Response) $"{id}";
+                response.StatusCode = HttpStatusCode.OK;
+                return response;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        [Route(nameof(UpdateTemplate))]
+        [Route(HttpMethod.Put, PutOperationTemplateRoute)]
+        [Route(Consumes = new[] { "application/json"})]
+        [Route(Tags = new[] {"Operation templates"}, Summary = "Method for updating operation template")]
+        [RouteParam(
+            ParamIn = ParameterIn.Body,
+            Name = "operation template",
+            ParamType = typeof(DtoOperTemplate),
+            Required = true,
+            Description = "Existing operation template")]
+        [RouteParam(
+            ParamIn = ParameterIn.Path,
+            Name = "id",
+            ParamType = typeof(int),
+            Required = true,
+            Description = "Id of operation template that you need to update")]
+        [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Post query id does not matches with query body id")]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Internal error during request execution")]
+        public Response UpdateTemplate(ILogic logic)
+        {
+            this.RequiresClaims(c => c.Type == PermissionsType
+                                     && c.Value.Contains(EditPermission));
+            try
+            {
+                var existingOper = this.Bind<DtoOperTemplate>
+                    (new BindingConfig {BodyOnly = true});
+
+                if (Context.Parameters.id != existingOper.Id)
+                    return HttpStatusCode.BadRequest;
+
+                logic.UpdateOperationTemplate(existingOper);
+                return HttpStatusCode.OK;
+            }
+            catch
+            {
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
         public OpersModule(ILogic logic)
         {
             //can do through RequiresAnyClaim but more code
@@ -85,117 +274,33 @@ namespace ReportService.Nancy
                                          || c.Value.Contains(StopRunPermission)
                                          || c.Value.Contains(EditPermission)));
 
-            ModulePath = "/api/v2/opertemplates";
+            Get(GetOperationTemplatesRoute,
+                _ => GetAllTemplates(logic),
+                name: nameof(GetAllTemplates));
 
-            Get("/", parameters =>
-            {
-                try
-                {
-                    var response = (Response)logic.GetAllOperTemplatesJson();
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "GetTemplates");
+            Get(GetRegisteredImportersRoute,
+                _ => GetImporters(logic),
+                name: nameof(GetImporters));
 
-            Get("/registeredimporters", parameters =>
-            {
-                try
-                {
-                    var response = (Response)logic.GetAllRegisteredImportersJson();
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "GetImporters");
+            Get(GetRegisteredExportersRoute,
+                _ => GetExporters(logic),
+                name: nameof(GetExporters));
 
-            Get("/registeredexporters", parameters =>
-            {
-                try
-                {
-                    var response = (Response)logic.GetAllRegisteredExportersJson();
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "GetExporters");
+            Get(GetTaskOperationsRoute,
+                _ => GetAllOperations(logic),
+                name: nameof(GetAllOperations));
 
-            Get("/taskopers", parameters =>
-            {
-                try
-                {
-                    var response = (Response)logic.GetAllOperationsJson();
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "GetTaskOpers");
+            Delete(DeleteOperationTemplateRoute,
+                parameters => DeleteTemplate(logic),
+                name: nameof(DeleteTemplate));
 
-            Delete("/{id:int}", parameters =>
-            {
-                this.RequiresClaims(c => c.Type == PermissionsType
-                                         && c.Value.Contains(EditPermission));
-                try
-                {
-                    logic.DeleteOperationTemplate(parameters.id);
-                    return HttpStatusCode.OK;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "DeleteTemplate");
+            Post(PostOperationTemplateRoute,
+                parameters => CreateTemplate(logic),
+                name: nameof(CreateTemplate));
 
-            Post("/", parameters =>
-            {
-                this.RequiresClaims(c => c.Type == PermissionsType
-                                         && c.Value.Contains(EditPermission));
-                try
-                {
-                    var newOper = this.Bind<DtoOperTemplate>();
-                    var id = logic.CreateOperationTemplate(newOper);
-                    var response = (Response)$"{id}";
-                    response.StatusCode = HttpStatusCode.OK;
-                    return response;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "CreateTemplate");
-
-            Put("/{id:int}", parameters =>
-            {
-                this.RequiresClaims(c => c.Type == PermissionsType
-                                         && c.Value.Contains(EditPermission));
-                try
-                {
-                    var existingOper = this.Bind<DtoOperTemplate>
-                        (new BindingConfig { BodyOnly = true });
-
-                    if (parameters.id != existingOper.Id)
-                        return HttpStatusCode.BadRequest;
-
-                    logic.UpdateOperationTemplate(existingOper);
-                    return HttpStatusCode.OK;
-                }
-                catch
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-            }, name: "UpdateTemplate");
+            Put(PutOperationTemplateRoute,
+                parameters => UpdateTemplate(logic),
+                name: nameof(UpdateTemplate));
         }
     } //OperTemplates&Operations Module
 

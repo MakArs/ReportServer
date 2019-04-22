@@ -4,6 +4,7 @@
     <ExcludeAssemblies>
       SevenZipSharp
       RazorEngine
+      Nancy.Swagger
     </ExcludeAssemblies>
   </Costura>
 </Weavers>
