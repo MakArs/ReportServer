@@ -2,7 +2,6 @@
 using AutoMapper;
 using NCrontab;
 using Newtonsoft.Json;
-using ReportService.Nancy;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,6 +15,7 @@ using Monik.Common;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Nancy.Modules;
 using ReportService.Operations.DataExporters;
 using ReportService.Operations.DataImporters;
 

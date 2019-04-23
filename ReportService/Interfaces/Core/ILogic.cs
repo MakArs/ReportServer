@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReportService.Extensions;
 using ReportService.Nancy;
+using ReportService.Nancy.Modules;
 
 namespace ReportService.Interfaces.Core
 {

@@ -1,7 +1,7 @@
 ﻿using Nancy;
 using ReportService.Interfaces.Core;
 
-namespace ReportService.Nancy
+namespace ReportService.Nancy.Modules
 {
     public sealed class SiteModule : NancyBaseModule
     {

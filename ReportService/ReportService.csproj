@@ -343,6 +343,14 @@
     <Compile Include="Core\ArchiverZip.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\GeneralModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\InstancesModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\OperationTemplatesModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\RecipientGroupsModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\SchedulesModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\SyncServerModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\TasksModule.cs" />
+    <Compile Include="Nancy\Modules\ApiModules\TelegramChannelsModule.cs" />
     <Compile Include="Nancy\NancyExtensions.cs" />
     <Compile Include="Operations\DataExporters\B2BExporter.cs" />
     <Compile Include="Operations\DataExporters\SshExporter.cs" />
@@ -372,8 +380,7 @@
     <Compile Include="Interfaces\ReportTask\IRTaskRunContext.cs" />
     <Compile Include="Interfaces\ReportTask\ITaskWorker.cs" />
     <Compile Include="Nancy\HostHolder.cs" />
-    <Compile Include="Nancy\NancyBaseModule.cs" />
-    <Compile Include="Nancy\NancyApiModules.cs" />
+    <Compile Include="Nancy\Modules\NancyBaseModule.cs" />
     <Compile Include="Operations\DataExporters\EmailDataSender.cs" />
     <Compile Include="ReportTask\RTask.cs" />
     <Compile Include="Core\Scheduler.cs" />
@@ -384,7 +391,7 @@
     <Compile Include="Interfaces\Core\IViewExecutor.cs" />
     <Compile Include="Core\Repository.cs" />
     <Compile Include="Core\Logic.cs" />
-    <Compile Include="Nancy\NancySiteModule.cs" />
+    <Compile Include="Nancy\Modules\NancySiteModule.cs" />
     <Compile Include="Operations\DataExporters\ViewExecutors\CommonTableViewExecutor.cs" />
     <Compile Include="Operations\DataExporters\ViewExecutors\CommonViewExecutor.cs" />
     <!--<Compile Include="PluginFolder\DailyReport.cs" />

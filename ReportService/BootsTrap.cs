@@ -21,6 +21,7 @@ using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Nancy;
+using ReportService.Nancy.Modules;
 using ReportService.Operations.DataExporters;
 using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters;
