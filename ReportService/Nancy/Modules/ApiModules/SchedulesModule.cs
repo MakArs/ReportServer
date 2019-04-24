@@ -12,15 +12,21 @@ namespace ReportService.Nancy.Modules.ApiModules
     public sealed class SchedulesModule : NancyBaseModule
     {
         public const string GetSchedulesRoute = "/api/v2/schedules";
-        public const string DeleteScheduleRoute = "/api/v2/schedules/{id:int}";
+        public const string DeleteScheduleRoute = "/api/v2/schedules/{id}";
         public const string PostScheduleRoute = "/api/v2/schedules";
-        public const string PutScheduleRoute = "/api/v2/schedules/{id:int}";
+        public const string PutScheduleRoute = "/api/v2/schedules/{id}";
 
         [Route(nameof(GetAllSchedules))]
         [Route(HttpMethod.Get, GetSchedulesRoute)]
         [Route(
             Tags = new[] {"Schedules"},
             Summary = "Method for receiving all schedules in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -53,6 +59,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of schedule that you need to delete")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
@@ -85,6 +97,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(DtoSchedule),
             Required = true,
             Description = "New schedule")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -129,6 +147,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of schedule that you need to update")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.BadRequest,
@@ -146,7 +170,7 @@ namespace ReportService.Nancy.Modules.ApiModules
                 var existingSchedule = this.Bind<DtoSchedule>
                     (new BindingConfig {BodyOnly = true});
 
-                if (Context.Parameters.id != existingSchedule.Id)
+                if (int.Parse(Context.Parameters.id) != existingSchedule.Id)
                     return HttpStatusCode.BadRequest;
 
                 logic.UpdateSchedule(existingSchedule);

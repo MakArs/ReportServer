@@ -11,7 +11,6 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using Nancy.Conventions;
-using Nancy.Swagger;
 using Nancy.Swagger.Annotations;
 using Nancy.Swagger.Services;
 using Newtonsoft.Json;
@@ -47,7 +46,7 @@ namespace ReportService
         {
             SwaggerMetadataProvider.SetInfo("Reporting service", "v2", "Reporting service docs", new Contact()
             {
-                EmailAddress = "makarov.a@smartdriving.io"
+                EmailAddress = "Reportserver"
             });
 
             container.Update(builder => builder

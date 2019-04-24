@@ -24,6 +24,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(ApiTask),
             Required = true,
             Description = "template of task with some defined parameters")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",

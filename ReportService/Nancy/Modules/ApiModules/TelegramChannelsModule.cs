@@ -13,13 +13,19 @@ namespace ReportService.Nancy.Modules.ApiModules
     {
         public const string GetTelegramChannelsRoute = "/api/v2/telegrams";
         public const string PostTelegramChannelRoute = "/api/v2/telegrams";
-        public const string PutTelegramChannelRoute = "/api/v2/telegrams/{id:int}";
+        public const string PutTelegramChannelRoute = "/api/v2/telegrams/{id}";
 
         [Route(nameof(GetAllChannels))]
         [Route(HttpMethod.Get, GetTelegramChannelsRoute)]
         [Route(
             Tags = new[] {"Telegram Channels"},
             Summary = "Method for receiving all telegram channels in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -53,6 +59,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(DtoTelegramChannel),
             Required = true,
             Description = "New telegram channel")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -96,6 +108,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of telegram channel that you need to update")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.BadRequest,
@@ -112,7 +130,7 @@ namespace ReportService.Nancy.Modules.ApiModules
                 var existingTelegramChannel = this.Bind<DtoTelegramChannel>
                     (new BindingConfig {BodyOnly = true});
 
-                if (Context.Parameters.id != existingTelegramChannel.Id)
+                if (int.Parse(Context.Parameters.id) != existingTelegramChannel.Id)
                     return HttpStatusCode.BadRequest;
 
                 logic.UpdateTelegramChannel(existingTelegramChannel);

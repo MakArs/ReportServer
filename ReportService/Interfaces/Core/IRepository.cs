@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Nancy.Swagger.Annotations.Attributes;
 
 namespace ReportService.Interfaces.Core
 {
@@ -7,36 +8,40 @@ namespace ReportService.Interfaces.Core
     {
     }
 
+    [Model("Operation template")]
     public class DtoOperTemplate : IDtoEntity
     {
-        public int Id;
-        public string ImplementationType;
-        public string Name;
-        public string ConfigTemplate;
+        public int Id { get; set; }
+        public string ImplementationType { get; set; }
+        public string Name { get; set; }
+        public string ConfigTemplate { get; set; }
     }
 
+    [Model("Recipient group")]
     public class DtoRecepientGroup : IDtoEntity
     {
-        public int Id;
-        public string Name;
-        public string Addresses;
-        public string AddressesBcc;
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Addresses { get; set; }
+        public string AddressesBcc { get; set; }
     }
 
+    [Model("Telegram channel")]
     public class DtoTelegramChannel : IDtoEntity
     {
-        public int Id;
-        public string Name;
-        public string Description;
-        public long ChatId;
-        public int Type; //from nuget types enum
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public long ChatId { get; set; }
+        public int Type { get; set; } //from nuget types enum
     }
 
+    [Model("Schedule")]
     public class DtoSchedule : IDtoEntity
     {
-        public int Id;
-        public string Name;
-        public string Schedule;
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Schedule { get; set; }
     }
 
     public class DtoTask : IDtoEntity

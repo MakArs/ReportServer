@@ -1,30 +1,33 @@
 ﻿using System;
 using System.Configuration;
 using Nancy;
+using Nancy.Swagger.Annotations.Attributes;
 using ReportService.Interfaces.Core;
 
 namespace ReportService.Nancy.Modules
 {
+    [Model("Task")]
     public class ApiTask
     {
-        public int Id;
-        public string Name;
-        public string Parameters;
-        public int? ScheduleId;
-        public DtoOperation[] BindedOpers;
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Parameters { get; set; }
+        public int? ScheduleId { get; set; }
+        public DtoOperation[] BindedOpers { get; set; }
     }
 
+    [Model("Operation instance")]
     public class ApiOperInstance
     {
-        public int Id;
-        public int TaskInstanceId;
-        public int OperationId;
-        public DateTime StartTime;
-        public int Duration;
-        public int State;
-        public byte[] DataSet;
-        public string ErrorMessage;
-        public string OperName;
+        public int Id { get; set; }
+        public int TaskInstanceId { get; set; }
+        public int OperationId { get; set; }
+        public DateTime StartTime { get; set; }
+        public int Duration { get; set; }
+        public int State { get; set; }
+        public byte[] DataSet { get; set; }
+        public string ErrorMessage { get; set; }
+        public string OperName { get; set; }
     }
 
     public enum ApiUserRole

@@ -12,15 +12,21 @@ namespace ReportService.Nancy.Modules.ApiModules
     public sealed class RecipientGroupsModule : NancyBaseModule
     {
         public const string GetRecepientGroupsRoute = "/api/v2/recepientgroups";
-        public const string DeleteRecepientGroupRoute = "/api/v2/recepientgroups/{id:int}";
+        public const string DeleteRecepientGroupRoute = "/api/v2/recepientgroups/{id}";
         public const string PostRecepientGroupRoute = "/api/v2/recepientgroups";
-        public const string PutRecepientGroupRoute = "/api/v2/recepientgroups/{id:int}";
+        public const string PutRecepientGroupRoute = "/api/v2/recepientgroups/{id}";
 
         [Route(nameof(GetAllGroups))]
         [Route(HttpMethod.Get, GetRecepientGroupsRoute)]
         [Route(
             Tags = new[] {"Recipient groups"},
             Summary = "Method for receiving all recipient groups in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -53,6 +59,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of recipient group that you need to delete")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
@@ -84,6 +96,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(DtoRecepientGroup),
             Required = true,
             Description = "New recipient group")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -127,6 +145,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of recipient group that you need to update")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.BadRequest,
@@ -144,7 +168,7 @@ namespace ReportService.Nancy.Modules.ApiModules
                 var existingGroup = this.Bind<DtoRecepientGroup>
                     (new BindingConfig {BodyOnly = true});
 
-                if (Context.Parameters.id != existingGroup.Id)
+                if (int.Parse(Context.Parameters.id) != existingGroup.Id)
                     return HttpStatusCode.BadRequest;
 
                 logic.UpdateRecepientGroup(existingGroup);

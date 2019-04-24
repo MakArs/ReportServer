@@ -14,19 +14,25 @@ namespace ReportService.Nancy.Modules.ApiModules
     {
         public const string GetTasksRoute = "/api/v2/tasks";
         public const string StopTaskRoute = "/api/v2/tasks/stop/{taskinstanceid:long}";
-        public const string GetTaskInstancesRoute = "/api/v2/tasks/{taskid:int}/instances";
-        public const string GetCurrentTaskViewRoute = "/api/v2/tasks/{taskid:int}/currentviews";
-        public const string RunTasksRoute = "/api/v2/tasks/run-{id:int}";
-        public const string GetWorkingTaskInstancesRoute = "/api/v2/tasks/working-{taskId:int}";
-        public const string DeleteTaskRoute = "/api/v2/tasks/{id:int}";
+        public const string GetTaskInstancesRoute = "/api/v2/tasks/{taskid}/instances";
+        public const string GetCurrentTaskViewRoute = "/api/v2/tasks/{taskid}/currentviews";
+        public const string RunTasksRoute = "/api/v2/tasks/run/{id}";
+        public const string GetWorkingTaskInstancesRoute = "/api/v2/tasks/working-{taskId}";
+        public const string DeleteTaskRoute = "/api/v2/tasks/{id}";
         public const string PostTaskRoute = "/api/v2/tasks";
-        public const string PutTaskRoute = "/api/v2/tasks/{id:int}";
+        public const string PutTaskRoute = "/api/v2/tasks/{id}";
 
         [Route(nameof(GetAllTasks))]
         [Route(HttpMethod.Get, GetTasksRoute)]
         [Route(
             Tags = new[] {"Tasks"},
             Summary = "Method for receiving all tasks in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -60,6 +66,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(long),
             Required = true,
             Description = "Id of task instance that you need to stop")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -98,6 +110,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of task which instances you are need")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -131,6 +149,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of task which view you are need")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -159,10 +183,16 @@ namespace ReportService.Nancy.Modules.ApiModules
             Summary = "Method for manual task executing")]
         [RouteParam(
             ParamIn = ParameterIn.Path,
-            Name = "taskid",
+            Name = "id",
             ParamType = typeof(int),
             Required = true,
             Description = "Id of task you need to execute")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -201,6 +231,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of task which instances you are need")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -235,6 +271,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of task that you need to delete")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
@@ -267,6 +309,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(DtoSchedule),
             Required = true,
             Description = "New task")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -311,6 +359,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of task that you need to update")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.BadRequest,
@@ -328,7 +382,7 @@ namespace ReportService.Nancy.Modules.ApiModules
                 var existingTask = this.Bind<ApiTask>
                     (new BindingConfig {BodyOnly = true});
 
-                if (Context.Parameters.id != existingTask.Id)
+                if (int.Parse(Context.Parameters.id) != existingTask.Id)
                     return HttpStatusCode.BadRequest;
 
                 logic.UpdateTask(existingTask);

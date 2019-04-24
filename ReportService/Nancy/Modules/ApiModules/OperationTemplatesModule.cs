@@ -15,15 +15,21 @@ namespace ReportService.Nancy.Modules.ApiModules
         public const string GetRegisteredImportersRoute = "/api/v2/opertemplates/registeredimporters";
         public const string GetRegisteredExportersRoute = "/api/v2/opertemplates/registeredexporters";
         public const string GetTaskOperationsRoute = "/api/v2/opertemplates/taskopers";
-        public const string DeleteOperationTemplateRoute = "/api/v2/opertemplates/{id:int}";
+        public const string DeleteOperationTemplateRoute = "/api/v2/opertemplates/{id}";
         public const string PostOperationTemplateRoute = "/api/v2/opertemplates";
-        public const string PutOperationTemplateRoute = "/api/v2/opertemplates/{id:int}";
+        public const string PutOperationTemplateRoute = "/api/v2/opertemplates/{id}";
 
         [Route(nameof(GetAllTemplates))]
         [Route(HttpMethod.Get, GetOperationTemplatesRoute)]
         [Route(
             Tags = new[] {"Operation templates"},
             Summary = "Method for receiving all operation templates in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -50,6 +56,12 @@ namespace ReportService.Nancy.Modules.ApiModules
         [Route(
             Tags = new[] {"Operation templates"},
             Summary = "Method for receiving all importer types registered in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -76,6 +88,12 @@ namespace ReportService.Nancy.Modules.ApiModules
         [Route(
             Tags = new[] {"Operation templates"},
             Summary = "Method for receiving all exporter types registered in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -102,6 +120,12 @@ namespace ReportService.Nancy.Modules.ApiModules
         [Route(
             Tags = new[] {"Operation templates"},
             Summary = "Method for receiving all operations binded to tasks in service")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -134,6 +158,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of operation template that you need to delete")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
@@ -165,6 +195,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(DtoOperTemplate),
             Required = true,
             Description = "New operation template")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
@@ -208,6 +244,12 @@ namespace ReportService.Nancy.Modules.ApiModules
             ParamType = typeof(int),
             Required = true,
             Description = "Id of operation template that you need to update")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
         [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
         [SwaggerResponse(
             HttpStatusCode.BadRequest,
@@ -224,7 +266,7 @@ namespace ReportService.Nancy.Modules.ApiModules
                 var existingOper = this.Bind<DtoOperTemplate>
                     (new BindingConfig {BodyOnly = true});
 
-                if (Context.Parameters.id != existingOper.Id)
+                if (int.Parse(Context.Parameters.id) != existingOper.Id)
                     return HttpStatusCode.BadRequest;
 
                 logic.UpdateOperationTemplate(existingOper);

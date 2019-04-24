@@ -38,7 +38,16 @@ namespace ReportService.Nancy.Modules.ApiModules
         [Route(
             Tags = new[] {"General"},
             Summary = "Method for getting role of request user")]
-        [SwaggerResponse(HttpStatusCode.OK, Message = "Success")]
+        [RouteParam(
+            ParamIn = ParameterIn.Header,
+            Name = "Authorization",
+            ParamType = typeof(string),
+            Required = true,
+            Description = "JWT access token")]
+        [SwaggerResponse(
+             HttpStatusCode.OK, 
+             Message = "Success", 
+             Model = typeof(ApiUserRole))]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
             "Internal error during request execution")]
