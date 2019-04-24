@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CsvHelper;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 

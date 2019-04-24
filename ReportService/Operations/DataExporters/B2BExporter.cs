@@ -7,7 +7,9 @@ using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Google.Protobuf;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataExporters.Configurations;
 
 namespace ReportService.Operations.DataExporters
 {

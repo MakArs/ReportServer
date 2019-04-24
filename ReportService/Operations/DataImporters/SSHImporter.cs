@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Renci.SshNet;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Operations.DataImporters

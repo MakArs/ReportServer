@@ -2,7 +2,9 @@
 using Autofac;
 using AutoMapper;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataExporters.Configurations;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 

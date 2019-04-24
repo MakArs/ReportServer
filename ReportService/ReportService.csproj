@@ -343,6 +343,8 @@
     <Compile Include="Core\ArchiverZip.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
+    <Compile Include="Interfaces\Operations\IImporterConfig.cs" />
+    <Compile Include="Interfaces\Operations\IOperationConfig.cs" />
     <Compile Include="Nancy\Modules\ApiModules\GeneralModule.cs" />
     <Compile Include="Nancy\Modules\ApiModules\InstancesModule.cs" />
     <Compile Include="Nancy\Modules\ApiModules\OperationTemplatesModule.cs" />
@@ -352,8 +354,20 @@
     <Compile Include="Nancy\Modules\ApiModules\TasksModule.cs" />
     <Compile Include="Nancy\Modules\ApiModules\TelegramChannelsModule.cs" />
     <Compile Include="Nancy\NancyExtensions.cs" />
+    <Compile Include="Operations\CommonOperationProperties.cs" />
     <Compile Include="Operations\DataExporters\B2BExporter.cs" />
+    <Compile Include="Operations\DataExporters\Configurations\B2BExporterConfig.cs" />
+    <Compile Include="Operations\DataExporters\Configurations\DbExporterConfig.cs" />
+    <Compile Include="Operations\DataExporters\Configurations\EmailExporterConfig.cs" />
+    <Compile Include="Interfaces\Operations\IExporterConfig.cs" />
+    <Compile Include="Operations\DataExporters\Configurations\SshExporterConfig.cs" />
+    <Compile Include="Operations\DataExporters\Configurations\TelegramExporterConfig.cs" />
     <Compile Include="Operations\DataExporters\SshExporter.cs" />
+    <Compile Include="Operations\DataImporters\Configurations\CsvImporterConfig.cs" />
+    <Compile Include="Operations\DataImporters\Configurations\DbImporterConfig.cs" />
+    <Compile Include="Operations\DataImporters\Configurations\ExcelImporterConfig.cs" />
+    <Compile Include="Operations\DataImporters\Configurations\HistoryImporterConfig.cs" />
+    <Compile Include="Operations\DataImporters\Configurations\SshImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\CsvImporter.cs" />
     <Compile Include="Operations\DataImporters\HistoryImporter.cs" />
     <Compile Include="Operations\DataImporters\SshImporter.cs" />
@@ -364,7 +378,6 @@
     <Compile Include="ReportTask\RTaskRunContext.cs" />
     <Compile Include="ReportTask\TaskWorker.cs" />
     <Compile Include="Operations\DataExporters\DbExporter.cs" />
-    <Compile Include="Operations\DataExporters\ExporterConfigs.cs" />
     <Compile Include="Operations\DataExporters\TelegramDataSender.cs" />
     <Compile Include="Operations\DataImporters\DbImporter.cs" />
     <Compile Include="Operations\DataImporters\ExcelImporter.cs" />
@@ -375,7 +388,7 @@
     <Compile Include="Interfaces\Core\IArchiver.cs" />
     <Compile Include="Interfaces\ReportTask\IDefaultTaskExporter.cs" />
     <Compile Include="Interfaces\Protobuf\IPackageBuilder.cs" />
-    <Compile Include="Interfaces\Core\IOperation.cs" />
+    <Compile Include="Interfaces\Operations\IOperation.cs" />
     <Compile Include="Interfaces\Protobuf\IProtoSerializer.cs" />
     <Compile Include="Interfaces\ReportTask\IRTaskRunContext.cs" />
     <Compile Include="Interfaces\ReportTask\ITaskWorker.cs" />

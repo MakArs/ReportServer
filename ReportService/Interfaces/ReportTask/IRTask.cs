@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 
 namespace ReportService.Interfaces.ReportTask
 {

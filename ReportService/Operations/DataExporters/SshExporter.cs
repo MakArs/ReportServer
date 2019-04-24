@@ -7,8 +7,10 @@ using AutoMapper;
 using Newtonsoft.Json;
 using Renci.SshNet;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataExporters.Configurations;
 
 namespace ReportService.Operations.DataExporters
 {

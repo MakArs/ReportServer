@@ -13,10 +13,12 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Nancy.Modules;
 using ReportService.Operations.DataExporters;
+using ReportService.Operations.DataExporters.Configurations;
 using ReportService.Operations.DataImporters;
 
 namespace ReportService.Core

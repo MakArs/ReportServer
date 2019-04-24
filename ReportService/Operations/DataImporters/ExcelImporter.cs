@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using OfficeOpenXml;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 
