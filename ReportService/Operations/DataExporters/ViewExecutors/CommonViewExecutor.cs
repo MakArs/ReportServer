@@ -37,7 +37,6 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
 
-
             if (!package.DataSets.Any()) return "No information obtained by query";
 
             var packageValues = packageBuilder.GetPackageValues(package);

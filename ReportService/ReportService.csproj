@@ -345,6 +345,8 @@
     <Compile Include="Extensions\ErrorExtensions.cs" />
     <Compile Include="Interfaces\Operations\IImporterConfig.cs" />
     <Compile Include="Interfaces\Operations\IOperationConfig.cs" />
+    <Compile Include="Nancy\Models\ApiOperInstance.cs" />
+    <Compile Include="Nancy\Models\ApiTask.cs" />
     <Compile Include="Nancy\Modules\ApiModules\GeneralModule.cs" />
     <Compile Include="Nancy\Modules\ApiModules\InstancesModule.cs" />
     <Compile Include="Nancy\Modules\ApiModules\OperationTemplatesModule.cs" />
@@ -381,7 +383,6 @@
     <Compile Include="Operations\DataExporters\TelegramDataSender.cs" />
     <Compile Include="Operations\DataImporters\DbImporter.cs" />
     <Compile Include="Operations\DataImporters\ExcelImporter.cs" />
-    <Compile Include="Operations\DataImporters\ImporterConfigs.cs" />
     <Compile Include="Extensions\ExcelRangeExtension.cs" />
     <Compile Include="Extensions\LifeTimeExtensions.cs" />
     <Compile Include="Extensions\MailMessageExtension.cs" />
@@ -464,9 +465,7 @@
   <ItemGroup>
     <Analyzer Include="..\packages\AsyncUsageAnalyzers.1.0.0-alpha003\analyzers\dotnet\AsyncUsageAnalyzers.dll" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Nancy\Models\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

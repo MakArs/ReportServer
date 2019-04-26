@@ -445,7 +445,7 @@ namespace ReportService.Protobuf
                         break;
 
                     case ScalarType.DateTime:
-                        varValue.DateTime = value is DateTime dateval
+                        varValue.DateTimeValue = value is DateTime dateval
                             ? ((DateTimeOffset) dateval.Add(dateval - dateval.ToUniversalTime()))
                             .ToUnixTimeSeconds() //fix saving utc datetime
                             : 0;
@@ -510,7 +510,7 @@ namespace ReportService.Protobuf
 
                 case ScalarType.DateTime:
                     return DateTimeOffset
-                        .FromUnixTimeSeconds(value.DateTime).UtcDateTime;
+                        .FromUnixTimeSeconds(value.DateTimeValue).UtcDateTime;
 
                 case ScalarType.DateTimeOffset:
                     return DateTimeOffset

@@ -5,6 +5,7 @@ using Renci.SshNet;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataImporters.Configurations;
 
 namespace ReportService.Operations.DataImporters
 {

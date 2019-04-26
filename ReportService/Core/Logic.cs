@@ -16,10 +16,8 @@ using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
-using ReportService.Nancy.Modules;
-using ReportService.Operations.DataExporters;
+using ReportService.Nancy.Models;
 using ReportService.Operations.DataExporters.Configurations;
-using ReportService.Operations.DataImporters;
 
 namespace ReportService.Core
 {
