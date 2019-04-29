@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CsvHelper;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
@@ -29,7 +28,7 @@ namespace ReportService.Operations.DataImporters
             packageBuilder = builder;
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath :
                 FileFolder, FileName);
@@ -48,7 +47,7 @@ namespace ReportService.Operations.DataImporters
             }
         }
 
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        public Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             Execute(taskContext);
             return Task.CompletedTask;

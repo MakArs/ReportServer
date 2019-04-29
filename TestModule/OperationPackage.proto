@@ -15,9 +15,23 @@ message OperationPackage
 message DataSet
 {
 	string Name=1;
-	repeated ColumnInfo Columns=2; //maybe 14-15 tags instead of 2-3?
+	repeated ColumnInfo Columns=2; 
 	repeated Row Rows=3;
+	ViewSettings ViewSettings=4;
 }
+
+message ViewSettings
+{
+	repeated int16 GroupingColumnNumbers=1;
+	repeated OrderSettings OrderSettings=2;
+}
+
+message OrderSettings
+{
+	int16 ColumnNumber=1;
+	bool Descending=2;
+}
+
 
 message ColumnInfo
 {

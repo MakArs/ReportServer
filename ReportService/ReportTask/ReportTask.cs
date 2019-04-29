@@ -13,7 +13,7 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class RTask : IRTask
+    public class ReportTask : IReportTask
     {
         public int Id { get; }
         public string Name { get; }
@@ -26,7 +26,7 @@ namespace ReportService.ReportTask
         private readonly ILifetimeScope autofac;
         private readonly IRepository repository;
 
-        public RTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
+        public ReportTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
             IMonik monik, int id,
             string name, string parameters, DtoSchedule schedule, List<DtoOperation> opers)
         {
@@ -77,9 +77,9 @@ namespace ReportService.ReportTask
             this.autofac = autofac;
         } //ctor
 
-        public IRTaskRunContext GetCurrentContext(bool isDefault)
+        public IReportTaskRunContext GetCurrentContext(bool isDefault)
         {
-            var context = autofac.Resolve<IRTaskRunContext>();
+            var context = autofac.Resolve<IReportTaskRunContext>();
 
             context.OpersToExecute = isDefault
                 ? Operations.Where(oper => oper.Properties.IsDefault)
@@ -120,13 +120,13 @@ namespace ReportService.ReportTask
             return context;
         }
 
-        public void Execute(IRTaskRunContext context)
+        public void Execute(IReportTaskRunContext context)
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
             taskWorker.RunOperations(context);
         }
 
-        public async Task<string> GetCurrentViewAsync(IRTaskRunContext context)
+        public async Task<string> GetCurrentViewAsync(IReportTaskRunContext context)
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
@@ -138,7 +138,7 @@ namespace ReportService.ReportTask
                 : defaultView;
         }
 
-        public void SendDefault(IRTaskRunContext context, string mailAddress)
+        public void SendDefault(IReportTaskRunContext context, string mailAddress)
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
 

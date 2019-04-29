@@ -38,9 +38,9 @@ namespace ReportService.Core
         private readonly List<DtoRecepientGroup> recepientGroups;
         private readonly List<DtoTelegramChannel> telegramChannels;
         private readonly List<DtoSchedule> schedules;
-        private readonly List<IRTask> tasks;
+        private readonly List<IReportTask> tasks;
         private readonly List<DtoOperation> operations;
-        private readonly Dictionary<long, IRTaskRunContext> contextsInWork;
+        private readonly Dictionary<long, IReportTaskRunContext> contextsInWork;
 
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
@@ -56,7 +56,7 @@ namespace ReportService.Core
             bot.StartReceiving();
             this.repository = repository;
             packageBuilder = builder;
-            contextsInWork = new Dictionary<long, IRTaskRunContext>();
+            contextsInWork = new Dictionary<long, IReportTaskRunContext>();
 
             checkScheduleAndExecuteScheduler =
                 new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
@@ -67,7 +67,7 @@ namespace ReportService.Core
             recepientGroups = new List<DtoRecepientGroup>();
             telegramChannels = new List<DtoTelegramChannel>();
             schedules = new List<DtoSchedule>();
-            tasks = new List<IRTask>();
+            tasks = new List<IReportTask>();
             operations = new List<DtoOperation>();
 
             this.bot.OnUpdate += OnBotUpd;
@@ -97,7 +97,7 @@ namespace ReportService.Core
 
                     foreach (var dtoTask in taskList)
                     {
-                        var task = autofac.Resolve<IRTask>(
+                        var task = autofac.Resolve<IReportTask>(
                             new NamedParameter("id", dtoTask.Id),
                             new NamedParameter("name", dtoTask.Name),
                             new NamedParameter("parameters", dtoTask.Parameters),
@@ -123,7 +123,7 @@ namespace ReportService.Core
 
         private void CheckScheduleAndExecute()
         {
-            List<IRTask> currentTasks;
+            List<IReportTask> currentTasks;
             lock (this)
                 currentTasks = tasks.ToList();
 
@@ -151,7 +151,7 @@ namespace ReportService.Core
             }
         }
 
-        private void ExecuteTask(IRTask task)
+        private void ExecuteTask(IReportTask task)
         {
             task.UpdateLastTime();
 
@@ -253,7 +253,7 @@ namespace ReportService.Core
 
         public string SendDefault(int taskId, string mailAddress)
         {
-            List<IRTask> currentTasks;
+            List<IReportTask> currentTasks;
 
             lock (this)
                 currentTasks = tasks.ToList();
@@ -282,7 +282,7 @@ namespace ReportService.Core
 
         public string ForceExecute(int taskId)
         {
-            List<IRTask> currentTasks;
+            List<IReportTask> currentTasks;
 
             lock (this)
                 currentTasks = tasks.ToList();
@@ -358,7 +358,7 @@ namespace ReportService.Core
 
         public string GetAllTasksJson()
         {
-            List<IRTask> currentTasks;
+            List<IReportTask> currentTasks;
             lock (this)
                 currentTasks = tasks.ToList();
             var tr = JsonConvert.SerializeObject(currentTasks
@@ -524,7 +524,7 @@ namespace ReportService.Core
 
         public async Task<string> GetTasksList_HtmlPageAsync()
         {
-            List<IRTask> currentTasks;
+            List<IReportTask> currentTasks;
             lock (this)
                 currentTasks = tasks.ToList();
 
@@ -551,7 +551,7 @@ namespace ReportService.Core
 
         public async Task<string> GetTasksInWorkList_HtmlPageAsync()
         {
-            List<IRTaskRunContext> tasksInWork;
+            List<IReportTaskRunContext> tasksInWork;
             lock (this)
                 tasksInWork = contextsInWork.Select(pair => pair.Value).ToList();
 
@@ -572,7 +572,7 @@ namespace ReportService.Core
 
         public async Task<string> GetCurrentViewByTaskIdAsync(int taskId)
         {
-            List<IRTask> currentTasks;
+            List<IReportTask> currentTasks;
             lock (this)
                 currentTasks = tasks.ToList();
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
@@ -31,7 +30,7 @@ namespace ReportService.Operations.DataImporters
             packageBuilder = builder;
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
@@ -66,7 +65,7 @@ namespace ReportService.Operations.DataImporters
             });
         }
 
-        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);

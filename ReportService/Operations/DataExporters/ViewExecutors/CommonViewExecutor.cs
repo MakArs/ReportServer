@@ -16,11 +16,11 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonViewExecutor : IViewExecutor
     {
-        private readonly IPackageBuilder packageBuilder;
+        private readonly IPackageParser packageParser;
 
-        public CommonViewExecutor(IPackageBuilder builder)
+        public CommonViewExecutor(IPackageParser parser)
         {
-            packageBuilder = builder;
+            packageParser = parser;
         }
 
         public virtual string ExecuteHtml(string viewTemplate, OperationPackage package)
@@ -40,7 +40,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             if (!package.DataSets.Any()) return "No information obtained by query";
 
-            var packageValues = packageBuilder.GetPackageValues(package);
+            var packageValues = packageParser.GetPackageValues(package);
 
             var model = new
             {
@@ -76,7 +76,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         public virtual string ExecuteTelegramView(OperationPackage package,
             string reportName = "Отчёт", bool useAllSets = false)
         {
-            var packageValues = packageBuilder.GetPackageValues(package);
+            var packageValues = packageParser.GetPackageValues(package);
 
             var tmRep = $@"*{reportName}*";
 
@@ -135,7 +135,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         {
             var pack = new ExcelPackage();
 
-            var packageContent = packageBuilder.GetPackageValues(package);
+            var packageContent = packageParser.GetPackageValues(package);
 
             if (useAllSets)
             {
@@ -169,7 +169,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
                         if (!useAllSets)
                         {
-                            var firstSet = packageBuilder.GetPackageValues(package).First();
+                            var firstSet = packageParser.GetPackageValues(package).First();
                             foreach (var head in firstSet.Headers)
                             {
                                 csvWriter.WriteField(head);
@@ -188,7 +188,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
                         else
                         {
-                            foreach (var dataSet in packageBuilder.GetPackageValues(package))
+                            foreach (var dataSet in packageParser.GetPackageValues(package))
                             {
                                 foreach (var head in dataSet.Headers)
                                 {

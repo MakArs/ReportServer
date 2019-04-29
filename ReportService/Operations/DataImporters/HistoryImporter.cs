@@ -24,7 +24,7 @@ namespace ReportService.Operations.DataImporters
             this.archiver = archiver;
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var query = $"select DataSet from [OperInstance] with(nolock) where id={OperInstanceId}";
             var instance = repos.GetBaseQueryResult(query);
@@ -33,7 +33,7 @@ namespace ReportService.Operations.DataImporters
                 taskContext.Packages[Properties.PackageName] = package;
         }
 
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        public Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             Execute(taskContext);
             return Task.CompletedTask;

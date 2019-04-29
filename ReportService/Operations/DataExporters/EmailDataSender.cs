@@ -48,7 +48,7 @@ namespace ReportService.Operations.DataExporters
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         } //ctor
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
 
@@ -143,7 +143,7 @@ namespace ReportService.Operations.DataExporters
             }
         } //method
 
-        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
 

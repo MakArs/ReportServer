@@ -50,7 +50,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             return base.ExecuteHtml(tableTemplate, package);
         }
 
-        public CommonTableViewExecutor(IPackageBuilder builder) : base(builder)
+        public CommonTableViewExecutor(IPackageBuilder parser) : base(parser)
         {
         }
     } //class

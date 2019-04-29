@@ -6,7 +6,6 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Google.Protobuf.Collections;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
@@ -73,7 +72,7 @@ namespace ReportService.Operations.DataExporters
             return createQueryBuilder.ToString();
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
@@ -122,7 +121,7 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);

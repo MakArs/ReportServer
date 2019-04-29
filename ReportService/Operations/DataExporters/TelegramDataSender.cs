@@ -36,7 +36,7 @@ namespace ReportService.Operations.DataExporters
             bot = botClient;
         }
         
-        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[PackageName];
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
@@ -47,7 +47,7 @@ namespace ReportService.Operations.DataExporters
                 ParseMode.Markdown, cancellationToken: taskContext.CancelSource.Token);
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[PackageName];
             if (!RunIfVoidPackage && package.DataSets.Count == 0)

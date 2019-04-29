@@ -40,7 +40,7 @@ namespace ReportService.ReportTask
                    + ")";
         }
 
-        public void RunOperations(IRTaskRunContext taskContext)
+        public void RunOperations(IReportTaskRunContext taskContext)
         {
             Stopwatch duration = new Stopwatch();
 
@@ -190,7 +190,7 @@ namespace ReportService.ReportTask
             repository.UpdateEntity(dtoTaskInstance);
         }
 
-        public async Task<string> RunOperationsAndGetLastViewAsync(IRTaskRunContext taskContext)
+        public async Task<string> RunOperationsAndGetLastViewAsync(IReportTaskRunContext taskContext)
         {
             await Task.Factory.StartNew(() =>
                 RunOperations(taskContext));
@@ -201,7 +201,7 @@ namespace ReportService.ReportTask
         }
 
 
-        public async Task RunOperationsAndSendLastViewAsync(IRTaskRunContext taskContext,
+        public async Task RunOperationsAndSendLastViewAsync(IReportTaskRunContext taskContext,
             string mailAddress)
         {
             var view = await RunOperationsAndGetLastViewAsync(taskContext);

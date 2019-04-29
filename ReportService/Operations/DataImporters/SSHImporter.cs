@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Renci.SshNet;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataImporters.Configurations;
@@ -23,7 +22,7 @@ namespace ReportService.Operations.DataImporters
             mapper.Map(config, Properties);
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             using (var client = new SftpClient(Host, Login, Password))
             {
@@ -34,7 +33,7 @@ namespace ReportService.Operations.DataImporters
             }
         }
 
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        public Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             Execute(taskContext);
             return Task.CompletedTask;

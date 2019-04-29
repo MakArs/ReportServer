@@ -44,7 +44,7 @@ namespace ReportService.Operations.DataExporters
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
 
@@ -69,7 +69,7 @@ namespace ReportService.Operations.DataExporters
                                    : null);
 
                 if (ConvertPackageToXlsx)
-                    SaveXlsxPackageToServer(package,fileName, client);
+                    SaveXlsxPackageToServer(package, fileName, client);
 
                 if (ConvertPackageToJson)
                     SaveJsonPackageToServer(package, fileName, client);
@@ -89,12 +89,12 @@ namespace ReportService.Operations.DataExporters
                 client.DeleteFile(file.FullName);
         }
 
-        private void SaveXlsxPackageToServer(OperationPackage package,string fileName, SftpClient client)
+        private void SaveXlsxPackageToServer(OperationPackage package, string fileName, SftpClient client)
         {
-            var filenameXlsx =fileName
+            var filenameXlsx = fileName
                                + ".xlsx";
 
-            using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName,UseAllSets))
+            using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName, UseAllSets))
             {
                 using (var streamXlsx =
                     new MemoryStream())
@@ -106,11 +106,11 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        private void SaveCsvPackageToServer(OperationPackage package,string fileName, SftpClient client)
+        private void SaveCsvPackageToServer(OperationPackage package, string fileName, SftpClient client)
         {
             var filenameCsv = fileName
                               + ".csv";
-            var csvBytes = viewExecutor.ExecuteCsv(package,useAllSets:UseAllSets);
+            var csvBytes = viewExecutor.ExecuteCsv(package, useAllSets: UseAllSets);
             using (var csvStream = new MemoryStream(csvBytes))
                 client.UploadFile(csvStream, Path.Combine(FolderPath, filenameCsv));
         }
@@ -127,7 +127,7 @@ namespace ReportService.Operations.DataExporters
             var dataToSave = UseAllSets
                 ? JsonConvert.SerializeObject(sets)
                 : JsonConvert.SerializeObject(sets.First());
-            
+
             using (var streamJson = new MemoryStream(System.Text.Encoding.UTF8
                 .GetBytes(dataToSave)))
             {
@@ -135,7 +135,7 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        private void SaveFileToServer(IRTaskRunContext taskContext, SftpClient client)
+        private void SaveFileToServer(IReportTaskRunContext taskContext, SftpClient client)
         {
             var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
                 FileName);
@@ -147,7 +147,7 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        public Task ExecuteAsync(IRTaskRunContext taskContext)
+        public Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             Execute(taskContext);
             return Task.CompletedTask;

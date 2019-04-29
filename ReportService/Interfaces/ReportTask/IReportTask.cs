@@ -12,7 +12,7 @@ namespace ReportService.Interfaces.ReportTask
         Custom = 2
     }
 
-    public interface IRTask
+    public interface IReportTask
     {
         int Id { get; }
         string Name { get; }
@@ -21,10 +21,10 @@ namespace ReportService.Interfaces.ReportTask
         List<IOperation> Operations { get; set; }
         Dictionary<string, object> Parameters { get; set; }
 
-        IRTaskRunContext GetCurrentContext(bool isDefault);
-        void Execute(IRTaskRunContext context);
+        IReportTaskRunContext GetCurrentContext(bool isDefault);
+        void Execute(IReportTaskRunContext context);
         void UpdateLastTime();
-        Task<string> GetCurrentViewAsync(IRTaskRunContext context);
-        void SendDefault(IRTaskRunContext context, string mailAddress);
+        Task<string> GetCurrentViewAsync(IReportTaskRunContext context);
+        void SendDefault(IReportTaskRunContext context, string mailAddress);
     }
 }

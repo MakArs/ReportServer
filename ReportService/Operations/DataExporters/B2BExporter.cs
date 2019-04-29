@@ -34,7 +34,7 @@ namespace ReportService.Operations.DataExporters
             mapper.Map(config, Properties);
         }
 
-        public void Execute(IRTaskRunContext taskContext)
+        public void Execute(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
 
@@ -82,7 +82,7 @@ namespace ReportService.Operations.DataExporters
             context.Insert(ExportInstanceTableName, newInstance, new QueryOptions(DbTimeOut), "Id");
         }
 
-        public async Task ExecuteAsync(IRTaskRunContext taskContext)
+        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
 

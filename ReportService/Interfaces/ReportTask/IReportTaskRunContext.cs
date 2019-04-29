@@ -5,7 +5,7 @@ using ReportService.Interfaces.Operations;
 
 namespace ReportService.Interfaces.ReportTask
 {
-    public interface IRTaskRunContext
+    public interface IReportTaskRunContext
     {
         Dictionary<string, OperationPackage> Packages { get; set; }
         List<string> PackageStates { get; set; }

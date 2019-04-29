@@ -51,7 +51,7 @@ namespace ReportService
         {
             SwaggerMetadataProvider.SetInfo("Reporting service", "v2", "Reporting service docs", new Contact()
             {
-                EmailAddress = "Reportserver"
+                Name = "Reportserver"
             });
 
             container.Update(builder => builder
@@ -77,7 +77,7 @@ namespace ReportService
             //    .AddDirectory("/swagger-ui", "/ReportService/Nancy/SwaggerDist");
 
             nancyConventions.StaticContentsConventions
-            .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
+                .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
@@ -94,8 +94,8 @@ namespace ReportService
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>
                 (existingContainer, "CommonSshImporter");
 
-            RegisterNamedDataImporter<HistoryImporter, HistoryImporterConfig>
-                (existingContainer, "CommonHistoryImporter");
+            //RegisterNamedDataImporter<HistoryImporter, HistoryImporterConfig>
+            //    (existingContainer, "CommonHistoryImporter");
 
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (existingContainer, "CommonEmailSender");
@@ -119,7 +119,7 @@ namespace ReportService
             existingContainer
                 .RegisterSingleton<ILogic, Logic>();
             existingContainer
-                .RegisterImplementation<IRTask, RTask>();
+                .RegisterImplementation<IReportTask, ReportTask.ReportTask>();
 
             // Partial bootstrapper for private named implementations registration
             (this as IPrivateBootstrapper)?
@@ -183,13 +183,14 @@ namespace ReportService
                     existingContainer.RegisterImplementation<IArchiver, Archiver7Zip>();
                     break;
             }
-         
 
-            existingContainer.RegisterImplementation<IRTaskRunContext, RTaskRunContext>();
+
+            existingContainer.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
 
             existingContainer.RegisterImplementation<ITaskWorker, TaskWorker>();
 
             existingContainer.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
+            existingContainer.RegisterImplementation<IPackageParser, ProtoPackageParser>();
 
             existingContainer.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
 
@@ -279,7 +280,7 @@ namespace ReportService
         {
             CreateMap<DtoRecepientGroup, RRecepientGroup>();
 
-            CreateMap<RTask, DtoTask>()
+            CreateMap<ReportTask.ReportTask, DtoTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
                 .ForMember("Parameters", opt =>
                     opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)));
@@ -300,10 +301,10 @@ namespace ReportService
             CreateMap<B2BExporterConfig, B2BExporter>();
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
             CreateMap<DbImporterConfig, DbImporter>()
-                .ForMember("DataSetNames",opt=>
-                    opt.MapFrom(s=>s.DataSetNames.Split(new[] { ';' },
+                .ForMember("DataSetNames", opt =>
+                    opt.MapFrom(s => s.DataSetNames.Split(new[] {';'},
                             StringSplitOptions.RemoveEmptyEntries)
-                        .Where(name=>!string.IsNullOrWhiteSpace(name))
+                        .Where(name => !string.IsNullOrWhiteSpace(name))
                         .ToList()));
             CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();

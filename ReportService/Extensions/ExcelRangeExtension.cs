@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System;
-using OfficeOpenXml.Style;
-
 namespace ReportService.Extensions
 {
     public static class ExcelRangeExtension

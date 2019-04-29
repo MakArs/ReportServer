@@ -12,7 +12,7 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class RTaskRunContext : IRTaskRunContext
+    public class ReportTaskRunContext : IReportTaskRunContext
     {
         public Dictionary<string, OperationPackage> Packages { get; set; } =
             new Dictionary<string, OperationPackage>();
@@ -34,7 +34,7 @@ namespace ReportService.ReportTask
         private Regex paramName;
         private readonly IArchiver archiver;
 
-        public RTaskRunContext(IArchiver archiver)
+        public ReportTaskRunContext(IArchiver archiver)
         {
             this.archiver = archiver;
             paramName = new Regex(@"\B\@RepPar\w*\b");

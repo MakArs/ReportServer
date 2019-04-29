@@ -9,7 +9,7 @@ namespace ReportService.Interfaces.Core
         List<DtoTaskInstance> GetInstancesByTaskId(int taskId);
         List<DtoOperInstance> GetOperInstancesByTaskInstanceId(int taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(int operInstanceId);
-
+        
         /// <summary>
         /// Obtains list of generic-type entities from repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
