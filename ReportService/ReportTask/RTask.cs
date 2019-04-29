@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Monik.Common;
 using Newtonsoft.Json;
+using ReportService.Entities;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;

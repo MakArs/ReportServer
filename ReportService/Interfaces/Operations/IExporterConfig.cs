@@ -1,7 +1,4 @@
-﻿using ReportService.Interfaces.Core;
-using ReportService.Interfaces.Operations;
-
-namespace ReportService.Operations.DataExporters.Configurations
+﻿namespace ReportService.Interfaces.Operations
 {
     public interface IExporterConfig : IOperationConfig
     {

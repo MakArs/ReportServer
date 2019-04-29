@@ -3,6 +3,7 @@ using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
 using Nancy.Swagger.Annotations.Attributes;
+using ReportService.Entities;
 using ReportService.Interfaces.Core;
 using Swagger.ObjectModel;
 using Response = Nancy.Response;

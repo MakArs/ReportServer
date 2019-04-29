@@ -18,7 +18,7 @@ namespace ReportService.ReportTask
             executor = autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
         }
 
-        public string GetDefaultView(string taskName, OperationPackage package)
+        public string GetDefaultPackageView(string taskName, OperationPackage package)
         {
             return executor.ExecuteHtml(taskName, package);
         }

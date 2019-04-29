@@ -15,6 +15,7 @@ using Nancy.Swagger.Annotations;
 using Nancy.Swagger.Services;
 using Newtonsoft.Json;
 using ReportService.Core;
+using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;

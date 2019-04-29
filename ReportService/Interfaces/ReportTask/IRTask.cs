@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using ReportService.Extensions;
-using ReportService.Interfaces.Core;
+using ReportService.Entities;
 using ReportService.Interfaces.Operations;
 
 namespace ReportService.Interfaces.ReportTask
@@ -12,33 +10,6 @@ namespace ReportService.Interfaces.ReportTask
     {
         Common = 1,
         Custom = 2
-    }
-
-    public enum InstanceState
-    {
-        InProcess = 1,
-        Success = 2,
-        Failed = 3,
-        Canceled=4
-    }
-
-    public class RRecepientGroup
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Addresses { get; set; }
-        public string AddressesBcc { get; set; }
-
-        public RecipientAddresses GetAddresses()
-        {
-            return new RecipientAddresses
-            {
-                To = Addresses.Split(new[] {';'},
-                    StringSplitOptions.RemoveEmptyEntries).ToList(),
-                Bcc = AddressesBcc?.Split(new[] {';'},
-                    StringSplitOptions.RemoveEmptyEntries).ToList()
-            };
-        }
     }
 
     public interface IRTask

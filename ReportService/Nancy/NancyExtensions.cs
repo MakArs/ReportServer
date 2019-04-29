@@ -43,7 +43,7 @@ namespace ReportService.Nancy
 
                         var jwtToken = authorization.Remove(0, TokenPrefix.Length);
 
-                        var handler = new JwtSecurityTokenHandler { SetDefaultTimesOnTokenCreation = false };
+                        var handler = new JwtSecurityTokenHandler {SetDefaultTimesOnTokenCreation = false};
 
                         var principal = handler.ValidateToken(
                             jwtToken,
@@ -65,7 +65,7 @@ namespace ReportService.Nancy
 
         private static void ParsePermissions(ClaimsPrincipal principal, string jwtToken)
         {
-            var identity = (ClaimsIdentity)principal.Identity;
+            var identity = (ClaimsIdentity) principal.Identity;
             identity.AddClaim(new Claim("id_token", jwtToken));
             foreach (var role in principal.FindAll(TokenClaims.CLAIM_PERMISSIONS))
             {
@@ -79,11 +79,7 @@ namespace ReportService.Nancy
             if (subClaim != null)
                 identity.AddClaim(new Claim(ClaimTypes.Name, subClaim.Value));
         }
-    }
 
-
-    public static class EmbeddedContentConventionBuilderExtensions
-    {
         public static void AddEmbeddedDirectory<T>(this IList<Func<NancyContext, string, Response>> conventions,
             string requestPath, string embeddedPath)
             => conventions.Add(EmbeddedContentConventionBuilder.AddEmbeddedDirectory<T>(requestPath, embeddedPath));
@@ -91,7 +87,8 @@ namespace ReportService.Nancy
 
     public static class EmbeddedContentConventionBuilder
     {
-        public static Func<NancyContext, string, Response> AddEmbeddedDirectory<T>(string requestPath, string embedDirectory)
+        public static Func<NancyContext, string, Response> AddEmbeddedDirectory<T>(string requestPath,
+            string embedDirectory)
         {
             return (ctx, root) =>
             {

@@ -10,6 +10,7 @@ using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
+using ReportService.Protobuf;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
 {

@@ -1,4 +1,6 @@
-﻿namespace ReportService.Operations.DataExporters.Configurations
+﻿using ReportService.Interfaces.Operations;
+
+namespace ReportService.Operations.DataExporters.Configurations
 {
     public class B2BExporterConfig : IExporterConfig
     {

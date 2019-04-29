@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Monik.Common;
+using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
@@ -196,7 +197,7 @@ namespace ReportService.ReportTask
 
             var val = taskContext.Packages.LastOrDefault().Value;
 
-            return taskContext.Exporter.GetDefaultView(taskContext.TaskName, val);
+            return taskContext.Exporter.GetDefaultPackageView(taskContext.TaskName, val);
         }
 
 

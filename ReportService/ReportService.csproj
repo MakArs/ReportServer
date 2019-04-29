@@ -341,8 +341,18 @@
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Core\ArchiverZip.cs" />
+    <Compile Include="Entities\DtoOperation.cs" />
+    <Compile Include="Entities\DtoOperInstance.cs" />
+    <Compile Include="Entities\DtoOperTemplate.cs" />
+    <Compile Include="Entities\DtoRecepientGroup.cs" />
+    <Compile Include="Entities\DtoSchedule.cs" />
+    <Compile Include="Entities\DtoTask.cs" />
+    <Compile Include="Entities\DtoTaskInstance.cs" />
+    <Compile Include="Entities\DtoTelegramChannel.cs" />
+    <Compile Include="Entities\RRecepientGroup.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
+    <Compile Include="Interfaces\Core\IDtoEntity.cs" />
     <Compile Include="Interfaces\Operations\IImporterConfig.cs" />
     <Compile Include="Interfaces\Operations\IOperationConfig.cs" />
     <Compile Include="Nancy\Models\ApiOperInstance.cs" />
@@ -373,6 +383,7 @@
     <Compile Include="Operations\DataImporters\CsvImporter.cs" />
     <Compile Include="Operations\DataImporters\HistoryImporter.cs" />
     <Compile Include="Operations\DataImporters\SshImporter.cs" />
+    <Compile Include="Protobuf\DataSetContent.cs" />
     <Compile Include="Protobuf\OperationPackage.cs" />
     <Compile Include="ReportTask\DefaultTaskExporter.cs" />
     <Compile Include="Protobuf\ProtoPackageBuilder.cs" />

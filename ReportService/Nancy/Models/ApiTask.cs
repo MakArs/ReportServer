@@ -1,5 +1,5 @@
 ﻿using Nancy.Swagger.Annotations.Attributes;
-using ReportService.Interfaces.Core;
+using ReportService.Entities;
 
 namespace ReportService.Nancy.Models
 {
