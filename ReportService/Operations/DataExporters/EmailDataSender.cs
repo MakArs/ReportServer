@@ -32,12 +32,12 @@ namespace ReportService.Operations.DataExporters
         public string ReportName;
         public bool UseAllSetsJson;
         public bool UseAllSetsXlsx;
-        private readonly IPackageBuilder builder;
+        private readonly IPackageParser parser;
 
         public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac,
-            EmailExporterConfig config, IPackageBuilder builder)
+            EmailExporterConfig config, IPackageParser parser)
         {
-            this.builder = builder;
+            this.parser = parser;
             mapper.Map(config, this);
             mapper.Map(config, Properties);
 
@@ -93,7 +93,7 @@ namespace ReportService.Operations.DataExporters
                 {
                     if (HasJsonAttachment)
                     {
-                        var sets = builder.GetPackageValues(package);
+                        var sets = parser.GetPackageValues(package);
                         var dataToSave = UseAllSetsJson
                             ? JsonConvert.SerializeObject(sets)
                             : JsonConvert.SerializeObject(sets.First());
@@ -184,7 +184,7 @@ namespace ReportService.Operations.DataExporters
                 {
                     if (HasJsonAttachment)
                     {
-                        var sets = builder.GetPackageValues(package);
+                        var sets = parser.GetPackageValues(package);
                         var dataToSave = UseAllSetsJson
                             ? JsonConvert.SerializeObject(sets)
                             : JsonConvert.SerializeObject(sets.First());

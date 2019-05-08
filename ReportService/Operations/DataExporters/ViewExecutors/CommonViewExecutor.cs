@@ -131,7 +131,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             // return inPackage;
         }
 
-        public ExcelPackage ExecuteXlsx(OperationPackage package, string reportName, bool useAllSets = false)
+        public virtual ExcelPackage ExecuteXlsx(OperationPackage package, string reportName, bool useAllSets = false)
         {
             var pack = new ExcelPackage();
 

@@ -18,7 +18,7 @@ namespace ReportService.Operations.DataExporters
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool RunIfVoidPackage { get; set; }
 
-        private readonly IPackageBuilder packageBuilder;
+        private readonly IPackageParser packageParser;
         private readonly Dictionary<ScalarType, string> scalarTypesToSqlTypes;
 
         public string ConnectionString;
@@ -27,11 +27,11 @@ namespace ReportService.Operations.DataExporters
         public bool DropBefore;
         public bool CreateTable;
 
-        public DbExporter(IMapper mapper, DbExporterConfig config, IPackageBuilder builder)
+        public DbExporter(IMapper mapper, DbExporterConfig config, IPackageParser parser)
         {
             mapper.Map(config, this);
             mapper.Map(config, Properties);
-            packageBuilder = builder;
+            packageParser = parser;
 
             scalarTypesToSqlTypes =
                 new Dictionary<ScalarType, string>
@@ -82,7 +82,7 @@ namespace ReportService.Operations.DataExporters
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
 
-            var firstSet = packageBuilder.GetPackageValues(package).First();
+            var firstSet = packageParser.GetPackageValues(package).First();
 
             var columns = package.DataSets.First().Columns;
 
@@ -135,7 +135,7 @@ namespace ReportService.Operations.DataExporters
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
-                var firstSet = packageBuilder.GetPackageValues(package).First();
+                var firstSet = packageParser.GetPackageValues(package).First();
 
                 var columns = package.DataSets.First().Columns;
 

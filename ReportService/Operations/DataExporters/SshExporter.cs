@@ -120,9 +120,9 @@ namespace ReportService.Operations.DataExporters
             var filenameJson = fileName
                                + ".json";
 
-            var builder = autofac.Resolve<IPackageBuilder>();
+            var parser = autofac.Resolve<IPackageParser>();
 
-            var sets = builder.GetPackageValues(package);
+            var sets = parser.GetPackageValues(package);
 
             var dataToSave = UseAllSets
                 ? JsonConvert.SerializeObject(sets)
