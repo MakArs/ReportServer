@@ -74,9 +74,9 @@ namespace ReportService.Operations.DataExporters
 
             using (Session session = new Session())
             {
-#pragma warning disable 618
+            #pragma warning disable 618
                 session.DisableVersionCheck = true;
-#pragma warning restore 618
+            #pragma warning restore 618
                 session.Open(sessionOptions);
 
                 if (ClearInterval > 0)

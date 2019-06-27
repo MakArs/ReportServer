@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Autofac;
 using AutoMapper;
@@ -58,24 +59,24 @@ namespace ReportService.Operations.DataExporters
                 if (ClearInterval > 0)
                     CleanupFolder(client);
 
-                if (!string.IsNullOrEmpty(FileName))
+                if (!string.IsNullOrEmpty(FileName) && !string.IsNullOrEmpty(FileFolder))
                     SaveFileToServer(taskContext, client);
 
-                var fileName = (string.IsNullOrEmpty(PackageRename)
-                                   ? $@"{Properties.PackageName}"
-                                   : taskContext.SetStringParameters(PackageRename))
-                               + (DateInName
-                                   ? $" {DateTime.Now:dd.MM.yy}"
-                                   : null);
+                var packageFileName = (string.IsNullOrEmpty(PackageRename)
+                                          ? $@"{Properties.PackageName}"
+                                          : taskContext.SetStringParameters(PackageRename))
+                                      + (DateInName
+                                          ? $" {DateTime.Now:dd.MM.yy}"
+                                          : null);
 
                 if (ConvertPackageToXlsx)
-                    SaveXlsxPackageToServer(package, fileName, client);
+                    SaveXlsxPackageToServer(package, packageFileName, client);
 
                 if (ConvertPackageToJson)
-                    SaveJsonPackageToServer(package, fileName, client);
+                    SaveJsonPackageToServer(package, packageFileName, client);
 
                 if (ConvertPackageToCsv)
-                    SaveCsvPackageToServer(package, fileName, client);
+                    SaveCsvPackageToServer(package, packageFileName, client);
             }
         }
 
@@ -89,9 +90,9 @@ namespace ReportService.Operations.DataExporters
                 client.DeleteFile(file.FullName);
         }
 
-        private void SaveXlsxPackageToServer(OperationPackage package, string fileName, SftpClient client)
+        private void SaveXlsxPackageToServer(OperationPackage package, string packageFileName, SftpClient client)
         {
-            var filenameXlsx = fileName
+            var filenameXlsx = packageFileName
                                + ".xlsx";
 
             using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName, UseAllSets))
@@ -106,18 +107,18 @@ namespace ReportService.Operations.DataExporters
             }
         }
 
-        private void SaveCsvPackageToServer(OperationPackage package, string fileName, SftpClient client)
+        private void SaveCsvPackageToServer(OperationPackage package, string packageFileName, SftpClient client)
         {
-            var filenameCsv = fileName
+            var filenameCsv = packageFileName
                               + ".csv";
             var csvBytes = viewExecutor.ExecuteCsv(package, useAllSets: UseAllSets);
             using (var csvStream = new MemoryStream(csvBytes))
                 client.UploadFile(csvStream, Path.Combine(FolderPath, filenameCsv));
         }
 
-        private void SaveJsonPackageToServer(OperationPackage package, string fileName, SftpClient client)
+        private void SaveJsonPackageToServer(OperationPackage package, string packageFileName, SftpClient client)
         {
-            var filenameJson = fileName
+            var filenameJson = packageFileName
                                + ".json";
 
             var parser = autofac.Resolve<IPackageParser>();

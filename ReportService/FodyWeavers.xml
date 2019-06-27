@@ -5,6 +5,7 @@
       SevenZipSharp
       RazorEngine
       Nancy.Swagger
+      WinSCP
     </ExcludeAssemblies>
   </Costura>
 </Weavers>

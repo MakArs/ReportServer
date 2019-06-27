@@ -112,6 +112,9 @@ namespace ReportService
             RegisterNamedDataExporter<SshExporter, SshExporterConfig>
                 (existingContainer, "CommonSshExporter");
 
+            RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>
+                (existingContainer, "CommonFtpExporter");
+
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
             RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer,
                 "CommonTableViewEx");
@@ -317,6 +320,8 @@ namespace ReportService
             CreateMap<SshImporterConfig, CommonOperationProperties>();
             CreateMap<SshExporterConfig, SshExporter>();
             CreateMap<SshExporterConfig, CommonOperationProperties>();
+            CreateMap<FtpExporterConfig, FtpExporter>();
+            CreateMap<FtpExporterConfig, CommonOperationProperties>();
             CreateMap<HistoryImporterConfig, HistoryImporter>();
             CreateMap<HistoryImporterConfig, CommonOperationProperties>();
         }
