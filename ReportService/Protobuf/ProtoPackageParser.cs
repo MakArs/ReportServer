@@ -65,6 +65,13 @@ namespace ReportService.Protobuf
             {
                 var setHeaders = set.Columns.Select(col => col.Name).ToList();
                 var setRows = new List<List<object>>();
+                var groupNumbers = set.ViewSettings?.GroupingColumnNumbers?.ToList();
+                var orderSettings = set.ViewSettings?.OrderSettings
+                    .Select(stgs => new OrderSettings
+                    {
+                        ColumnNumber = stgs.ColumnNumber,
+                        Descending = stgs.Descending
+                    }).ToList();
 
                 foreach (var row in set.Rows)
                 {
@@ -85,7 +92,9 @@ namespace ReportService.Protobuf
                 {
                     Headers = setHeaders,
                     Rows = setRows,
-                    Name = set.Name
+                    Name = set.Name,
+                    GroupColumns = groupNumbers,
+                    OrderColumns = orderSettings
                 });
             }
 

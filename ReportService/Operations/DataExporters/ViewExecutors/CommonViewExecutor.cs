@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using CsvHelper;
+﻿using CsvHelper;
 using OfficeOpenXml;
 using RazorEngine;
 using RazorEngine.Configuration;
@@ -11,12 +7,16 @@ using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Protobuf;
+using System;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonViewExecutor : IViewExecutor
     {
-        private readonly IPackageParser packageParser;
+        protected readonly IPackageParser packageParser;
 
         public CommonViewExecutor(IPackageParser parser)
         {
@@ -35,6 +35,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 };
 
             var serv = RazorEngineService.Create(templateConfig);
+
             Engine.Razor = serv;
             Engine.Razor.Compile(viewTemplate, "somekey");
 
@@ -42,16 +43,18 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             var packageValues = packageParser.GetPackageValues(package);
 
+            var dataSet = packageValues.First();
+
             var model = new
             {
-                packageValues.First().Headers,
-                Content = packageValues.First().Rows,
+                dataSet.Headers,
+                Content = dataSet.Rows,
                 Date = date
             };
 
             return Engine.Razor.Run("somekey", null, model);
         }
-
+        
         private string AddDataSetToTelegView(string tmRep, DataSetContent content)
         {
             tmRep = tmRep.Insert(tmRep.Length,
@@ -70,8 +73,10 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                                                                ? Regex.Replace(strVal,
                                                                    @"([[*_])", @"\$1")
                                                                : val)));
+       
             return tmRep;
         }
+
 
         public virtual string ExecuteTelegramView(OperationPackage package,
             string reportName = "Отчёт", bool useAllSets = false)

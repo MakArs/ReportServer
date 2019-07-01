@@ -74,9 +74,9 @@ namespace ReportService.Operations.DataExporters
 
             using (Session session = new Session())
             {
-            #pragma warning disable 618
+#pragma warning disable 618
                 session.DisableVersionCheck = true;
-            #pragma warning restore 618
+#pragma warning restore 618
                 session.Open(sessionOptions);
 
                 if (ClearInterval > 0)
@@ -113,7 +113,8 @@ namespace ReportService.Operations.DataExporters
 
         private void SaveFileToServer(IReportTaskRunContext taskContext, Session session)
         {
-            var fullPath = Path.Combine(SourceFileFolder == "Default folder" ? taskContext.DataFolderPath : SourceFileFolder,
+            var fullPath = Path.Combine(
+                SourceFileFolder == "Default folder" ? taskContext.DataFolderPath : SourceFileFolder,
                 FileName);
 
             var uri = Path.Combine(FolderPath, FileName);

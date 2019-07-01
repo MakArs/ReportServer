@@ -116,6 +116,7 @@ namespace ReportService
                 (existingContainer, "CommonFtpExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
+            RegisterNamedViewExecutor<GroupedViewExecutor>(existingContainer, "GroupedViewex");
             RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer,
                 "CommonTableViewEx");
 
