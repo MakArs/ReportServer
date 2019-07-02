@@ -9,5 +9,6 @@ namespace ReportService.Operations.DataImporters.Configurations
         public string FileName;
         public string Delimiter;
         public string DataSetName;
+        public string GroupNumbers;
     }
 }

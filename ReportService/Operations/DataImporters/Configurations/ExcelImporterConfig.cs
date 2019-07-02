@@ -13,5 +13,6 @@ namespace ReportService.Operations.DataImporters.Configurations
         public bool UseColumnNames;
         public int FirstDataRow;
         public int MaxRowCount;
+        public string GroupNumbers;
     }
 }

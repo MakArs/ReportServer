@@ -103,7 +103,7 @@ namespace ReportService.Protobuf
             };
         }
 
-        public OperationPackage GetPackage(DbDataReader reader)
+        public OperationPackage GetPackage(DbDataReader reader, string groupNumbers)
         {
             var date = DateTime.Now.ToUniversalTime();
 
@@ -118,6 +118,8 @@ namespace ReportService.Protobuf
             while (reader.NextResult() && reader.HasRows)
                 queryPackage.DataSets.Add(GetDataSet(reader));
 
+            queryPackage.DataSets.First().ViewSettings = FillViewSettings(groupNumbers);
+
             for (int i = 0; i < queryPackage.DataSets.Count; i++)
                 if (string.IsNullOrEmpty(queryPackage.DataSets[i].Name))
                     queryPackage.DataSets[i].Name = $"Dataset{i + 1}";
@@ -131,7 +133,7 @@ namespace ReportService.Protobuf
 
         public OperationPackage GetPackage(ExcelPackage excelPackage,
             ExcelPackageReadingParameters
-                excelParameters) //todo: logic for maintaining multiple datasets, mb 
+                excelParameters, string groupNumbers) //todo: logic for maintaining multiple datasets, mb 
         {
             var date = DateTime.Now.ToUniversalTime();
 
@@ -221,7 +223,8 @@ namespace ReportService.Protobuf
             {
                 Name = sheet.Name,
                 Columns = {columns},
-                Rows = {rows}
+                Rows = {rows},
+                ViewSettings = FillViewSettings(groupNumbers)
             };
 
             queryPackage.DataSets.Add(set);
@@ -333,7 +336,9 @@ namespace ReportService.Protobuf
 
         #region CsvReaderToPackage
 
-        public OperationPackage GetPackage(CsvReader reader) //todo: logic for maintaining multiple datasets, mb 
+        public OperationPackage
+            GetPackage(CsvReader reader,
+                string groupNumbers) //todo: logic for maintaining multiple datasets, mb 
         {
             var date = DateTime.Now.ToUniversalTime();
 
@@ -376,7 +381,8 @@ namespace ReportService.Protobuf
             {
                 Name = "Dataset1",
                 Columns = {columns},
-                Rows = {rows}
+                Rows = {rows},
+                ViewSettings = FillViewSettings(groupNumbers)
             };
 
             queryPackage.DataSets.Add(set);
@@ -385,6 +391,24 @@ namespace ReportService.Protobuf
         }
 
         #endregion
+
+        private ViewSettings FillViewSettings(string groupNumbers)
+        {
+            if (string.IsNullOrEmpty(groupNumbers))
+                return null;
+
+            var groupNumbersList = groupNumbers.Split(new[] {';'},
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(int.Parse);
+
+            var viewSettings = new ViewSettings
+            {
+                GroupingColumnNumbers = {groupNumbersList}
+            };
+
+            return viewSettings;
+        }
 
         private VariantValue FillVariantValue(ColumnInfo info, object value)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Gerakul.FastSql.Common;
@@ -20,6 +21,7 @@ namespace ReportService.Operations.DataImporters
         public string Query;
         public int TimeOut;
         public List<string> DataSetNames;
+        public string GroupNumbers;
 
         public DbImporter(IMapper mapper, DbImporterConfig config,
             IPackageBuilder builder)
@@ -46,9 +48,14 @@ namespace ReportService.Operations.DataImporters
                             parValues.ToArray())
                         .UseReader(reader =>
                         {
-                            var pack = packageBuilder.GetPackage(reader);
+                            var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+
                             for (int i = 0; i < DataSetNames.Count; i++)
-                                pack.DataSets[i].Name = DataSetNames[i];
+                            {
+                                if (pack.DataSets.ElementAtOrDefault(i) != null)
+                                    pack.DataSets[i].Name = DataSetNames[i];
+                            }
+
                             taskContext.Packages[Properties.PackageName] = pack;
                         });
 
@@ -57,9 +64,14 @@ namespace ReportService.Operations.DataImporters
                         .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}")
                         .UseReader(reader =>
                         {
-                            var pack = packageBuilder.GetPackage(reader);
+                            var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+
                             for (int i = 0; i < DataSetNames.Count; i++)
-                                pack.DataSets[i].Name = DataSetNames[i];
+                            {
+                                if (pack.DataSets.ElementAtOrDefault(i) != null)
+                                    pack.DataSets[i].Name = DataSetNames[i];
+                            }
+
                             taskContext.Packages[Properties.PackageName] = pack;
                         });
             });
@@ -79,9 +91,14 @@ namespace ReportService.Operations.DataImporters
                         parValues.ToArray())
                     .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                     {
-                        var pack = packageBuilder.GetPackage(reader);
+                        var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+
                         for (int i = 0; i < DataSetNames.Count; i++)
-                            pack.DataSets[i].Name = DataSetNames[i];
+                        {
+                            if (pack.DataSets.ElementAtOrDefault(i) != null)
+                                pack.DataSets[i].Name = DataSetNames[i];
+                        }
+
                         taskContext.Packages[Properties.PackageName] = pack;
                         return Task.CompletedTask;
                     });
@@ -91,9 +108,14 @@ namespace ReportService.Operations.DataImporters
                     .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}")
                     .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                     {
-                        var pack = packageBuilder.GetPackage(reader);
+                        var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+
                         for (int i = 0; i < DataSetNames.Count; i++)
-                            pack.DataSets[i].Name = DataSetNames[i];
+                        {
+                            if (pack.DataSets.ElementAtOrDefault(i) != null)
+                                pack.DataSets[i].Name = DataSetNames[i];
+                        }
+
                         taskContext.Packages[Properties.PackageName] = pack;
                         return Task.CompletedTask;
                     });

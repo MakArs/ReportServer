@@ -17,6 +17,7 @@ namespace ReportService.Operations.DataImporters
         public string FileFolder;
         public string FileName;
         public string DataSetName;
+        public string GroupNumbers;
 
         private readonly IPackageBuilder packageBuilder;
 
@@ -39,7 +40,8 @@ namespace ReportService.Operations.DataImporters
                 using (var csvReader = new CsvReader(textReader))
                 {
                     csvReader.Configuration.Delimiter = Delimiter;
-                    var pack = packageBuilder.GetPackage(csvReader);
+
+                    var pack = packageBuilder.GetPackage(csvReader, GroupNumbers);
                     pack.DataSets.First().Name = DataSetName;
 
                     taskContext.Packages[Properties.PackageName] = pack;

@@ -28,6 +28,7 @@ namespace ReportService.Operations.DataImporters
 
         public string FileFolder;
         public string FileName;
+        public string GroupNumbers;
 
         public ExcelImporter(IMapper mapper, ExcelImporterConfig config, IPackageBuilder builder)
         {
@@ -41,14 +42,14 @@ namespace ReportService.Operations.DataImporters
 
         public void Execute(IReportTaskRunContext taskContext)
         {
-            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath :
-                FileFolder, FileName);
+            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
+                FileName);
 
             var fi = new FileInfo(fullPath);
 
             using (var pack = new ExcelPackage(fi))
             {
-                var package = packageBuilder.GetPackage(pack, ExcelParameters);
+                var package = packageBuilder.GetPackage(pack, ExcelParameters, GroupNumbers);
                 taskContext.Packages[Properties.PackageName] = package;
             }
         }

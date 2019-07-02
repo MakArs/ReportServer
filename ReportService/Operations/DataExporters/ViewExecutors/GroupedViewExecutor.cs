@@ -21,7 +21,8 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                     CachingProvider = new DefaultCachingProvider(t => { })
                 };
 
-            templateConfig.Namespaces.Add("ReportService.Operations.DataExporters.ViewExecutors");
+            templateConfig.Namespaces
+                .Add("ReportService.Operations.DataExporters.ViewExecutors");
 
             var serv = RazorEngineService.Create(templateConfig);
 
@@ -30,9 +31,11 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             var packageValues = packageParser.GetPackageValues(package);
 
             var dataSet = packageValues.First();
-            var groupColumns = dataSet.GroupColumns;
 
+            var groupColumns = dataSet.GroupColumns;
             var grouping = GetMergedRows(dataSet.Rows, groupColumns, groupColumns);
+            var groupedT = CreateGroupedHtmlTable(grouping);
+            groupedT = groupedT.Replace("@", "&#64;"); //needed '@' symbol escaping for proper razorengine work
 
             string tableTemplate =
                 @"<!DOCTYPE html>
@@ -42,12 +45,14 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
     <title>ReportServer</title>
     <link rel=""stylesheet"" href=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"">
     <style>
-        table {
+        table 
+        {
             border-collapse: collapse;
             width: 80%;
         }
 
-    th, td {
+    th, td 
+        {
             border: 1px solid Black;
             padding: 10px;
         }
@@ -61,28 +66,43 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 <tr>
 @foreach(var header in @Model.Headers)
 {
-<th> @header </th>
+    <th> @header </th>
 }
 </tr>"
                 +
-                CreateGroupedHtmlTable(grouping)
+                groupedT
                 +
                 @"</table>
 </body>
 </html>";
 
+            var headers = ChangeHeadersOrder(dataSet.Headers, groupColumns);
+
             var model = new
             {
-                dataSet.Headers,
-                Content = dataSet.Rows,
+                Headers = headers,
                 Date = date
             };
+
             Engine.Razor = serv;
             Engine.Razor.Compile(tableTemplate, "somekey");
 
             return Engine.Razor.Run("somekey", null, model);
         }
 
+        private List<string> ChangeHeadersOrder(List<string> headers, List<int> groupColumns)
+        {
+            int i = 0;
+            foreach (var colIndex in groupColumns)
+            {
+                var name = headers[colIndex];
+                headers.RemoveAt(colIndex);
+                headers.Insert(i, name);
+                i++;
+            }
+
+            return headers;
+        }
 
         private Dictionary<MergedRow, object> GetMergedRows(List<List<object>> rows, List<int> groupCols,
             List<int> currGroupCols)

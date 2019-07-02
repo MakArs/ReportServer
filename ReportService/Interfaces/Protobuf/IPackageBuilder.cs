@@ -8,13 +8,13 @@ namespace ReportService.Interfaces.Protobuf
 {
     public interface IPackageBuilder
     {
-        OperationPackage GetPackage(DbDataReader reader);
+        OperationPackage GetPackage(DbDataReader reader, string groupNumbers);
 
-        OperationPackage GetPackage(CsvReader reader);
+        OperationPackage GetPackage(CsvReader reader, string groupNumbers);
 
         OperationPackage GetPackage<T>(IEnumerable<T> values) where T : class;
 
         OperationPackage GetPackage(ExcelPackage excelPackage,
-            ExcelPackageReadingParameters excelParameters);
+            ExcelPackageReadingParameters excelParameters, string groupNumbers);
     }
 }

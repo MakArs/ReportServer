@@ -27,12 +27,13 @@ namespace ReportService.Operations.DataExporters
         public bool HasXlsxAttachment;
         public bool HasJsonAttachment;
         public string RecepientsDatasetName;
-        private readonly IViewExecutor viewExecutor;
+        private IViewExecutor viewExecutor;
         public string ViewTemplate;
         public string ReportName;
         public bool UseAllSetsJson;
         public bool UseAllSetsXlsx;
         private readonly IPackageParser parser;
+        private readonly ILifetimeScope autofac;
 
         public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac,
             EmailExporterConfig config, IPackageParser parser)
@@ -44,8 +45,7 @@ namespace ReportService.Operations.DataExporters
             addresses = config.RecepientGroupId > 0
                 ? logic.GetRecepientAddressesByGroupId(config.RecepientGroupId)
                 : new RecipientAddresses();
-
-            viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
+            this.autofac = autofac;
         } //ctor
 
         public void Execute(IReportTaskRunContext taskContext)
@@ -79,6 +79,14 @@ namespace ReportService.Operations.DataExporters
                     msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
                 msg.Subject = filename;
+
+                var dataset = parser.GetPackageValues(package).First();
+
+                viewExecutor = dataset.GroupColumns != null && dataset.GroupColumns.Any()
+                    ? autofac.ResolveNamed<IViewExecutor>("GroupedViewex")
+                    : !string.IsNullOrEmpty(ViewTemplate)
+                        ? autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx")
+                        : autofac.ResolveNamed<IViewExecutor>("commonviewex");
 
                 if (HasHtmlBody)
                 {
@@ -124,12 +132,12 @@ namespace ReportService.Operations.DataExporters
                             client.Send(msg);
                             break;
                         }
-                        catch(Exception exc)
+                        catch (Exception exc)
                         {
                             if (tryCount == 2)
-                                throw new Exception("Message not sent",exc);
+                                throw new Exception("Message not sent", exc);
                             else
-                            tryCount++;
+                                tryCount++;
                         }
                     }
                 }
@@ -170,6 +178,14 @@ namespace ReportService.Operations.DataExporters
                     msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
                 msg.Subject = filename;
+
+                var dataset = parser.GetPackageValues(package).First();
+
+                viewExecutor = dataset.GroupColumns != null && dataset.GroupColumns.Any()
+                    ? autofac.ResolveNamed<IViewExecutor>("GroupedViewex")
+                    : string.IsNullOrEmpty(ViewTemplate)
+                        ? autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx")
+                        : autofac.ResolveNamed<IViewExecutor>("commonviewex");
 
                 if (HasHtmlBody)
                 {
@@ -222,7 +238,7 @@ namespace ReportService.Operations.DataExporters
                                     await client.SendMailAsync(msg);
                                     break;
                                 }
-                                catch(Exception exc)
+                                catch (Exception exc)
                                 {
                                     if (tryCount == 2)
                                         throw new Exception("Message not sent", exc);

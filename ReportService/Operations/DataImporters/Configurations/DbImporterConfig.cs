@@ -9,5 +9,6 @@ namespace ReportService.Operations.DataImporters.Configurations
         public string Query;
         public int TimeOut;
         public string DataSetNames;
+        public string GroupNumbers;
     }
 }
