@@ -1,15 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using OfficeOpenXml;
 using RazorEngine;
 using RazorEngine.Configuration;
 using RazorEngine.Templating;
+using ReportService.Extensions;
 using ReportService.Interfaces.Protobuf;
+using ReportService.Protobuf;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using OfficeOpenXml.Style;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class GroupedViewExecutor : CommonViewExecutor
     {
+        public GroupedViewExecutor(IPackageParser parser) : base(parser)
+        {
+        }
+
         public override string ExecuteHtml(string tableName, OperationPackage package)
         {
             string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
@@ -28,7 +37,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             if (!package.DataSets.Any()) return "No information obtained by query";
 
-            var packageValues = packageParser.GetPackageValues(package);
+            var packageValues = PackageParser.GetPackageValues(package);
 
             var dataSet = packageValues.First();
 
@@ -182,9 +191,121 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             return table;
         }
 
-        public GroupedViewExecutor(IPackageParser parser) : base(parser)
+        protected override void AddDataSetToExcel(ExcelPackage inPackage, DataSetContent content)
         {
+            var ws = inPackage.Workbook.Worksheets.Add(
+                string.IsNullOrEmpty(content.Name) ? "NoNamedList" : content.Name);
+            var propNum = 0;
+
+
+            var groupColumns = content.GroupColumns;
+
+            var grouping = GetMergedRows(content.Rows, groupColumns, groupColumns);
+            var headers = ChangeHeadersOrder(content.Headers, groupColumns);
+
+            foreach (string header in headers)
+                ws.Cells[1, ++propNum].Value = header;
+
+            using (ExcelRange rng = ws.Cells[1, 1, 1, propNum])
+            {
+                rng.Style.Font.Bold = true;
+                rng.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                rng.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            }
+
+            var sizes = new Dictionary<int, double>();
+
+            FillGroup(ws, grouping, 1, 2, sizes);
+
+            var i = grouping.Keys.Sum(key => key.SpanCount);
+
+            ws.Cells[1, 1, i, propNum].AutoFitColumns(5, 50);
+
+            for (int j = 1; j <= propNum; j++)
+            {
+                ws.Column(j).Style.WrapText = true;
+            }
+
+            for (int j = 1; j <= sizes.Count; j++)
+                ws.Column(j).Width = sizes[j];
         }
 
+        private void FillGroup(ExcelWorksheet ws, Dictionary<MergedRow, object> grouping, int column, int startRow,
+            Dictionary<int, double> columnSizes)
+        {
+            int groupedStartRow = startRow;
+
+            foreach (var group in grouping)
+            {
+                var span = group.Key.SpanCount;
+
+                ws.Cells[groupedStartRow, column].SetObjValue(group.Key.Value, "");
+                ws.Cells[groupedStartRow, groupedStartRow + span].Merge = true;
+
+                if (group.Value is Dictionary<MergedRow, object> dict)
+                    FillGroup(ws, dict, column + 1, groupedStartRow, columnSizes);
+
+                else if (group.Value is List<List<object>> objs)
+                {
+                    int nonGroupedStartRow = groupedStartRow;
+
+                    foreach (var row in objs)
+                    {
+                        int j = column;
+
+                        foreach (var value in row)
+                        {
+                            j++;
+                            ws.Cells[nonGroupedStartRow, j].SetObjValue(value, "");
+                        }
+
+                        nonGroupedStartRow++;
+                    }
+                }
+
+                ws.Cells[startRow, column, groupedStartRow, column].AutoFitColumns(5, 50);
+
+                var newSize = ws.Column(column).Width;
+                if (columnSizes.ContainsKey(column))
+                {
+                    var currentSize = columnSizes[column];
+
+                    if (newSize > currentSize)
+                        columnSizes[column] = newSize;
+                }
+
+                else
+                    columnSizes.Add(column, newSize);
+
+                ws.Cells[groupedStartRow, column, groupedStartRow + span - 1, column].Merge = true;
+
+                groupedStartRow += span;
+            }
+        }
+
+        public override ExcelPackage ExecuteXlsx(OperationPackage package, string reportName, bool useAllSets = false)
+        {
+            var pack = new ExcelPackage();
+
+            var packageContent = PackageParser.GetPackageValues(package);
+
+            if (useAllSets)
+            {
+                for (int i = 0; i < packageContent.Count; i++)
+                {
+                    if (packageContent[i].GroupColumns != null)
+                        AddDataSetToExcel(pack, packageContent[i]);
+                    else
+                        base.AddDataSetToExcel(pack, packageContent[i]);
+
+                    if (pack.Workbook.Worksheets[i + 1].Name == "NoNamedList")
+                        pack.Workbook.Worksheets[i + 1].Name = $"Dataset{i + 1}";
+                }
+            }
+
+            else AddDataSetToExcel(pack, packageContent.First());
+
+            return pack;
+        }
     } //class
 }

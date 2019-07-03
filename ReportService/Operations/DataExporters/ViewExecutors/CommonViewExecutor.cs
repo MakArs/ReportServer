@@ -16,11 +16,11 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 {
     public class CommonViewExecutor : IViewExecutor
     {
-        protected readonly IPackageParser packageParser;
+        protected readonly IPackageParser PackageParser;
 
         public CommonViewExecutor(IPackageParser parser)
         {
-            packageParser = parser;
+            PackageParser = parser;
         }
 
         public virtual string ExecuteHtml(string viewTemplate, OperationPackage package)
@@ -41,7 +41,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             if (!package.DataSets.Any()) return "No information obtained by query";
 
-            var packageValues = packageParser.GetPackageValues(package);
+            var packageValues = PackageParser.GetPackageValues(package);
 
             var dataSet = packageValues.First();
 
@@ -54,7 +54,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             return Engine.Razor.Run("somekey", null, model);
         }
-        
+
         private string AddDataSetToTelegView(string tmRep, DataSetContent content)
         {
             tmRep = tmRep.Insert(tmRep.Length,
@@ -73,7 +73,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                                                                ? Regex.Replace(strVal,
                                                                    @"([[*_])", @"\$1")
                                                                : val)));
-       
+
             return tmRep;
         }
 
@@ -81,7 +81,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         public virtual string ExecuteTelegramView(OperationPackage package,
             string reportName = "Отчёт", bool useAllSets = false)
         {
-            var packageValues = packageParser.GetPackageValues(package);
+            var packageValues = PackageParser.GetPackageValues(package);
 
             var tmRep = $@"*{reportName}*";
 
@@ -97,7 +97,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             return tmRep;
         }
 
-        private void AddDataSetToExcel(ExcelPackage inPackage, DataSetContent content)
+        protected virtual void AddDataSetToExcel(ExcelPackage inPackage, DataSetContent content)
         {
             var ws = inPackage.Workbook.Worksheets.Add(
                 string.IsNullOrEmpty(content.Name) ? "NoNamedList" : content.Name);
@@ -127,12 +127,13 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 }
             }
 
-            ws.Cells[1, 1, i, propNum].AutoFitColumns(5,50);
+            ws.Cells[1, 1, i, propNum].AutoFitColumns(5, 50);
 
             for (int j = 1; j <= propNum; j++)
             {
                 ws.Column(j).Style.WrapText = true;
             }
+
             // return inPackage;
         }
 
@@ -140,16 +141,17 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         {
             var pack = new ExcelPackage();
 
-            var packageContent = packageParser.GetPackageValues(package);
+            var packageContent = PackageParser.GetPackageValues(package);
 
             if (useAllSets)
             {
                 for (int i = 0; i < packageContent.Count; i++)
                 {
                     AddDataSetToExcel(pack, packageContent[i]);
-                    if (pack.Workbook.Worksheets[i+1].Name == "NoNamedList")
-                        pack.Workbook.Worksheets[i+1].Name = $"Dataset{i + 1}";
+                    if (pack.Workbook.Worksheets[i + 1].Name == "NoNamedList")
+                        pack.Workbook.Worksheets[i + 1].Name = $"Dataset{i + 1}";
                 }
+
                 // foreach (var set in packageContent)
             }
 
@@ -158,10 +160,9 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             return pack;
         }
 
-        public byte[]
-            ExecuteCsv(OperationPackage package,
-                string delimiter = ";",
-                bool useAllSets = false) //byte[] because closing inner streams causes closing of external one
+        public byte[] ExecuteCsv(OperationPackage package,
+            string delimiter = ";",
+            bool useAllSets = false) //byte[] because closing inner streams causes closing of external one
         {
             var csvStream = new MemoryStream();
             try
@@ -174,7 +175,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
                         if (!useAllSets)
                         {
-                            var firstSet = packageParser.GetPackageValues(package).First();
+                            var firstSet = PackageParser.GetPackageValues(package).First();
                             foreach (var head in firstSet.Headers)
                             {
                                 csvWriter.WriteField(head);
@@ -193,7 +194,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
                         else
                         {
-                            foreach (var dataSet in packageParser.GetPackageValues(package))
+                            foreach (var dataSet in PackageParser.GetPackageValues(package))
                             {
                                 foreach (var head in dataSet.Headers)
                                 {
