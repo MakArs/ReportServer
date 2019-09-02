@@ -233,21 +233,19 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         private void FillGroup(ExcelWorksheet ws, Dictionary<MergedRow, object> grouping, int column, int startRow,
             Dictionary<int, double> columnSizes)
         {
-            int groupedStartRow = startRow;
-
             foreach (var group in grouping)
             {
                 var span = group.Key.SpanCount;
 
-                ws.Cells[groupedStartRow, column].SetObjValue(group.Key.Value, "");
-                ws.Cells[groupedStartRow, groupedStartRow + span].Merge = true;
+                ws.Cells[startRow, column].SetObjValue(group.Key.Value, "");
+                ws.Cells[startRow, startRow + span].Merge = true;
 
                 if (group.Value is Dictionary<MergedRow, object> dict)
-                    FillGroup(ws, dict, column + 1, groupedStartRow, columnSizes);
+                    FillGroup(ws, dict, column + 1, startRow, columnSizes);
 
                 else if (group.Value is List<List<object>> objs)
                 {
-                    int nonGroupedStartRow = groupedStartRow;
+                    int nonGroupedStartRow = startRow;
 
                     foreach (var row in objs)
                     {
@@ -263,8 +261,8 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                     }
                 }
 
-                ws.Cells[startRow, column, groupedStartRow, column].AutoFitColumns(5, 50);
-
+                ws.Cells[startRow, column, startRow, column].AutoFitColumns(5, 50);
+                
                 var newSize = ws.Column(column).Width;
                 if (columnSizes.ContainsKey(column))
                 {
@@ -277,9 +275,9 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 else
                     columnSizes.Add(column, newSize);
 
-                ws.Cells[groupedStartRow, column, groupedStartRow + span - 1, column].Merge = true;
+                ws.Cells[startRow, column, startRow + span - 1, column].Merge = true;
 
-                groupedStartRow += span;
+                startRow += span;
             }
         }
 

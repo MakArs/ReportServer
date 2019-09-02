@@ -13,6 +13,8 @@ namespace ReportService.Operations.DataImporters
     public class CsvImporter : IOperation
     {
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+        public bool SendVoidPackageError;
+
         public string Delimiter;
         public string FileFolder;
         public string FileName;
@@ -31,8 +33,8 @@ namespace ReportService.Operations.DataImporters
 
         public void Execute(IReportTaskRunContext taskContext)
         {
-            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath :
-                FileFolder, FileName);
+            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
+                FileName);
 
             using (var textReader =
                 File.OpenText(fullPath))
@@ -42,7 +44,12 @@ namespace ReportService.Operations.DataImporters
                     csvReader.Configuration.Delimiter = Delimiter;
 
                     var pack = packageBuilder.GetPackage(csvReader, GroupNumbers);
-                    pack.DataSets.First().Name = DataSetName;
+
+                    if (SendVoidPackageError && !pack.DataSets.Any())
+                        throw new InvalidDataException("No datasets obtaned during import");
+
+                    if (!string.IsNullOrEmpty(DataSetName))
+                        pack.DataSets.First().Name = DataSetName;
 
                     taskContext.Packages[Properties.PackageName] = pack;
                 }

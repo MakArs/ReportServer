@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using OfficeOpenXml;
@@ -9,22 +10,13 @@ using ReportService.Operations.DataImporters.Configurations;
 
 namespace ReportService.Operations.DataImporters
 {
-    public class ExcelPackageReadingParameters
-    {
-        public string SheetName;
-        public bool SkipEmptyRows;
-        public string[] ColumnList;
-        public bool UseColumnNames;
-        public int FirstDataRow;
-        public int MaxRowCount;
-    }
-
     public class ExcelImporter : IOperation
     {
         private readonly IPackageBuilder packageBuilder;
         public ExcelPackageReadingParameters ExcelParameters;
 
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+        public bool SendVoidPackageError;
 
         public string FileFolder;
         public string FileName;
@@ -50,6 +42,10 @@ namespace ReportService.Operations.DataImporters
             using (var pack = new ExcelPackage(fi))
             {
                 var package = packageBuilder.GetPackage(pack, ExcelParameters, GroupNumbers);
+
+                if (SendVoidPackageError && !package.DataSets.Any())
+                    throw new InvalidDataException("No datasets obtaned during import");
+
                 taskContext.Packages[Properties.PackageName] = package;
             }
         }

@@ -414,6 +414,7 @@
     <Compile Include="Operations\DataImporters\Configurations\HistoryImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\Configurations\SshImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\CsvImporter.cs" />
+    <Compile Include="Operations\DataImporters\ExcelPackageReadingParameters.cs" />
     <Compile Include="Operations\DataImporters\HistoryImporter.cs" />
     <Compile Include="Operations\DataImporters\SshImporter.cs" />
     <Compile Include="Protobuf\DataSetContent.cs" />

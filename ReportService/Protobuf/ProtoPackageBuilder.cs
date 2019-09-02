@@ -149,7 +149,7 @@ namespace ReportService.Protobuf
                     workSheet.Name == excelParameters.SheetName);
 
             if (sheet == null) //todo: dataset with error?
-                return null;
+                return queryPackage;
 
             var columns = new RepeatedField<ColumnInfo>();
 

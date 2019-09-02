@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Data.Common;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -14,6 +16,7 @@ namespace ReportService.Operations.DataImporters
     public class DbImporter : IOperation
     {
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+        public bool SendVoidPackageError;
 
         private readonly IPackageBuilder packageBuilder;
 
@@ -48,15 +51,7 @@ namespace ReportService.Operations.DataImporters
                             parValues.ToArray())
                         .UseReader(reader =>
                         {
-                            var pack = packageBuilder.GetPackage(reader, GroupNumbers);
-
-                            for (int i = 0; i < DataSetNames.Count; i++)
-                            {
-                                if (pack.DataSets.ElementAtOrDefault(i) != null)
-                                    pack.DataSets[i].Name = DataSetNames[i];
-                            }
-
-                            taskContext.Packages[Properties.PackageName] = pack;
+                            FillPackage(reader, taskContext);
                         });
 
                 else
@@ -64,15 +59,7 @@ namespace ReportService.Operations.DataImporters
                         .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}")
                         .UseReader(reader =>
                         {
-                            var pack = packageBuilder.GetPackage(reader, GroupNumbers);
-
-                            for (int i = 0; i < DataSetNames.Count; i++)
-                            {
-                                if (pack.DataSets.ElementAtOrDefault(i) != null)
-                                    pack.DataSets[i].Name = DataSetNames[i];
-                            }
-
-                            taskContext.Packages[Properties.PackageName] = pack;
+                            FillPackage(reader, taskContext);
                         });
             });
         }
@@ -91,15 +78,8 @@ namespace ReportService.Operations.DataImporters
                         parValues.ToArray())
                     .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                     {
-                        var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+                        FillPackage(reader, taskContext);
 
-                        for (int i = 0; i < DataSetNames.Count; i++)
-                        {
-                            if (pack.DataSets.ElementAtOrDefault(i) != null)
-                                pack.DataSets[i].Name = DataSetNames[i];
-                        }
-
-                        taskContext.Packages[Properties.PackageName] = pack;
                         return Task.CompletedTask;
                     });
 
@@ -108,17 +88,26 @@ namespace ReportService.Operations.DataImporters
                     .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}")
                     .UseReaderAsync(taskContext.CancelSource.Token, reader =>
                     {
-                        var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+                        FillPackage(reader, taskContext);
 
-                        for (int i = 0; i < DataSetNames.Count; i++)
-                        {
-                            if (pack.DataSets.ElementAtOrDefault(i) != null)
-                                pack.DataSets[i].Name = DataSetNames[i];
-                        }
-
-                        taskContext.Packages[Properties.PackageName] = pack;
                         return Task.CompletedTask;
                     });
+        }
+
+        private void FillPackage(DbDataReader reader,IReportTaskRunContext taskContext)
+        {
+            var pack = packageBuilder.GetPackage(reader, GroupNumbers);
+
+            if (SendVoidPackageError && !pack.DataSets.Any())
+                throw new InvalidDataException("No datasets obtaned during import");
+
+            for (int i = 0; i < DataSetNames.Count; i++)
+            {
+                if (pack.DataSets.ElementAtOrDefault(i) != null)
+                    pack.DataSets[i].Name = DataSetNames[i];
+            }
+
+            taskContext.Packages[Properties.PackageName] = pack;
         }
     }
 }

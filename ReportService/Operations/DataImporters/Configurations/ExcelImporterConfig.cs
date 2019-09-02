@@ -14,5 +14,6 @@ namespace ReportService.Operations.DataImporters.Configurations
         public int FirstDataRow;
         public int MaxRowCount;
         public string GroupNumbers;
+        public bool SendVoidPackageError;
     }
 }

@@ -10,5 +10,6 @@ namespace ReportService.Operations.DataImporters.Configurations
         public int TimeOut;
         public string DataSetNames;
         public string GroupNumbers;
+        public bool SendVoidPackageError;
     }
 }

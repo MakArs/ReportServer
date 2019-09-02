@@ -10,5 +10,6 @@ namespace ReportService.Operations.DataImporters.Configurations
         public string Delimiter;
         public string DataSetName;
         public string GroupNumbers;
+        public bool SendVoidPackageError;
     }
 }
