@@ -118,7 +118,8 @@ namespace ReportService.Protobuf
             while (reader.NextResult() && reader.HasRows)
                 queryPackage.DataSets.Add(GetDataSet(reader));
 
-            queryPackage.DataSets.First().ViewSettings = FillViewSettings(groupNumbers);
+            if (!string.IsNullOrEmpty(groupNumbers))
+                queryPackage.DataSets.First().ViewSettings = FillViewSettings(groupNumbers);
 
             for (int i = 0; i < queryPackage.DataSets.Count; i++)
                 if (string.IsNullOrEmpty(queryPackage.DataSets[i].Name))

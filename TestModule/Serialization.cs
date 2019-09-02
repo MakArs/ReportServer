@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using NUnit.Framework;
 using ProtoBuf;
 using ReportService;
-using ReportService.Interfaces.Core;
+using ReportService.Entities;
 using ReportService.Protobuf;
 using ElementarySerializer = TestModule.ProtoOld.ElementarySerializer;
 using FieldParams = TestModule.ProtoOld.FieldParams;
@@ -126,22 +127,6 @@ namespace TestModule
         [Test]
         public void ExampleProtoUsing()
         {
-            //TestingProtoMessage proto =new TestingProtoMessage
-            //{
-            //    ColumnCount = 0,
-            //    Columns = { new ColumnInfo
-            //    {
-            //        Tag = { 1,5,2,5},
-            //        Name = { "412","vxzw","g215d"},
-            //        TypeName = "Int32Type"
-            //    },
-            //        new ColumnInfo{
-            //            Tag = {521,321,332,755},
-            //            Name = { "41gsdf2","vxzb cvw",@"g43-\215d"},
-            //            TypeName = "Intg32Type"
-            //        }}
-            //};
-
             OperationPackage package = new OperationPackage();
             var t = package.DataSets;
             ColumnInfo info = new ColumnInfo();
@@ -182,6 +167,9 @@ namespace TestModule
         [Test]
         public void ProtoBuilderTest()
         {
+            var list=new List<int>{1,3,5,2154,125,2567,976,3};
+            var asd = list.Take(4);
+
             var е = new Random().Next(100);
             var offs = new DateTime(1980, 3, 4, 21, 45, 52);
 
@@ -221,7 +209,9 @@ namespace TestModule
 
             var packfrm = bldr.GetPackage(opers);
 
-            var deser = bldr.GetPackageValues(packfrm);
+            var prsr=new ProtoPackageParser();
+
+            var deser = prsr.GetPackageValues(packfrm);
         }
     }
 }
