@@ -39,7 +39,7 @@ namespace TestModule
             autofac = Bootstrapper.Global.Resolve<ILifetimeScope>();
         }
 
-        [Test]
+
         public void HistoryImporterTest()
         {
             var histImp = autofac.ResolveNamed<IOperation>("CommonHistoryImporter",
@@ -56,27 +56,28 @@ namespace TestModule
                 Id = 151256,
                 StartTime = DateTime.Now,
                 Duration = 0,
-                State = (int)InstanceState.InProcess
+                State = (int) InstanceState.InProcess
             };
             taskContext.TaskInstance = dtoTaskInstance;
 
             histImp.Execute(taskContext);
         }
-        
-        private Dictionary<MergedRow, object> GetMergedRows(List<List<object>> rows, List<int> groupCols, List<int> currGroupCols)
+
+        private Dictionary<MergedRow, object> GetMergedRows(List<List<object>> rows, List<int> groupCols,
+            List<int> currGroupCols)
         {
             Dictionary<MergedRow, object> dict;
 
             var newGroupCols = currGroupCols.Skip(1).ToList();
 
-            if (newGroupCols.Any()) 
+            if (newGroupCols.Any())
             {
                 dict = rows.GroupBy(row => row[currGroupCols[0]])
                     .ToDictionary(group => new MergedRow
                     {
                         Value = group.Key,
                         SpanCount = group.Count()
-                    }, group => (object)group.ToList());
+                    }, group => (object) group.ToList());
 
                 for (int i = 0; i < dict.Count; i++)
                 {
@@ -84,7 +85,7 @@ namespace TestModule
 
                     if (dict[key] is List<List<object>> subGroup)
                     {
-                        dict[key] = GetMergedRows(subGroup, groupCols,newGroupCols);
+                        dict[key] = GetMergedRows(subGroup, groupCols, newGroupCols);
                     }
                 }
             } //if this is not last column that needs to be grouped by, saving all data for further grouping
@@ -93,19 +94,21 @@ namespace TestModule
             {
                 dict = rows.GroupBy(row => row[currGroupCols[0]])
                     .ToDictionary(group => new MergedRow
-                    {
-                        Value = group.Key,
-                        SpanCount = group.Count()
-                    }, group => (object)group.Select(list=>list.Where((obj,index)=>!groupCols.Contains(index)).ToList()).ToList());
-            }//if this is last column that needs to be grouped by, save only columns that not need grouping
+                        {
+                            Value = group.Key,
+                            SpanCount = group.Count()
+                        },
+                        group => (object) group
+                            .Select(list => list.Where((obj, index) => !groupCols.Contains(index)).ToList()).ToList());
+            } //if this is last column that needs to be grouped by, save only columns that not need grouping
 
             return dict;
         }
-        
-        [Test]
+
+
         public void TestGrouping()
         {
-                 var datasetc = new DataSetContent
+            var datasetc = new DataSetContent
             {
                 GroupColumns = new List<int> {3, 4, 1},
                 Headers = new List<string>
@@ -178,31 +181,31 @@ namespace TestModule
             return help;
         }
 
-        [Test]
+
         public void GetFileFromSshTest()
         {
             var sshImp = autofac.ResolveNamed<IOperation>("CommonSshImporter",
-                new NamedParameter("config",new SshImporterConfig
+                new NamedParameter("config", new SshImporterConfig
                 {
-                    FilePath= "savedData/filename.xlsx",
-                    Host= @"10.0.10.205",
+                    FilePath = "savedData/filename.xlsx",
+                    Host = @"10.0.10.205",
                     Login = "tester",
                     Password = "password"
                 }));
             var taskContext = autofac.Resolve<IReportTaskRunContext>();
             var dtoTaskInstance = new DtoTaskInstance
             {
-                Id=151256,
+                Id = 151256,
                 StartTime = DateTime.Now,
                 Duration = 0,
-                State = (int)InstanceState.InProcess
+                State = (int) InstanceState.InProcess
             };
             taskContext.TaskInstance = dtoTaskInstance;
             sshImp.Execute(taskContext);
-           
+
         }
 
-        [Test]
+
         public IReportTaskRunContext CsvImporterTest()
         {
             var csvimp = autofac.ResolveNamed<IOperation>("CommonCsvImporter",
@@ -276,7 +279,6 @@ namespace TestModule
         }
 
 
-        [Test]
         public void SharpZipLibTest()
         {
             var context = CsvImporterTest();
@@ -286,8 +288,8 @@ namespace TestModule
             using (var stream = new MemoryStream())
             {
                 context.Packages["package0101"].WriteTo(stream);
-               var bytes = stream.ToArray();
-               var compressedBytes= archiver.CompressStream(stream);
+                var bytes = stream.ToArray();
+                var compressedBytes = archiver.CompressStream(stream);
                 var extractedBytes = archiver.ExtractFromByteArchive(compressedBytes);
 
                 var b2bexp = autofac.ResolveNamed<IOperation>("CommonB2BExporter",
