@@ -16,7 +16,7 @@ namespace TestModule
         //    //this.archiver = archiver;
         //}
 
-        [Test]
+       
         public void ArchiverDictionaryTest()
         {
             var archiver = new Archiver7Zip();

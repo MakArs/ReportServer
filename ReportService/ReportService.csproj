@@ -190,7 +190,7 @@
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js.map" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\ReportPlugins\*.cs">
+    <Compile Include="..\..\ReportPlugins\ServicePlugins\*.cs">
       <Link>Reports\%(FileName)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>

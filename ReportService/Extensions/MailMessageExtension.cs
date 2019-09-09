@@ -32,7 +32,7 @@ namespace ReportService.Extensions
 
         public static void AddRecepientsFromPackage(this MailMessage msg, OperationPackage package)
         {
-            List<string> to = new List<string>();
+            List<string> to =  new List<string>();
             List<string> bcc = new List<string>();
 
             var set = package.DataSets.FirstOrDefault();

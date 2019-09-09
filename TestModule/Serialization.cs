@@ -124,7 +124,7 @@ namespace TestModule
             }
         }
 
-        [Test]
+
         public void ExampleProtoUsing()
         {
             OperationPackage package = new OperationPackage();
