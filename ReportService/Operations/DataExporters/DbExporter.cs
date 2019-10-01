@@ -143,7 +143,7 @@ namespace ReportService.Operations.DataExporters
                     await connectionContext.CreateSimple(new QueryOptions(DbTimeOut), CreateTableByColumnInfo(columns))
                         .ExecuteNonQueryAsync(token);
 
-                //todo:logic for auto-creating table by user-defined list of columns
+                //todo:logic for auto-creating table by user-defined list of columns?
                 if (DropBefore)
                     await connectionContext.CreateSimple(new QueryOptions(DbTimeOut),
                             $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")

@@ -8,6 +8,7 @@ using Monik.Common;
 using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataImporters;
 
@@ -29,7 +30,7 @@ namespace ReportService.ReportTask
 
         private string GetOperationStateFromInstance(string operName, DtoOperInstance instance)
         {
-            var state = (InstanceState)(instance.State);
+            var state = (InstanceState) instance.State;
 
             return operName +
                    $" (State: {state.ToString()}," +
@@ -40,7 +41,7 @@ namespace ReportService.ReportTask
                    + ")";
         }
 
-        public void RunOperations(IReportTaskRunContext taskContext)
+        public void RunTask(IReportTaskRunContext taskContext)
         {
             Stopwatch duration = new Stopwatch();
 
@@ -48,7 +49,7 @@ namespace ReportService.ReportTask
 
             bool deleteFolder = false;
 
-            if (taskContext.OpersToExecute.Any(oper => oper is SshImporter))//todo:not sshimporter but needsfolder
+            if (taskContext.OpersToExecute.Any(oper => oper is SshImporter)) //todo:not sshimporter but needsfolder
             {
                 deleteFolder = true;
                 taskContext.CreateDataFolder();
@@ -73,78 +74,7 @@ namespace ReportService.ReportTask
                         break;
                     }
 
-                    var dtoOperInstance = new DtoOperInstance
-                    {
-                        TaskInstanceId = dtoTaskInstance.Id,
-                        OperationId = oper.Properties.Id,
-                        StartTime = DateTime.Now,
-                        Duration = 0,
-                        State = (int) InstanceState.InProcess
-                    };
-
-                    dtoOperInstance.Id =
-                        repository.CreateEntity(dtoOperInstance);
-
-                    taskContext.PackageStates[oper.Properties.Number - 1] =
-                        GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
-
-                    Stopwatch operDuration = new Stopwatch();
-                    operDuration.Start();
-
-                    try
-                    {
-                        Task.Run(async () => await oper
-                            .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
-
-                        if (oper.Properties.NeedSavePackage)
-                            dtoOperInstance.DataSet =
-                                taskContext.GetCompressedPackage(oper.Properties.PackageName);
-
-                        dtoOperInstance.State = (int) InstanceState.Success;
-                        operDuration.Stop();
-                        dtoOperInstance.Duration =
-                            Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                        repository.UpdateEntity(dtoOperInstance);
-                    }
-
-                    catch (Exception e)
-                    {
-                        if (e is OperationCanceledException)
-                            dtoOperInstance.State = (int) InstanceState.Canceled;
-
-                        else
-                        {
-                            if (e.InnerException == null)
-                            {
-                                exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
-                                dtoOperInstance.ErrorMessage = e.Message;
-                            }
-
-                            else
-                            {
-                                var allExceptions = e.FromHierarchy(ex => ex.InnerException).ToList();
-
-                                exceptions.AddRange(allExceptions
-                                    .Select(exx => new Tuple<Exception, string>(exx, oper.Properties.Name)));
-
-                                dtoOperInstance.ErrorMessage =
-                                    string.Join("\n", allExceptions.Select(exx => exx.Message));
-                            }
-
-                            dtoOperInstance.State = (int) InstanceState.Failed;
-                        }
-
-                        operDuration.Stop();
-                        dtoOperInstance.Duration =
-                            Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                        repository.UpdateEntity(dtoOperInstance);
-                    }
-
-                    finally
-                    {
-                        taskContext.PackageStates[oper.Properties.Number - 1] =
-                            GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
-                    }
+                    RunOperation(taskContext, oper, dtoTaskInstance, exceptions);
                 }
 
                 if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)
@@ -190,10 +120,89 @@ namespace ReportService.ReportTask
             repository.UpdateEntity(dtoTaskInstance);
         }
 
-        public async Task<string> RunOperationsAndGetLastViewAsync(IReportTaskRunContext taskContext)
+        private void RunOperation(IReportTaskRunContext taskContext, IOperation oper,
+            DtoTaskInstance dtoTaskInstance, List<Tuple<Exception, string>> exceptions)
+        {
+            {
+                var dtoOperInstance = new DtoOperInstance
+                {
+                    TaskInstanceId = dtoTaskInstance.Id,
+                    OperationId = oper.Properties.Id,
+                    StartTime = DateTime.Now,
+                    Duration = 0,
+                    State = (int) InstanceState.InProcess
+                };
+
+                dtoOperInstance.Id =
+                    repository.CreateEntity(dtoOperInstance);
+
+                taskContext.PackageStates[oper.Properties.Number - 1] =
+                    GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
+
+                Stopwatch operDuration = new Stopwatch();
+                operDuration.Start();
+
+                try
+                {
+                    Task.Run(async () => await oper
+                        .ExecuteAsync(taskContext)).Wait(taskContext.CancelSource.Token);
+
+                    if (oper.Properties.NeedSavePackage)
+                        dtoOperInstance.DataSet =
+                            taskContext.GetCompressedPackage(oper.Properties.PackageName);
+
+                    dtoOperInstance.State = (int) InstanceState.Success;
+                    operDuration.Stop();
+                    dtoOperInstance.Duration =
+                        Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                    repository.UpdateEntity(dtoOperInstance);
+                }
+
+                catch (Exception e)
+                {
+                    if (e is OperationCanceledException)
+                        dtoOperInstance.State = (int) InstanceState.Canceled;
+
+                    else
+                    {
+                        if (e.InnerException == null)
+                        {
+                            exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
+                            dtoOperInstance.ErrorMessage = e.Message;
+                        }
+
+                        else
+                        {
+                            var allExceptions = e.FromHierarchy(ex => ex.InnerException).ToList();
+
+                            exceptions.AddRange(allExceptions
+                                .Select(exx => new Tuple<Exception, string>(exx, oper.Properties.Name)));
+
+                            dtoOperInstance.ErrorMessage =
+                                string.Join("\n", allExceptions.Select(exx => exx.Message));
+                        }
+
+                        dtoOperInstance.State = (int) InstanceState.Failed;
+                    }
+
+                    operDuration.Stop();
+                    dtoOperInstance.Duration =
+                        Convert.ToInt32(operDuration.ElapsedMilliseconds);
+                    repository.UpdateEntity(dtoOperInstance);
+                }
+
+                finally
+                {
+                    taskContext.PackageStates[oper.Properties.Number - 1] =
+                        GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
+                }
+            }
+        }
+
+        public async Task<string> RunTaskAndGetLastViewAsync(IReportTaskRunContext taskContext)
         {
             await Task.Factory.StartNew(() =>
-                RunOperations(taskContext));
+                RunTask(taskContext));
 
             var val = taskContext.Packages.LastOrDefault().Value;
 
@@ -201,10 +210,10 @@ namespace ReportService.ReportTask
         }
 
 
-        public async Task RunOperationsAndSendLastViewAsync(IReportTaskRunContext taskContext,
+        public async Task RunTaskAndSendLastViewAsync(IReportTaskRunContext taskContext,
             string mailAddress)
         {
-            var view = await RunOperationsAndGetLastViewAsync(taskContext);
+            var view = await RunTaskAndGetLastViewAsync(taskContext);
 
             if (string.IsNullOrEmpty(view)) return;
 

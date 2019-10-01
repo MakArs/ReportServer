@@ -27,11 +27,12 @@ namespace ReportService.ReportTask
         public string TaskName { get; set; }
         public IDefaultTaskExporter Exporter { get; set; }
         public Dictionary<string, object> Parameters { get; set; }
+        public Dictionary<int,long> DependsOn { get; set; }
 
         public string DataFolderPath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                         $@"\ReportServer\{TaskInstance.Id}";
 
-        private Regex paramName;
+        private readonly Regex paramName;
         private readonly IArchiver archiver;
 
         public ReportTaskRunContext(IArchiver archiver)

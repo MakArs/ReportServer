@@ -9,6 +9,7 @@ namespace ReportService.Nancy.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string Parameters { get; set; }
+        public string DependsOn { get; set; }
         public int? ScheduleId { get; set; }
         public DtoOperation[] BindedOpers { get; set; }
     }

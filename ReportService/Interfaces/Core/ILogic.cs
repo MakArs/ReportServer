@@ -61,7 +61,7 @@ namespace ReportService.Interfaces.Core
 
         //todo: int CreateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void UpdateEntity<T>(T entity) where T : IDtoEntity;
-        //todo: void DeleteEntity<T>(int entityId) or one method for each entity ??
+        //todo: void DeleteEntity<T>(int entityId) or one method for each entity ?
         //todo:replace create&update methods with createorupdate?
 
         string GetAllRegisteredImportersJson();

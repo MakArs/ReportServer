@@ -101,6 +101,7 @@ namespace ReportService.Core
                             new NamedParameter("id", dtoTask.Id),
                             new NamedParameter("name", dtoTask.Name),
                             new NamedParameter("parameters", dtoTask.Parameters),
+                            new NamedParameter("dependsOn", dtoTask.DependsOn),
                             new NamedParameter("schedule", schedules
                                 .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                             new NamedParameter("opers", operations
@@ -197,7 +198,7 @@ namespace ReportService.Core
 
         private Dictionary<string, Type> GetRegistrationsByTypeAndKeyType<T,TU>() 
         {
-            return autofac //todo:maybe change ugly code (gets autofac registration names)
+            return autofac //todo:change ugly code (gets autofac registration names)?
                 .ComponentRegistry
                 .Registrations
                 .Where(r => typeof(T)

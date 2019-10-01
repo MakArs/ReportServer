@@ -287,7 +287,9 @@ namespace ReportService
             CreateMap<ReportTask.ReportTask, DtoTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
                 .ForMember("Parameters", opt =>
-                    opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)));
+                    opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)))
+                .ForMember("DependsOn", opt =>
+                    opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
 
             CreateMap<ApiTask, DtoTask>();
 

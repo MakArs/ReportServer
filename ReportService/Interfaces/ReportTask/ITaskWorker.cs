@@ -4,11 +4,11 @@ namespace ReportService.Interfaces.ReportTask
 {
     public interface ITaskWorker
     {
-        void RunOperations(IReportTaskRunContext taskContext);
+        void RunTask(IReportTaskRunContext taskContext);
 
-        Task<string> RunOperationsAndGetLastViewAsync(IReportTaskRunContext taskContext);
+        Task<string> RunTaskAndGetLastViewAsync(IReportTaskRunContext taskContext);
 
-        Task RunOperationsAndSendLastViewAsync(IReportTaskRunContext taskContext,
+        Task RunTaskAndSendLastViewAsync(IReportTaskRunContext taskContext,
             string mailAddress);
     }
 }

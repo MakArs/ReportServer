@@ -34,7 +34,8 @@ namespace ReportService.Protobuf
                     {typeof(char[]), ScalarType.String},
                     {typeof(short), ScalarType.Int16},
                     {typeof(TimeSpan), ScalarType.TimeSpan}, //
-                    {typeof(byte), ScalarType.Int8}
+                    {typeof(byte), ScalarType.Int8},
+                    {typeof(float), ScalarType.Int32},
                 };
         }
 
@@ -134,7 +135,7 @@ namespace ReportService.Protobuf
 
         public OperationPackage GetPackage(ExcelPackage excelPackage,
             ExcelPackageReadingParameters
-                excelParameters, string groupNumbers) //todo: logic for maintaining multiple datasets, mb 
+                excelParameters, string groupNumbers) //todo: logic for maintaining multiple datasets? 
         {
             var date = DateTime.Now.ToUniversalTime();
 
@@ -339,7 +340,7 @@ namespace ReportService.Protobuf
 
         public OperationPackage
             GetPackage(CsvReader reader,
-                string groupNumbers) //todo: logic for maintaining multiple datasets, mb 
+                string groupNumbers) //todo: logic for maintaining multiple datasets?
         {
             var date = DateTime.Now.ToUniversalTime();
 

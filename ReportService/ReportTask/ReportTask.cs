@@ -21,6 +21,7 @@ namespace ReportService.ReportTask
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
         public Dictionary<string, object> Parameters { get; set; }
+        public Dictionary<int, long> DependsOn { get; set; }
 
         private readonly IMonik monik;
         private readonly ILifetimeScope autofac;
@@ -28,7 +29,7 @@ namespace ReportService.ReportTask
 
         public ReportTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
             IMonik monik, int id,
-            string name, string parameters, DtoSchedule schedule, List<DtoOperation> opers)
+            string name, string parameters, string dependsOn, DtoSchedule schedule, List<DtoOperation> opers)
         {
             this.monik = monik;
             this.repository = repository;
@@ -37,10 +38,13 @@ namespace ReportService.ReportTask
             Schedule = schedule;
             Operations = new List<IOperation>();
 
-            Parameters = new Dictionary<string, object>();
             if (!string.IsNullOrEmpty(parameters))
                 Parameters = JsonConvert
                     .DeserializeObject<Dictionary<string, object>>(parameters);
+
+            if (!string.IsNullOrEmpty(dependsOn))
+                DependsOn = JsonConvert
+                    .DeserializeObject<Dictionary<int, long>>(dependsOn);
 
             foreach (var operation in opers)
             {
@@ -96,11 +100,12 @@ namespace ReportService.ReportTask
 
             context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
             context.TaskId = Id;
-            context.TaskName = Name; //can do it by NamedParameter+ctor,but..
+            context.TaskName = Name;
+            context.DependsOn = DependsOn;
 
             context.Parameters = Parameters
-                .ToDictionary(pair => pair.Key, 
-                    pair => repository.GetBaseQueryResult("select "+pair.Value.ToString()));
+                .ToDictionary(pair => pair.Key,
+                    pair => repository.GetBaseQueryResult("select " + pair.Value.ToString()));
 
             context.CancelSource = new CancellationTokenSource();
 
@@ -123,7 +128,7 @@ namespace ReportService.ReportTask
         public void Execute(IReportTaskRunContext context)
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
-            taskWorker.RunOperations(context);
+            taskWorker.RunTask(context);
         }
 
         public async Task<string> GetCurrentViewAsync(IReportTaskRunContext context)
@@ -131,7 +136,7 @@ namespace ReportService.ReportTask
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
             var defaultView =
-                await taskWorker.RunOperationsAndGetLastViewAsync(context);
+                await taskWorker.RunTaskAndGetLastViewAsync(context);
 
             return string.IsNullOrEmpty(defaultView)
                 ? null
@@ -142,7 +147,7 @@ namespace ReportService.ReportTask
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
 
-            taskWorker.RunOperationsAndSendLastViewAsync(context, mailAddress);
+            taskWorker.RunTaskAndSendLastViewAsync(context, mailAddress);
         }
 
         public void UpdateLastTime()
