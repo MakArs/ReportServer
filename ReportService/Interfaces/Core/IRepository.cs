@@ -6,9 +6,9 @@ namespace ReportService.Interfaces.Core
     public interface IRepository
     {
         object GetBaseQueryResult(string query);
-        List<DtoTaskInstance> GetInstancesByTaskId(int taskId);
-        List<DtoOperInstance> GetOperInstancesByTaskInstanceId(int taskInstanceId);
-        DtoOperInstance GetFullOperInstanceById(int operInstanceId);
+        List<DtoTaskInstance> GetInstancesByTaskId(long taskId);
+        List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId);
+        DtoOperInstance GetFullOperInstanceById(long operInstanceId);
         
         /// <summary>
         /// Obtains list of generic-type entities from repository.
@@ -19,10 +19,11 @@ namespace ReportService.Interfaces.Core
         /// <summary>
         /// Creates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// WARNING: key type must be same with table primary key
         /// </summary>
-        int CreateEntity<T>(T entity) where T : IDtoEntity;
+        TKey CreateEntity<T, TKey>(T entity) where T : IDtoEntity;
 
-        int CreateTask(DtoTask task, params DtoOperation[] bindedOpers);
+        long CreateTask(DtoTask task, params DtoOperation[] bindedOpers);
 
         /// <summary>
         /// Updates generic-type entity in repository.
@@ -35,11 +36,12 @@ namespace ReportService.Interfaces.Core
         /// <summary>
         /// Deletes generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// WARNING: key type must be same with table primary key
         /// </summary>
-        void DeleteEntity<T>(int id) where T : IDtoEntity;
+        void DeleteEntity<T, TKey>(TKey id) where T : IDtoEntity;
 
-        List<int> UpdateOperInstancesAndGetIds();
-        List<int> UpdateTaskInstancesAndGetIds();
+        List<long> UpdateOperInstancesAndGetIds();
+        List<long> UpdateTaskInstancesAndGetIds();
 
         void CreateBase(string baseConnStr);
     }

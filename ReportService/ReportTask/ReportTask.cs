@@ -118,7 +118,7 @@ namespace ReportService.ReportTask
             };
 
             dtoTaskInstance.Id =
-                repository.CreateEntity(dtoTaskInstance);
+                repository.CreateEntity<DtoTaskInstance, long>(dtoTaskInstance);
 
             context.TaskInstance = dtoTaskInstance;
 

@@ -42,20 +42,20 @@ namespace ReportService.Interfaces.Core
         void UpdateSchedule(DtoSchedule schedule);
         void DeleteSchedule(int id);
 
-        int CreateTask(ApiTask task);
+        long CreateTask(ApiTask task);
         void UpdateTask(ApiTask task);
-        void DeleteTask(int taskId);
+        void DeleteTask(long taskId);
         Task<string> GetTasksList_HtmlPageAsync();
         Task<string> GetTasksInWorkList_HtmlPageAsync();
         string GetWorkingTasksByIdJson(int id);
         Task<string> GetCurrentViewByTaskIdAsync(int id);
 
-        void DeleteTaskInstanceById(int id);
+        void DeleteTaskInstanceById(long id);
         string GetAllTaskInstancesJson();
         string GetAllTaskInstancesByTaskIdJson(int taskId);
         Task<string> GetFullInstanceList_HtmlPageAsync(int taskId);
 
-        void DeleteOperInstanceById(int operInstanceId);
+        void DeleteOperInstanceById(long operInstanceId);
         string GetOperInstancesByTaskInstanceIdJson(int id);
         string GetFullOperInstanceByIdJson(int id);
 

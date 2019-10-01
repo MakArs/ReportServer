@@ -5,9 +5,9 @@ namespace ReportService.Entities
 {
     public class DtoOperInstance : IDtoEntity
     {
-        public int Id;
-        public int TaskInstanceId;
-        public int OperationId;
+        public long Id;
+        public long TaskInstanceId;
+        public long OperationId;
         public DateTime StartTime;
         public int Duration;
         public int State;

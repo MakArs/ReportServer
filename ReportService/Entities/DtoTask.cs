@@ -4,7 +4,7 @@ namespace ReportService.Entities
 {
     public class DtoTask : IDtoEntity
     {
-        public int Id;
+        public long Id;
         public string Name;
         public string Parameters;
         public string DependsOn;

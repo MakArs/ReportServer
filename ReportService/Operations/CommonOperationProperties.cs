@@ -2,7 +2,7 @@
 {
     public class CommonOperationProperties
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public bool IsDefault { get; set; }
         public bool NeedSavePackage { get; set; }
         public int Number { get; set; }

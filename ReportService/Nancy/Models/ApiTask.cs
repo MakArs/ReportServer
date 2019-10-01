@@ -6,7 +6,7 @@ namespace ReportService.Nancy.Models
     [Model("Task")]
     public class ApiTask
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Name { get; set; }
         public string Parameters { get; set; }
         public string DependsOn { get; set; }

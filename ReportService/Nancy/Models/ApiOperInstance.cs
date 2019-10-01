@@ -6,9 +6,9 @@ namespace ReportService.Nancy.Models
     [Model("Operation instance")]
     public class ApiOperInstance
     {
-        public int Id { get; set; }
-        public int TaskInstanceId { get; set; }
-        public int OperationId { get; set; }
+        public long Id { get; set; }
+        public long TaskInstanceId { get; set; }
+        public long OperationId { get; set; }
         public DateTime StartTime { get; set; }
         public int Duration { get; set; }
         public int State { get; set; }

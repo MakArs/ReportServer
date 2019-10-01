@@ -4,8 +4,8 @@ namespace ReportService.Entities
 {
     public class DtoOperation : IDtoEntity
     {
-        public int Id;
-        public int TaskId;
+        public long Id;
+        public long TaskId;
         public int Number;
         public string Name;
         public string ImplementationType;
