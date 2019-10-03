@@ -43,6 +43,22 @@ namespace ReportService.ReportTask
 
         public void RunTask(IReportTaskRunContext taskContext)
         {
+            if (taskContext.DependsOn
+                    .Any(dependence => (DateTime.Now
+                                        - repository.GetLastFinishTimeByTaskId(dependence.TaskId))
+                                       .TotalSeconds
+                                       > dependence.MaxSecondsPassed))
+            {
+                taskContext.TaskInstance.Duration = 0;
+
+                taskContext.TaskInstance.State =
+                    (int) InstanceState.Failed;
+
+                repository.UpdateEntity(taskContext.TaskInstance);
+
+                return;
+            }
+
             Stopwatch duration = new Stopwatch();
 
             duration.Start();

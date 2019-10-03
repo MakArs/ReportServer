@@ -20,8 +20,8 @@ namespace ReportService.ReportTask
         public DtoSchedule Schedule { get; }
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
-        public Dictionary<string, object> Parameters { get; set; }
-        public Dictionary<int, long> DependsOn { get; set; }
+        public Dictionary<string, object> Parameters { get; set; } //todo: change to class
+        public List<TaskDependence> DependsOn { get; set; }
 
         private readonly IMonik monik;
         private readonly ILifetimeScope autofac;
@@ -38,13 +38,14 @@ namespace ReportService.ReportTask
             Schedule = schedule;
             Operations = new List<IOperation>();
 
+            Parameters = new Dictionary<string, object>();
             if (!string.IsNullOrEmpty(parameters))
                 Parameters = JsonConvert
                     .DeserializeObject<Dictionary<string, object>>(parameters);
 
             if (!string.IsNullOrEmpty(dependsOn))
                 DependsOn = JsonConvert
-                    .DeserializeObject<Dictionary<int, long>>(dependsOn);
+                    .DeserializeObject<List<TaskDependence>>(dependsOn);
 
             foreach (var operation in opers)
             {

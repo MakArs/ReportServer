@@ -27,7 +27,7 @@ namespace ReportService.ReportTask
         public string TaskName { get; set; }
         public IDefaultTaskExporter Exporter { get; set; }
         public Dictionary<string, object> Parameters { get; set; }
-        public Dictionary<int,long> DependsOn { get; set; }
+        public List<TaskDependence> DependsOn { get; set; }
 
         public string DataFolderPath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                         $@"\ReportServer\{TaskInstance.Id}";
@@ -78,7 +78,7 @@ namespace ReportService.ReportTask
 
             int i = 0;
 
-           var outerString = paramName.Replace(innerString, repl =>
+            var outerString = paramName.Replace(innerString, repl =>
             {
                 var sel = selections[i].Value;
 

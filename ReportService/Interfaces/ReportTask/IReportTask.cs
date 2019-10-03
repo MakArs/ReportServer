@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReportService.Entities;
 using ReportService.Interfaces.Operations;
+using ReportService.ReportTask;
 
 namespace ReportService.Interfaces.ReportTask
 {
@@ -20,7 +21,7 @@ namespace ReportService.Interfaces.ReportTask
         DateTime LastTime { get; }
         List<IOperation> Operations { get; set; }
         Dictionary<string, object> Parameters { get; set; }
-        Dictionary<int, long> DependsOn { get; set; }
+        List<TaskDependence> DependsOn { get; set; }
 
         IReportTaskRunContext GetCurrentContext(bool isDefault);
         void Execute(IReportTaskRunContext context);

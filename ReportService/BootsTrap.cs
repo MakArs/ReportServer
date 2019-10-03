@@ -291,7 +291,9 @@ namespace ReportService
                 .ForMember("DependsOn", opt =>
                     opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
 
-            CreateMap<ApiTask, DtoTask>();
+            CreateMap<ApiTask, DtoTask>()
+                .ForMember("DependsOn", opt =>
+                opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
 
             CreateMap<DtoOperInstance, ApiOperInstance>()
                 .ForMember("DataSet", opt => opt.Ignore());

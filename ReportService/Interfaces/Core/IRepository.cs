@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ReportService.Entities;
 
 namespace ReportService.Interfaces.Core
@@ -6,6 +7,7 @@ namespace ReportService.Interfaces.Core
     public interface IRepository
     {
         object GetBaseQueryResult(string query);
+        DateTime GetLastFinishTimeByTaskId(long taskId);
         List<DtoTaskInstance> GetInstancesByTaskId(long taskId);
         List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(long operInstanceId);

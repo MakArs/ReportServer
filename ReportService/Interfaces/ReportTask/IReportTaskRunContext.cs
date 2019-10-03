@@ -2,6 +2,7 @@
 using System.Threading;
 using ReportService.Entities;
 using ReportService.Interfaces.Operations;
+using ReportService.ReportTask;
 
 namespace ReportService.Interfaces.ReportTask
 {
@@ -16,7 +17,7 @@ namespace ReportService.Interfaces.ReportTask
         string TaskName { get; set; }
         IDefaultTaskExporter Exporter { get; set; }
         Dictionary<string, object> Parameters { get; set; }
-        Dictionary<int, long> DependsOn { get; set; }
+        List<TaskDependence> DependsOn { get; set; }
         string DataFolderPath { get; }
 
         byte[] GetCompressedPackage(string packageName);

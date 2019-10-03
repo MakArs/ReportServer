@@ -33,7 +33,7 @@ namespace ReportService.Core
         {
             try
             {
-                return context.CreateSimple($"select * from TaskInstance where TaskId={taskId}")
+                return context.CreateSimple($"select * from TaskInstance with(nolock) where TaskId={taskId}")
                     .ExecuteQuery<DtoTaskInstance>().ToList();
             }
             catch (Exception e)
@@ -44,6 +44,21 @@ namespace ReportService.Core
             }
         }
 
+        public DateTime GetLastFinishTimeByTaskId(long taskId)
+        {
+            try
+            {
+                return context.CreateSimple($@"SELECT max(dateadd(ms,Duration,[StartTime]))
+                FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}")
+                    .ExecuteQueryFirstColumn<DateTime>().ToList().First();
+            }
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task last time: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
 
         public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId)
         {
@@ -51,7 +66,7 @@ namespace ReportService.Core
             {
                 return context.CreateSimple
                     ("select Id,TaskInstanceId,OperationId,StartTime,Duration,State,null as DataSet," +
-                     $"null as ErrorMessage from OperInstance where TaskInstanceId={taskInstanceId}")
+                     $"null as ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}")
                     .ExecuteQuery<DtoOperInstance>().ToList();
             }
             catch (Exception e)
@@ -68,7 +83,9 @@ namespace ReportService.Core
             {
                 return context.CreateSimple
                     ("select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName " +
-                     "from OperInstance oi join operation op on oi.OperationId=op.Id " +
+                     "from OperInstance oi with(nolock) " +
+                     "join operation op with(nolock) " +
+                     "on oi.OperationId=op.Id " +
                      $"where oi.id={operInstanceId}")
                     .ExecuteQuery<DtoOperInstance>()
                     .ToList().First();
@@ -86,7 +103,7 @@ namespace ReportService.Core
             var tableName = typeof(T).Name.Remove(0, 3);
             try
             {
-                return context.CreateSimple($"select * from {tableName}")
+                return context.CreateSimple($"select * from {tableName} with(nolock)")
                     .ExecuteQuery<T>()
                     .ToList();
             }
@@ -173,7 +190,7 @@ namespace ReportService.Core
                 try
                 {
                     var currentOperIds = context.CreateSimple
-                            ($"select id from operation where taskid={task.Id}")
+                            ($"select id from operation with(nolock) where taskid={task.Id}")
                         .ExecuteQueryFirstColumn<long>().ToList();
 
                     var newOperIds = bindedOpers.Select(oper => oper.Id).ToList();
@@ -248,7 +265,7 @@ namespace ReportService.Core
 
                             transContext.CreateCommand(
                                     $@"delete OperInstance where TaskInstanceId in
-                                            (select id from TaskInstance where TaskId={id})")
+                                            (select id from TaskInstance with(nolock) where TaskId={id})")
                                 .ExecuteNonQuery();
                             transContext.CreateCommand($"delete TaskInstance where TaskID={id}")
                                 .ExecuteNonQuery();
