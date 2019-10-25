@@ -23,7 +23,6 @@ using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Nancy;
 using ReportService.Nancy.Models;
-using ReportService.Operations;
 using ReportService.Operations.DataExporters;
 using ReportService.Operations.DataExporters.Configurations;
 using ReportService.Operations.DataExporters.ViewExecutors;
@@ -300,6 +299,8 @@ namespace ReportService
                 .ForMember("DataSet", opt => opt.Ignore());
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
+
+            CreateMap<DtoOperation, CommonOperationProperties>();
 
             CreateMap<DbExporterConfig, DbExporter>();
             CreateMap<DbExporterConfig, CommonOperationProperties>();

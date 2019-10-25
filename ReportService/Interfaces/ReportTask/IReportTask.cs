@@ -17,7 +17,7 @@ namespace ReportService.Interfaces.ReportTask
         Dictionary<string, object> Parameters { get; set; }
         List<TaskDependence> DependsOn { get; set; }
 
-        IReportTaskRunContext GetCurrentContext(bool isDefault);
+        IReportTaskRunContext GetCurrentContext(bool takeDefault);
         void Execute(IReportTaskRunContext context);
         void UpdateLastTime();
         Task<string> GetCurrentViewAsync(IReportTaskRunContext context);

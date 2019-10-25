@@ -6,11 +6,11 @@ using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
-using ReportService.Protobuf;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using ReportService.Entities;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
 {

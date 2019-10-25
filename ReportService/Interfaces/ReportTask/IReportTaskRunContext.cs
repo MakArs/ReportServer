@@ -2,7 +2,6 @@
 using System.Threading;
 using ReportService.Entities;
 using ReportService.Interfaces.Operations;
-using ReportService.ReportTask;
 
 namespace ReportService.Interfaces.ReportTask
 {
@@ -15,7 +14,7 @@ namespace ReportService.Interfaces.ReportTask
         DtoTaskInstance TaskInstance { get; set; }
         CancellationTokenSource CancelSource { get; set; }
         string TaskName { get; set; }
-        IDefaultTaskExporter Exporter { get; set; }
+        IDefaultTaskExporter DefaultExporter { get; set; }
         Dictionary<string, object> Parameters { get; set; }
         List<TaskDependence> DependsOn { get; set; }
         string DataFolderPath { get; }

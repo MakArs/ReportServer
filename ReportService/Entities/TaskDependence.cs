@@ -1,4 +1,4 @@
-﻿namespace ReportService.ReportTask
+﻿namespace ReportService.Entities
 {
    public class TaskDependence
    {

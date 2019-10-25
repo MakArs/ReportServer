@@ -13,22 +13,21 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class ReportTask : IReportTask
+    public class ReportTask : IReportTask //todo:mapping for operation props&context
     {
         public int Id { get; }
         public string Name { get; }
         public DtoSchedule Schedule { get; }
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
-        public Dictionary<string, object> Parameters { get; set; } //todo: change to class
+        public Dictionary<string, object> Parameters { get; set; } //todo: change to class?
         public List<TaskDependence> DependsOn { get; set; }
 
         private readonly IMonik monik;
         private readonly ILifetimeScope autofac;
         private readonly IRepository repository;
 
-        public ReportTask(ILogic logic, ILifetimeScope autofac, IRepository repository,
-            IMonik monik, int id,
+        public ReportTask(ILogic logic, ILifetimeScope autofac, IRepository repository, IMonik monik, int id,
             string name, string parameters, string dependsOn, DtoSchedule schedule, List<DtoOperation> opers)
         {
             this.monik = monik;
@@ -43,10 +42,18 @@ namespace ReportService.ReportTask
                 Parameters = JsonConvert
                     .DeserializeObject<Dictionary<string, object>>(parameters);
 
+            DependsOn = new List<TaskDependence>();
             if (!string.IsNullOrEmpty(dependsOn))
                 DependsOn = JsonConvert
                     .DeserializeObject<List<TaskDependence>>(dependsOn);
 
+            ParseDtoOperations(logic, opers);
+
+            this.autofac = autofac;
+        } //ctor
+
+        private void ParseDtoOperations(ILogic logic, List<DtoOperation> opers)
+        {
             foreach (var operation in opers)
             {
                 IOperation newOper;
@@ -78,15 +85,13 @@ namespace ReportService.ReportTask
 
                 Operations.Add(newOper);
             }
+        }
 
-            this.autofac = autofac;
-        } //ctor
-
-        public IReportTaskRunContext GetCurrentContext(bool isDefault)
+        public IReportTaskRunContext GetCurrentContext(bool takeDefault)
         {
             var context = autofac.Resolve<IReportTaskRunContext>();
 
-            context.OpersToExecute = isDefault
+            context.OpersToExecute = takeDefault
                 ? Operations.Where(oper => oper.Properties.IsDefault)
                     .OrderBy(oper => oper.Properties.Number).ToList()
                 : Operations.OrderBy(oper => oper.Properties.Number).ToList();
@@ -99,7 +104,7 @@ namespace ReportService.ReportTask
                 return null;
             }
 
-            context.Exporter = autofac.Resolve<IDefaultTaskExporter>();
+            context.DefaultExporter = autofac.Resolve<IDefaultTaskExporter>();
             context.TaskId = Id;
             context.TaskName = Name;
             context.DependsOn = DependsOn;

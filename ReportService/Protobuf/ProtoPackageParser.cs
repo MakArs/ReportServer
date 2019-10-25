@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ReportService.Entities;
 using ReportService.Interfaces.Protobuf;
 
 namespace ReportService.Protobuf
@@ -67,7 +68,7 @@ namespace ReportService.Protobuf
                 var setRows = new List<List<object>>();
                 var groupNumbers = set.ViewSettings?.GroupingColumnNumbers?.ToList();
                 var orderSettings = set.ViewSettings?.OrderSettings
-                    .Select(stgs => new OrderSettings
+                    .Select(stgs => new Entities.OrderSettings
                     {
                         ColumnNumber = stgs.ColumnNumber,
                         Descending = stgs.Descending

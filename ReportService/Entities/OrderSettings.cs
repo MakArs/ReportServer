@@ -1,4 +1,4 @@
-﻿namespace ReportService.Protobuf
+﻿namespace ReportService.Entities
 {
     public class OrderSettings
     {

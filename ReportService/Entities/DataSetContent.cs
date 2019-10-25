@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ReportService.Protobuf
+namespace ReportService.Entities
 {
     public class DataSetContent
     {

@@ -4,7 +4,6 @@ using RazorEngine.Configuration;
 using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces.Protobuf;
-using ReportService.Protobuf;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
