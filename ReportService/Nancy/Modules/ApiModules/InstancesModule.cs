@@ -58,7 +58,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "instanceid",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task instance which operation instances you are need")]
         [RouteParam(
@@ -96,7 +96,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "id",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task operation that you are need")]
         [RouteParam(
@@ -134,7 +134,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "id",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task instance that you need to delete")]
         [RouteParam(

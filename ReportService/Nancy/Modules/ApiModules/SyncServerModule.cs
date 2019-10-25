@@ -34,7 +34,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
-            Model = typeof(int))]
+            Model = typeof(long))]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
             "Internal error during request execution")]

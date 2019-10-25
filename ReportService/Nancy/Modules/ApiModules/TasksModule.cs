@@ -109,7 +109,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "taskid",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task which instances you are need")]
         [RouteParam(
@@ -148,7 +148,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "taskid",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task which view you are need")]
         [RouteParam(
@@ -186,7 +186,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "id",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task you need to execute")]
         [RouteParam(
@@ -230,7 +230,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "taskid",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task which instances you are need")]
         [RouteParam(
@@ -270,7 +270,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "id",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task that you need to delete")]
         [RouteParam(
@@ -320,7 +320,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [SwaggerResponse(
             HttpStatusCode.OK,
             Message = "Success",
-            Model = typeof(int))]
+            Model = typeof(long))]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
             "Internal error during request execution")]
@@ -358,7 +358,7 @@ namespace ReportService.Nancy.Modules.ApiModules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "id",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task that you need to update")]
         [RouteParam(
@@ -384,7 +384,7 @@ namespace ReportService.Nancy.Modules.ApiModules
                 var existingTask = this.Bind<ApiTask>
                     (new BindingConfig {BodyOnly = true});
 
-                if (int.Parse(Context.Parameters.id) != existingTask.Id)
+                if (long.Parse(Context.Parameters.id) != existingTask.Id)
                     return HttpStatusCode.BadRequest;
 
                 logic.UpdateTask(existingTask);
