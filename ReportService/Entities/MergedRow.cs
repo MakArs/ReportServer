@@ -1,4 +1,4 @@
-﻿namespace ReportService.Operations.DataExporters.ViewExecutors
+﻿namespace ReportService.Entities
 {
     public class MergedRow
     {

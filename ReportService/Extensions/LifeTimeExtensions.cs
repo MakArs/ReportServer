@@ -5,7 +5,7 @@ namespace ReportService.Extensions
 {
     public static class LifeTimeExtensions
     {
-        public static void RegisterSingleton<TInterface, TImplementation>(
+        public static void RegisterImplementationSingleton<TInterface, TImplementation>(
             this ILifetimeScope container)
         {
             container.Update(builder => builder

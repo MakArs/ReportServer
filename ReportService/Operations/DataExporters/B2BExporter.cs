@@ -6,6 +6,7 @@ using AutoMapper;
 using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Google.Protobuf;
+using ReportService.Entities;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;

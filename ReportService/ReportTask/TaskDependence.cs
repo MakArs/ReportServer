@@ -2,7 +2,7 @@
 {
    public class TaskDependence
    {
-       public long TaskId;
-       public long MaxSecondsPassed;
-   }
+       public long TaskId { get; set; }
+       public long MaxSecondsPassed { get; set; }
+    }
 }

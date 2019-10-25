@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Autofac;
 using AutoMapper;
 using Newtonsoft.Json;
+using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
@@ -73,10 +74,10 @@ namespace ReportService.Operations.DataExporters
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-                msg.AddRecepientsFromGroup(addresses);
+                msg.AddRecipientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                    msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
+                    msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
                 msg.Subject = filename;
 
@@ -172,10 +173,10 @@ namespace ReportService.Operations.DataExporters
             using (var msg = new MailMessage())
             {
                 msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
-                msg.AddRecepientsFromGroup(addresses);
+                msg.AddRecipientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                    msg.AddRecepientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
+                    msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
 
                 msg.Subject = filename;
 

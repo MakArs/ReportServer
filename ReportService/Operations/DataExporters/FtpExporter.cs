@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Autofac;
 using AutoMapper;
 using Newtonsoft.Json;
+using ReportService.Entities;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;

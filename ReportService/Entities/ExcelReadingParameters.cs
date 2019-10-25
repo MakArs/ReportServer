@@ -1,6 +1,6 @@
-﻿namespace ReportService.Operations.DataImporters
+﻿namespace ReportService.Entities
 {
-    public class ExcelPackageReadingParameters
+    public class ExcelReadingParameters
     {
         public string SheetName;
         public bool SkipEmptyRows;

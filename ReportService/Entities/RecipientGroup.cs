@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
-using ReportService.Extensions;
 
 namespace ReportService.Entities
 {
-    public class RRecepientGroup
+    public class RecipientGroup
     {
         public int Id { get; set; }
         public string Name { get; set; }

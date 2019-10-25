@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
-using ReportService.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
@@ -361,9 +360,10 @@ namespace ReportService.Core
         {
             List<IReportTask> currentTasks;
             lock (this)
-                currentTasks = tasks.ToList();
+                currentTasks = tasks
+                    .ToList();
             var tr = JsonConvert.SerializeObject(currentTasks
-                .Select(t => mapper.Map<DtoTask>(t)));
+                .Select(t => mapper.Map<ApiTask>(t)));
             return tr;
         }
 
@@ -448,7 +448,7 @@ namespace ReportService.Core
 
         public RecipientAddresses GetRecepientAddressesByGroupId(int groupId)
         {
-            return mapper.Map<RRecepientGroup>(recepientGroups
+            return mapper.Map<RecipientGroup>(recepientGroups
                 .FirstOrDefault(group => group.Id == groupId)).GetAddresses();
         }
 

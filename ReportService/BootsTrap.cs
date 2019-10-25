@@ -67,15 +67,7 @@ namespace ReportService
         protected override void ConfigureConventions(NancyConventions nancyConventions)
         {
             base.ConfigureConventions(nancyConventions);
-            // Add swagger
-
-            //nancyConventions.StaticContentsConventions.Add(
-            //    StaticContentConventionBuilder.AddDirectory("Nancy/SwaggerDist") //why does not work?
-            //);
-
-            //nancyConventions.StaticContentsConventions
-            //    .AddDirectory("/swagger-ui", "/ReportService/Nancy/SwaggerDist");
-
+        
             nancyConventions.StaticContentsConventions
                 .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
         }
@@ -93,10 +85,7 @@ namespace ReportService
 
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>
                 (existingContainer, "CommonSshImporter");
-
-            //RegisterNamedDataImporter<HistoryImporter, HistoryImporterConfig>
-            //    (existingContainer, "CommonHistoryImporter");
-
+            
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (existingContainer, "CommonEmailSender");
 
@@ -115,13 +104,17 @@ namespace ReportService
             RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>
                 (existingContainer, "CommonFtpExporter");
 
-            RegisterNamedViewExecutor<CommonViewExecutor>(existingContainer, "commonviewex");
-            RegisterNamedViewExecutor<GroupedViewExecutor>(existingContainer, "GroupedViewex");
-            RegisterNamedViewExecutor<CommonTableViewExecutor>(existingContainer,
-                "CommonTableViewEx");
+            RegisterNamedViewExecutor<CommonViewExecutor>
+                (existingContainer, "commonviewex");
+
+            RegisterNamedViewExecutor<GroupedViewExecutor>
+                (existingContainer, "GroupedViewex");
+
+            RegisterNamedViewExecutor<CommonTableViewExecutor>
+            (existingContainer,"CommonTableViewEx");
 
             existingContainer
-                .RegisterSingleton<ILogic, Logic>();
+                .RegisterImplementationSingleton<ILogic, Logic>();
             existingContainer
                 .RegisterImplementation<IReportTask, ReportTask.ReportTask>();
 
@@ -149,7 +142,7 @@ namespace ReportService
                 .RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
 
             existingContainer
-                .RegisterSingleton<IMonik, MonikClient>();
+                .RegisterImplementationSingleton<IMonik, MonikClient>();
 
             #endregion
 
@@ -164,7 +157,7 @@ namespace ReportService
             var mapperConfig =
                 new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
 
-            // Hint: add to ctor if many profileSs needed: cfg.AddProfile(typeof(AutoMapperProfile));
+            // Hint: add to ctor if many profiles needed: cfg.AddProfile(typeof(AutoMapperProfile));
             existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
                 mapperConfig);
             var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
@@ -282,7 +275,7 @@ namespace ReportService
     {
         public MapperProfile()
         {
-            CreateMap<DtoRecepientGroup, RRecepientGroup>();
+            CreateMap<DtoRecepientGroup, RecipientGroup>();
 
             CreateMap<ReportTask.ReportTask, DtoTask>()
                 .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
@@ -291,9 +284,17 @@ namespace ReportService
                 .ForMember("DependsOn", opt =>
                     opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
 
+            CreateMap<ReportTask.ReportTask, ApiTask>()
+                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
+                .ForMember("Parameters", opt =>
+                    opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)));
+
             CreateMap<ApiTask, DtoTask>()
                 .ForMember("DependsOn", opt =>
-                opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
+                    opt.MapFrom(s =>
+                        s.DependsOn == null
+                            ? null
+                            : JsonConvert.SerializeObject(s.DependsOn)));
 
             CreateMap<DtoOperInstance, ApiOperInstance>()
                 .ForMember("DataSet", opt => opt.Ignore());
@@ -317,7 +318,7 @@ namespace ReportService
             CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
-            CreateMap<ExcelImporterConfig, ExcelPackageReadingParameters>();
+            CreateMap<ExcelImporterConfig, ExcelReadingParameters>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
             CreateMap<CsvImporterConfig, CsvImporter>();
             CreateMap<CsvImporterConfig, CommonOperationProperties>();

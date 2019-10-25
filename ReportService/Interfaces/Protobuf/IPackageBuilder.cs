@@ -2,7 +2,7 @@
 using System.Data.Common;
 using CsvHelper;
 using OfficeOpenXml;
-using ReportService.Operations.DataImporters;
+using ReportService.Entities;
 
 namespace ReportService.Interfaces.Protobuf
 {
@@ -15,6 +15,6 @@ namespace ReportService.Interfaces.Protobuf
         OperationPackage GetPackage<T>(IEnumerable<T> values) where T : class;
 
         OperationPackage GetPackage(ExcelPackage excelPackage,
-            ExcelPackageReadingParameters excelParameters, string groupNumbers);
+            ExcelReadingParameters excelParameters, string groupNumbers);
     }
 }

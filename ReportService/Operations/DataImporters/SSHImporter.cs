@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Renci.SshNet;
+using Renci.SshNet.Common;
+using ReportService.Entities;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataImporters.Configurations;
@@ -28,7 +30,8 @@ namespace ReportService.Operations.DataImporters
             {
                 client.Connect();
                 using (FileStream fstr =
-                    File.Create(Path.Combine(taskContext.DataFolderPath, Path.GetFileName(FilePath))))
+                    File.Create(Path.Combine(taskContext.DataFolderPath, 
+                        Path.GetFileName(FilePath) ?? throw new SftpPathNotFoundException("Incorrect file name in file path!"))))
                     client.DownloadFile(FilePath, fstr);
             }
         }

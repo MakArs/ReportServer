@@ -1,4 +1,4 @@
-﻿namespace ReportService.Operations
+﻿namespace ReportService.Entities
 {
     public class CommonOperationProperties
     {

@@ -20,7 +20,7 @@ namespace ReportService.Interfaces.Core
 
         /// <summary>
         /// Creates generic-type entity in repository.
-        /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// WARNING: generic type name must be database table name with "Dto" prefix.
         /// WARNING: key type must be same with table primary key
         /// </summary>
         TKey CreateEntity<T, TKey>(T entity) where T : IDtoEntity;
@@ -37,12 +37,13 @@ namespace ReportService.Interfaces.Core
 
         /// <summary>
         /// Deletes generic-type entity in repository.
-        /// WARNING: generic type name must be database table name with "Dto" prefix
+        /// WARNING: generic type name must be database table name with "Dto" prefix.
         /// WARNING: key type must be same with table primary key
         /// </summary>
         void DeleteEntity<T, TKey>(TKey id) where T : IDtoEntity;
 
         List<long> UpdateOperInstancesAndGetIds();
+
         List<long> UpdateTaskInstancesAndGetIds();
 
         void CreateBase(string baseConnStr);

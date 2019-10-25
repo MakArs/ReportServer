@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using OfficeOpenXml;
+using ReportService.Entities;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
@@ -13,7 +14,7 @@ namespace ReportService.Operations.DataImporters
     public class ExcelImporter : IOperation
     {
         private readonly IPackageBuilder packageBuilder;
-        public ExcelPackageReadingParameters ExcelParameters;
+        public ExcelReadingParameters ExcelParameters;
 
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool SendVoidPackageError;
@@ -27,7 +28,7 @@ namespace ReportService.Operations.DataImporters
             mapper.Map(config, this);
             mapper.Map(config, Properties);
             Properties.NeedSavePackage = true;
-            ExcelParameters = new ExcelPackageReadingParameters();
+            ExcelParameters = new ExcelReadingParameters();
             mapper.Map(config, ExcelParameters);
             packageBuilder = builder;
         }

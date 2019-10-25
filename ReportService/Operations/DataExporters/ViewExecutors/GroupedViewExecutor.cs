@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml.Style;
+using ReportService.Entities;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
 {

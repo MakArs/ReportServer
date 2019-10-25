@@ -7,8 +7,8 @@ using CsvHelper;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OfficeOpenXml;
+using ReportService.Entities;
 using ReportService.Interfaces.Protobuf;
-using ReportService.Operations.DataImporters;
 
 namespace ReportService.Protobuf
 {
@@ -134,7 +134,7 @@ namespace ReportService.Protobuf
         #region ExcelPackageToPackage
 
         public OperationPackage GetPackage(ExcelPackage excelPackage,
-            ExcelPackageReadingParameters
+            ExcelReadingParameters
                 excelParameters, string groupNumbers) //todo: logic for maintaining multiple datasets? 
         {
             var date = DateTime.Now.ToUniversalTime();

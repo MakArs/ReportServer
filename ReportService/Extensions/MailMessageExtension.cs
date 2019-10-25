@@ -2,21 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using ReportService.Entities;
 
 namespace ReportService.Extensions
 {
-    public class RecipientAddresses
-    {
-        public List<string> To = new List<string>();
-        public List<string> Bcc = new List<string>();
-    }
-
     public static class MailMessageExtension
     {
-        public static void AddRecepientsFromGroup(this MailMessage msg,
+        public static void AddRecipientsFromGroup(this MailMessage msg,
             RecipientAddresses addresses)
         {
             AddAddressesToCollection(addresses.To, msg.To);
+
             AddAddressesToCollection(addresses.Bcc, msg.Bcc);
         }
 
@@ -30,9 +26,9 @@ namespace ReportService.Extensions
                     col.Add(new MailAddress(address));
         }
 
-        public static void AddRecepientsFromPackage(this MailMessage msg, OperationPackage package)
+        public static void AddRecipientsFromPackage(this MailMessage msg, OperationPackage package)
         {
-            List<string> to =  new List<string>();
+            List<string> to = new List<string>();
             List<string> bcc = new List<string>();
 
             var set = package.DataSets.FirstOrDefault();

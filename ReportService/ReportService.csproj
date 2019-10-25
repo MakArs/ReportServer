@@ -94,8 +94,9 @@
     <Compile Include="Entities\DtoTask.cs" />
     <Compile Include="Entities\DtoTaskInstance.cs" />
     <Compile Include="Entities\DtoTelegramChannel.cs" />
-    <Compile Include="Entities\RRecepientGroup.cs" />
-    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Entities\EnumInstanceState.cs" />
+    <Compile Include="Entities\RecipientAddresses.cs" />
+    <Compile Include="Entities\RecipientGroup.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
     <Compile Include="Interfaces\Core\IDtoEntity.cs" />
     <Compile Include="Interfaces\Operations\IImporterConfig.cs" />
@@ -112,7 +113,7 @@
     <Compile Include="Nancy\Modules\ApiModules\TasksModule.cs" />
     <Compile Include="Nancy\Modules\ApiModules\TelegramChannelsModule.cs" />
     <Compile Include="Nancy\NancyExtensions.cs" />
-    <Compile Include="Operations\CommonOperationProperties.cs" />
+    <Compile Include="Entities\CommonOperationProperties.cs" />
     <Compile Include="Operations\DataExporters\B2BExporter.cs" />
     <Compile Include="Operations\DataExporters\Configurations\B2BExporterConfig.cs" />
     <Compile Include="Operations\DataExporters\Configurations\DbExporterConfig.cs" />
@@ -124,14 +125,14 @@
     <Compile Include="Operations\DataExporters\FtpExporter.cs" />
     <Compile Include="Operations\DataExporters\SshExporter.cs" />
     <Compile Include="Operations\DataExporters\ViewExecutors\GroupedViewExecutor.cs" />
-    <Compile Include="Operations\DataExporters\ViewExecutors\MergedRow.cs" />
+    <Compile Include="Entities\MergedRow.cs" />
     <Compile Include="Operations\DataImporters\Configurations\CsvImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\Configurations\DbImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\Configurations\ExcelImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\Configurations\HistoryImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\Configurations\SshImporterConfig.cs" />
     <Compile Include="Operations\DataImporters\CsvImporter.cs" />
-    <Compile Include="Operations\DataImporters\ExcelPackageReadingParameters.cs" />
+    <Compile Include="Entities\ExcelReadingParameters.cs" />
     <Compile Include="Operations\DataImporters\HistoryImporter.cs" />
     <Compile Include="Operations\DataImporters\SshImporter.cs" />
     <Compile Include="Protobuf\DataSetContent.cs" />

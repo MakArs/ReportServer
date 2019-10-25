@@ -104,7 +104,7 @@ namespace ReportService.Nancy.Modules
         [RouteParam(
             ParamIn = ParameterIn.Path,
             Name = "id",
-            ParamType = typeof(int),
+            ParamType = typeof(long),
             Required = true,
             Description = "Id of task which instances you are need")]
         [SwaggerResponse(
@@ -147,38 +147,6 @@ namespace ReportService.Nancy.Modules
             Get(GetAllTaskInstancesHtmlRoute,
                 async (parameters, token) => await GetAllTaskInstancesHtmlAsync(logic),
                 name: nameof(GetAllTaskInstancesHtmlAsync));
-
-            //Get("/sendto", parameters =>
-            //{
-            //    int id = Request.Query.id;
-            //    string mail = Request.Query.address;
-            //    try
-            //    {
-            //        string sentReps = logic.SendDefault(id, mail);
-            //        var response = (Response) sentReps;
-            //        response.StatusCode = HttpStatusCode.OK;
-            //        return response;
-            //    }
-            //    catch
-            //    {
-            //        return HttpStatusCode.InternalServerError;
-            //    }
-            //}, name: "RunTasksToEmail");
-
-            //Get("/run-{id:int}/confirm", parameters =>
-            //{
-            //    try
-            //    {
-            //        string sentReps = logic.ForceExecute(parameters.id);
-            //        var response = (Response) sentReps;
-            //        response.StatusCode = HttpStatusCode.OK;
-            //        return response;
-            //    }
-            //    catch
-            //    {
-            //        return HttpStatusCode.InternalServerError;
-            //    }
-            //}, name: "RunTask");
         }
     } //class
 }

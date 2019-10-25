@@ -7,12 +7,6 @@ using ReportService.ReportTask;
 
 namespace ReportService.Interfaces.ReportTask
 {
-    public enum RReportType : byte
-    {
-        Common = 1,
-        Custom = 2
-    }
-
     public interface IReportTask
     {
         int Id { get; }
