@@ -16,7 +16,7 @@ namespace ReportService.Interfaces.ReportTask
         string TaskName { get; set; }
         IDefaultTaskExporter DefaultExporter { get; set; }
         Dictionary<string, object> Parameters { get; set; }
-        List<TaskDependence> DependsOn { get; set; }
+        List<TaskDependency> DependsOn { get; set; }
         string DataFolderPath { get; }
 
         byte[] GetCompressedPackage(string packageName);

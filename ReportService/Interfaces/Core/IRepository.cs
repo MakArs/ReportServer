@@ -7,11 +7,11 @@ namespace ReportService.Interfaces.Core
     public interface IRepository
     {
         object GetBaseQueryResult(string query);
-        DateTime GetLastFinishTimeByTaskId(long taskId);
+        DependencyState GetDependencyStateByTaskId(long taskId);
         List<DtoTaskInstance> GetInstancesByTaskId(long taskId);
         List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(long operInstanceId);
-        
+
         /// <summary>
         /// Obtains list of generic-type entities from repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix

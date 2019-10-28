@@ -86,6 +86,7 @@
     <Compile Include="BootsTrap.cs" />
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Core\ArchiverZip.cs" />
+    <Compile Include="Entities\DependencyState.cs" />
     <Compile Include="Entities\DtoOperation.cs" />
     <Compile Include="Entities\DtoOperInstance.cs" />
     <Compile Include="Entities\DtoOperTemplate.cs" />
@@ -143,7 +144,7 @@
     <Compile Include="Protobuf\ProtoPackageBuilder.cs" />
     <Compile Include="Protobuf\ProtoSerializer.cs" />
     <Compile Include="ReportTask\ReportTaskRunContext.cs" />
-    <Compile Include="Entities\TaskDependence.cs" />
+    <Compile Include="Entities\TaskDependency.cs" />
     <Compile Include="ReportTask\TaskWorker.cs" />
     <Compile Include="Operations\DataExporters\DbExporter.cs" />
     <Compile Include="Operations\DataExporters\TelegramDataSender.cs" />

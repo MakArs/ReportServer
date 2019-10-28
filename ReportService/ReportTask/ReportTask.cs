@@ -21,7 +21,7 @@ namespace ReportService.ReportTask
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
         public Dictionary<string, object> Parameters { get; set; } //todo: change to class?
-        public List<TaskDependence> DependsOn { get; set; }
+        public List<TaskDependency> DependsOn { get; set; }
 
         private readonly IMonik monik;
         private readonly ILifetimeScope autofac;
@@ -42,14 +42,14 @@ namespace ReportService.ReportTask
                 Parameters = JsonConvert
                     .DeserializeObject<Dictionary<string, object>>(parameters);
 
-            DependsOn = new List<TaskDependence>();
+            DependsOn = new List<TaskDependency>();
             if (!string.IsNullOrEmpty(dependsOn))
                 DependsOn = JsonConvert
-                    .DeserializeObject<List<TaskDependence>>(dependsOn);
-
-            ParseDtoOperations(logic, opers);
+                    .DeserializeObject<List<TaskDependency>>(dependsOn);
 
             this.autofac = autofac;
+
+            ParseDtoOperations(logic, opers);
         } //ctor
 
         private void ParseDtoOperations(ILogic logic, List<DtoOperation> opers)

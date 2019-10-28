@@ -15,7 +15,7 @@ namespace ReportService.Interfaces.ReportTask
         DateTime LastTime { get; }
         List<IOperation> Operations { get; set; }
         Dictionary<string, object> Parameters { get; set; }
-        List<TaskDependence> DependsOn { get; set; }
+        List<TaskDependency> DependsOn { get; set; }
 
         IReportTaskRunContext GetCurrentContext(bool takeDefault);
         void Execute(IReportTaskRunContext context);

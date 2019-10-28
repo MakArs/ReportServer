@@ -27,7 +27,7 @@ namespace ReportService.ReportTask
         public string TaskName { get; set; }
         public IDefaultTaskExporter DefaultExporter { get; set; }
         public Dictionary<string, object> Parameters { get; set; }
-        public List<TaskDependence> DependsOn { get; set; }
+        public List<TaskDependency> DependsOn { get; set; }
 
         public string DataFolderPath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                         $@"\ReportServer\{TaskInstance.Id}";

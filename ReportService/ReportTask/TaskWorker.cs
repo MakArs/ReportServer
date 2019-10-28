@@ -19,6 +19,8 @@ namespace ReportService.ReportTask
         private readonly IRepository repository;
         private readonly IMapper mapper;
         private readonly IMonik monik;
+        private int dependenciesWaitingCount = 3;
+        private readonly int dependenciesWaitingSeconds = 300;
 
         public TaskWorker(IRepository repository, IMapper mapper,
             IMonik monik)
@@ -41,24 +43,96 @@ namespace ReportService.ReportTask
                    + ")";
         }
 
-        public void RunTask(IReportTaskRunContext taskContext)
+        private bool CheckIfDependenciesCompleted(IReportTaskRunContext taskContext,
+            List<Tuple<Exception, string>> exceptions)
         {
-            if (taskContext.DependsOn
-                    .Any(dependence => (DateTime.Now
-                                        - repository.GetLastFinishTimeByTaskId(dependence.TaskId))
-                                       .TotalSeconds
-                                       > dependence.MaxSecondsPassed))
+            try
             {
+                if (taskContext.DependsOn.Count == 0)
+                    return true;
+
+                string unCompletedDependencies;
+
+                do
+                {
+                    var dependsOnStates = taskContext.DependsOn
+                        .Select(dependency =>
+                        {
+                            var state = repository.GetDependencyStateByTaskId(dependency.TaskId);
+                            return new
+                            {
+                                dependency.TaskId,
+                                dependency.MaxSecondsPassed,
+                                SecondsPassed = (DateTime.Now - state.LastSuccessfulFinish).TotalSeconds,
+                                state.InProcessCount
+                            };
+                        }).ToList();
+
+                    if (dependsOnStates.Any(state => state.InProcessCount > 0))
+                    {
+                        var waitInterval = Math.Min(dependenciesWaitingSeconds,
+                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min()-60) * 1000;
+
+                     Task.Delay(waitInterval).Wait(taskContext.CancelSource.Token);
+                    }
+
+                    unCompletedDependencies = string.Join(", ",
+                        dependsOnStates.Where(state => state.SecondsPassed > state.MaxSecondsPassed)
+                            .Select(state => state.TaskId));
+
+                    dependenciesWaitingCount--;
+                }
+
+                while (!string.IsNullOrEmpty(unCompletedDependencies) && dependenciesWaitingCount > 0);
+
+                if (!string.IsNullOrEmpty(unCompletedDependencies))
+                {
+                    var msg = $"uncompleted dependencies: {unCompletedDependencies}";
+                    throw new Exception(msg);
+                }
+
+                return true;
+            }
+
+            catch (Exception e)
+            {
+                var msg = $"Task {taskContext.TaskId} was not executed (" + e.Message+")";
+
+                var oper = taskContext.OpersToExecute.First();
+
+                exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
+
+                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
+
+                monik.ApplicationInfo(msg);
+                Console.WriteLine(msg);
+
                 taskContext.TaskInstance.Duration = 0;
 
                 taskContext.TaskInstance.State =
                     (int) InstanceState.Failed;
 
+                var dtoOperInstance = new DtoOperInstance
+                {
+                    TaskInstanceId = taskContext.TaskInstance.Id,
+                    OperationId = oper.Properties.Id,
+                    StartTime = DateTime.Now,
+                    Duration = 0,
+                    ErrorMessage = e.Message,
+                    State = (int) InstanceState.Failed
+                };
+
+                dtoOperInstance.Id =
+                    repository.CreateEntity<DtoOperInstance, long>(dtoOperInstance);
+
                 repository.UpdateEntity(taskContext.TaskInstance);
 
-                return;
+                return false;
             }
+        }
 
+        public void RunTask(IReportTaskRunContext taskContext)
+        {
             Stopwatch duration = new Stopwatch();
 
             duration.Start();
@@ -78,6 +152,9 @@ namespace ReportService.ReportTask
 
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
+
+            if (!CheckIfDependenciesCompleted(taskContext, exceptions))
+                return;
 
             try
             {
@@ -105,7 +182,7 @@ namespace ReportService.ReportTask
                 else
                 {
                     success = false;
-                    taskContext.Exporter.SendError(exceptions, taskContext.TaskName);
+                    taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
                     var msg = $"Task {taskContext.TaskId} completed with errors";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
@@ -115,7 +192,7 @@ namespace ReportService.ReportTask
             catch (Exception e)
             {
                 success = false;
-                taskContext.Exporter.SendError(exceptions, taskContext.TaskName);
+                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
                 var msg = $"Task {taskContext.TaskId} is not completed. An error has occurred: {e.Message}";
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
@@ -222,7 +299,7 @@ namespace ReportService.ReportTask
 
             var val = taskContext.Packages.LastOrDefault().Value;
 
-            return taskContext.Exporter.GetDefaultPackageView(taskContext.TaskName, val);
+            return taskContext.DefaultExporter.GetDefaultPackageView(taskContext.TaskName, val);
         }
 
 
@@ -233,7 +310,7 @@ namespace ReportService.ReportTask
 
             if (string.IsNullOrEmpty(view)) return;
 
-            taskContext.Exporter.ForceSend(view, taskContext.TaskName, mailAddress);
+            taskContext.DefaultExporter.ForceSend(view, taskContext.TaskName, mailAddress);
         }
     }
 }

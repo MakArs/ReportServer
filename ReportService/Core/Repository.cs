@@ -44,13 +44,15 @@ namespace ReportService.Core
             }
         }
 
-        public DateTime GetLastFinishTimeByTaskId(long taskId)
+        public DependencyState GetDependencyStateByTaskId(long taskId)
         {
             try
             {
-                return context.CreateSimple($@"SELECT max(dateadd(ms,Duration,[StartTime]))
-                FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}")
-                    .ExecuteQueryFirstColumn<DateTime>().ToList().First();
+                return context.CreateSimple(
+                        $@"SELECT max(case when State=2 then dateadd(ms,Duration,[StartTime]) else null end) LastSuccessfulFinish,
+	                                        count(case when State=1 then 1 else null end) InProcessCount
+                                            FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}")
+                    .ExecuteQuery<DependencyState>().ToList().First();
             }
             catch (Exception e)
             {

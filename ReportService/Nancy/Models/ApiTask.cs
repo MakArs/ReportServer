@@ -10,7 +10,7 @@ namespace ReportService.Nancy.Models
         public long Id { get; set; }
         public string Name { get; set; }
         public string Parameters { get; set; }
-        public TaskDependence[] DependsOn { get; set; }
+        public TaskDependency[] DependsOn { get; set; }
         public int? ScheduleId { get; set; }
         public DtoOperation[] BindedOpers { get; set; }
     }
