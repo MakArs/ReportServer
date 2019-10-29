@@ -31,9 +31,9 @@ namespace ReportService.ReportTask
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
 
-                foreach (var addr in ConfigurationManager.AppSettings["administrativeaddress"]
+                foreach (var addr in ConfigurationManager.AppSettings["AdministrativeAddresses"]
                     .Split(';'))
                 {
                     msg.To.Add(new MailAddress(addr));
@@ -106,7 +106,7 @@ namespace ReportService.ReportTask
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
 
                 msg.To.Add(new MailAddress(mailAddress));
 

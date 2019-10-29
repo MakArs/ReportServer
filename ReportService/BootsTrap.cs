@@ -124,7 +124,7 @@ namespace ReportService
             #region ConfigureMonik
 
             var logSender = new AzureSender(
-                ConfigurationManager.AppSettings["monikendpoint"],
+                ConfigurationManager.AppSettings["EndPoint"],
                 "incoming");
 
             existingContainer
@@ -192,10 +192,10 @@ namespace ReportService
 
             #region ConfigureBot
 
-            Uri proxyUri = new Uri(ConfigurationManager.AppSettings["proxyUriAddr"]);
+            Uri proxyUri = new Uri(ConfigurationManager.AppSettings["ProxyUriAddr"]);
             ICredentials credentials = new NetworkCredential(
-                ConfigurationManager.AppSettings["proxyLogin"],
-                ConfigurationManager.AppSettings["proxyPassword"]);
+                ConfigurationManager.AppSettings["ProxyLogin"],
+                ConfigurationManager.AppSettings["ProxyPassword"]);
             WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
             TelegramBotClient bot =
                 new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"], proxy);

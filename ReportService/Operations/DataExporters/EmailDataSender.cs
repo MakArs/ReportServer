@@ -73,7 +73,7 @@ namespace ReportService.Operations.DataExporters
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
                 msg.AddRecipientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
@@ -172,7 +172,7 @@ namespace ReportService.Operations.DataExporters
 
             using (var msg = new MailMessage())
             {
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["from"]);
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
                 msg.AddRecipientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
