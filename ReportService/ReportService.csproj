@@ -87,17 +87,23 @@
     <Compile Include="Core\Archiver7Zip.cs" />
     <Compile Include="Core\ArchiverZip.cs" />
     <Compile Include="Entities\DependencyState.cs" />
-    <Compile Include="Entities\DtoOperation.cs" />
-    <Compile Include="Entities\DtoOperInstance.cs" />
-    <Compile Include="Entities\DtoOperTemplate.cs" />
-    <Compile Include="Entities\DtoRecepientGroup.cs" />
-    <Compile Include="Entities\DtoSchedule.cs" />
-    <Compile Include="Entities\DtoTask.cs" />
-    <Compile Include="Entities\DtoTaskInstance.cs" />
-    <Compile Include="Entities\DtoTelegramChannel.cs" />
+    <Compile Include="Entities\Dto\DtoOperation.cs" />
+    <Compile Include="Entities\Dto\DtoOperInstance.cs" />
+    <Compile Include="Entities\Dto\DtoOperTemplate.cs" />
+    <Compile Include="Entities\Dto\DtoRecepientGroup.cs" />
+    <Compile Include="Entities\Dto\DtoSchedule.cs" />
+    <Compile Include="Entities\Dto\DtoTask.cs" />
+    <Compile Include="Entities\Dto\DtoTaskInstance.cs" />
+    <Compile Include="Entities\Dto\DtoTelegramChannel.cs" />
+    <Compile Include="Entities\ServiceSettings\EmailSenderSettings.cs" />
     <Compile Include="Entities\EnumInstanceState.cs" />
+    <Compile Include="Entities\ServiceSettings\MonikSettings.cs" />
+    <Compile Include="Entities\ServiceSettings\PermissionsSettings.cs" />
+    <Compile Include="Entities\ServiceSettings\ProxySettings.cs" />
     <Compile Include="Entities\RecipientAddresses.cs" />
     <Compile Include="Entities\RecipientGroup.cs" />
+    <Compile Include="Entities\ServiceSettings\ServiceConfiguration.cs" />
+    <Compile Include="Entities\ServiceSettings\TokenValidationSettings.cs" />
     <Compile Include="Extensions\ErrorExtensions.cs" />
     <Compile Include="Interfaces\Core\IDtoEntity.cs" />
     <Compile Include="Interfaces\Operations\IImporterConfig.cs" />
@@ -191,6 +197,7 @@
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-standalone-preset.js.map" />
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.css.map" />
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js.map" />
+    <None Include="BootstrapSettings.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\ReportPlugins\ServicePlugins\*.cs">
@@ -209,6 +216,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+    <None Include="BootstrapSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml">

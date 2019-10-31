@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Interfaces.Operations;
 
 namespace ReportService.Interfaces.ReportTask

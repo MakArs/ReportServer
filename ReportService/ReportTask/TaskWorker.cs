@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Monik.Common;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;

@@ -1,7 +1,7 @@
 ﻿using Nancy.Swagger.Annotations.Attributes;
 using ReportService.Interfaces.Core;
 
-namespace ReportService.Entities
+namespace ReportService.Entities.Dto
 {
     [Model("Telegram channel")]
     public class DtoTelegramChannel : IDtoEntity

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Extensions;
 using ReportService.Nancy.Models;
 

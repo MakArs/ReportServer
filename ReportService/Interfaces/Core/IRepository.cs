@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 
 namespace ReportService.Interfaces.Core
 {

@@ -5,6 +5,7 @@ using Gerakul.FastSql.Common;
 using Gerakul.FastSql.SqlServer;
 using Monik.Common;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Interfaces.Core;
 
 namespace ReportService.Core

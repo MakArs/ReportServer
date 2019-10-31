@@ -1,6 +1,6 @@
 ﻿using ReportService.Interfaces.Core;
 
-namespace ReportService.Entities
+namespace ReportService.Entities.Dto
 {
     public class DtoTask : IDtoEntity
     {

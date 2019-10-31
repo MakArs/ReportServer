@@ -12,6 +12,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
