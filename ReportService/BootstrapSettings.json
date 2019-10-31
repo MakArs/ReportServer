@@ -1,8 +1,0 @@
-{
-  "Environment": "dev",
-  "Consul": {
-    "Url": "http://localhost:8500",
-    "Token": "a9d1ef8f-69d6-2224-2468-b84ed46bf161"
-  },
-  "SettingsKey": "DeviceState2"
-}

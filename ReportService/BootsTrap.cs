@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using Autofac;
 using AutoMapper;
 using Domain0.Tokens;
+using ExternalConfiguration;
 using Monik.Client;
 using Monik.Common;
 using Nancy;
@@ -16,6 +19,8 @@ using Nancy.Swagger.Services;
 using Newtonsoft.Json;
 using ReportService.Core;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
@@ -32,6 +37,7 @@ using ReportService.Protobuf;
 using ReportService.ReportTask;
 using Swagger.ObjectModel;
 using Telegram.Bot;
+using TokenValidationSettings = Domain0.Tokens.TokenValidationSettings;
 
 namespace ReportService
 {
@@ -56,6 +62,7 @@ namespace ReportService
             container.Update(builder => builder
                 .RegisterType<SwaggerAnnotationsProvider>()
                 .As<ISwaggerMetadataProvider>());
+
             Global = Container;
             ILogic log = Container.Resolve<ILogic>();
             log.Start();
@@ -71,8 +78,35 @@ namespace ReportService
                 .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
         }
 
+        private ServiceConfiguration GetConfiguration()
+        {
+            var settingsPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+                , "ConsulSettings.json");
+
+            ConsulSettings consulSettings;
+
+            using (StreamReader reader = new StreamReader(settingsPath))
+                consulSettings = JsonConvert.DeserializeObject<ConsulSettings>(reader.ReadToEnd());
+
+          
+            var store = new ConsulConfigurationStore(consulSettings.Url, consulSettings.Token);
+
+            IExternalConfigurationProvider prov =
+                new ExternalConfigurationProvider(store, consulSettings.Environment);
+
+            var asfr = prov.GetServiceSettingsAsync(consulSettings.ServiceName).Result;
+
+            var appset = asfr["AppSettings"];
+
+            var serviceConfiguration = JsonConvert.DeserializeObject<ServiceConfiguration>(appset);
+
+            return serviceConfiguration;
+        }
+
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
+            var config = GetConfiguration();
+
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (existingContainer, "CommonDbImporter");
 

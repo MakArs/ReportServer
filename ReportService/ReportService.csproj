@@ -197,7 +197,6 @@
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-standalone-preset.js.map" />
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.css.map" />
     <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js.map" />
-    <None Include="BootstrapSettings.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\ReportPlugins\ServicePlugins\*.cs">
@@ -216,7 +215,7 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-    <None Include="ReportService\BootstrapSettings.json">
+    <None Include="ConsulSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
