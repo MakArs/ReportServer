@@ -8,6 +8,7 @@ using NUnit.Framework;
 using ProtoBuf;
 using ReportService;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Protobuf;
 using ElementarySerializer = TestModule.ProtoOld.ElementarySerializer;
 using FieldParams = TestModule.ProtoOld.FieldParams;

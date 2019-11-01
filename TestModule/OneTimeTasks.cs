@@ -11,6 +11,7 @@ using Nancy.Hosting.Self;
 using NUnit.Framework;
 using ReportService;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;

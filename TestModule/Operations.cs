@@ -9,12 +9,11 @@ using NUnit.Framework;
 using ReportService;
 using ReportService.Core;
 using ReportService.Entities;
+using ReportService.Entities.Dto;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters.Configurations;
-using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters.Configurations;
-using ReportService.Protobuf;
 
 namespace TestModule
 {
