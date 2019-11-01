@@ -2,6 +2,7 @@
 using Nancy;
 using Nancy.Swagger.Annotations.Attributes;
 using Newtonsoft.Json;
+using ReportService.Entities.ServiceSettings;
 using Swagger.ObjectModel;
 using Response = Nancy.Response;
 
@@ -45,9 +46,9 @@ namespace ReportService.Nancy.Modules.ApiModules
             Required = true,
             Description = "JWT access token")]
         [SwaggerResponse(
-             HttpStatusCode.OK, 
-             Message = "Success", 
-             Model = typeof(ApiUserRole))]
+            HttpStatusCode.OK,
+            Message = "Success",
+            Model = typeof(ApiUserRole))]
         [SwaggerResponse(
             HttpStatusCode.InternalServerError,
             "Internal error during request execution")]
@@ -78,7 +79,7 @@ namespace ReportService.Nancy.Modules.ApiModules
             }
         }
 
-        public GeneralModule()
+        public GeneralModule(ServiceConfiguration config) : base(config)
         {
             Get(IsAliveRoute,
                 _ => IsAlive(),

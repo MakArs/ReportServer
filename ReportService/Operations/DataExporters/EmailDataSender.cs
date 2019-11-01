@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -8,6 +7,7 @@ using Autofac;
 using AutoMapper;
 using Newtonsoft.Json;
 using ReportService.Entities;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
@@ -35,13 +35,18 @@ namespace ReportService.Operations.DataExporters
         public bool UseAllSetsXlsx;
         private readonly IPackageParser parser;
         private readonly ILifetimeScope autofac;
+        private readonly string smtpServer;
+        private readonly string fromAddress;
 
         public EmailDataSender(IMapper mapper, ILogic logic, ILifetimeScope autofac,
-            EmailExporterConfig config, IPackageParser parser)
+            EmailExporterConfig config, IPackageParser parser, ServiceConfiguration serviceConfig)
         {
             this.parser = parser;
             mapper.Map(config, this);
             mapper.Map(config, Properties);
+
+            smtpServer = serviceConfig.EmailSenderSettings.SMTPServer;
+            fromAddress = serviceConfig.EmailSenderSettings.From;
 
             addresses = config.RecepientGroupId > 0
                 ? logic.GetRecepientAddressesByGroupId(config.RecepientGroupId)
@@ -66,14 +71,14 @@ namespace ReportService.Operations.DataExporters
             string filenameJson = $@"{filename}.json";
             string filenameXlsx = $@"{filename}.xlsx";
 
-            using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
+            using (var client = new SmtpClient(smtpServer, 25))
             using (var msg = new MailMessage())
             {
                 client.DeliveryFormat = SmtpDeliveryFormat.International;
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
+                msg.From = new MailAddress(fromAddress);
                 msg.AddRecipientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
@@ -172,7 +177,7 @@ namespace ReportService.Operations.DataExporters
 
             using (var msg = new MailMessage())
             {
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
+                msg.From = new MailAddress(fromAddress);
                 msg.AddRecipientsFromGroup(addresses);
 
                 if (!string.IsNullOrEmpty(RecepientsDatasetName))
@@ -224,11 +229,12 @@ namespace ReportService.Operations.DataExporters
                             @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
                     }
 
-                    using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
+                    using (var client = new SmtpClient(smtpServer, 25))
                     {
                         client.DeliveryFormat = SmtpDeliveryFormat.International;
                         client.EnableSsl = true;
                         client.DeliveryMethod = SmtpDeliveryMethod.Network;
+
                         using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
                         {
                             var tryCount = 0;

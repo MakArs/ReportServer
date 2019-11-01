@@ -217,7 +217,9 @@ namespace ReportService.Core
 
         public void Start()
         {
-            //CreateBase(ConfigurationManager.AppSettings["DBConnStr"]);
+            //var serviceConfig = autofac.Resolve<ServiceConfiguration>();
+            //CreateBase(serviceConfig.DBConnStr);
+
             RegisteredImporters = GetRegistrationsByTypeAndKeyType<IOperation, IImporterConfig>();
             RegisteredExporters = GetRegistrationsByTypeAndKeyType<IOperation, IExporterConfig>();
 

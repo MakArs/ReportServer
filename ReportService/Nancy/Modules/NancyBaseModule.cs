@@ -1,5 +1,5 @@
-﻿using System.Configuration;
-using Nancy;
+﻿using Nancy;
+using ReportService.Entities.ServiceSettings;
 
 namespace ReportService.Nancy.Modules
 {
@@ -7,15 +7,22 @@ namespace ReportService.Nancy.Modules
     {
         Viewer,
         Editor,
-        StopRunner,//executor?
+        StopRunner, //executor?
         NoRole
     }
 
     public abstract class NancyBaseModule : NancyModule
     {
+        protected NancyBaseModule(ServiceConfiguration config)
+        {
+            ViewPermission = config.PermissionsSettings.Permissions_View;
+            EditPermission = config.PermissionsSettings.Permissions_Edit;
+            StopRunPermission = config.PermissionsSettings.Permissions_StopRun;
+        }
+
         protected string PermissionsType = "permissions";
-        protected string ViewPermission = ConfigurationManager.AppSettings["Permissions_View"];
-        protected string EditPermission = ConfigurationManager.AppSettings["Permissions_Edit"];
-        protected string StopRunPermission = ConfigurationManager.AppSettings["Permissions_StopRun"];
+        protected string ViewPermission;
+        protected string EditPermission;
+        protected string StopRunPermission;
     }
 }

@@ -5,6 +5,7 @@ using Nancy.Security;
 using Nancy.Swagger.Annotations.Attributes;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Interfaces.Core;
 using Swagger.ObjectModel;
 using Response = Nancy.Response;
@@ -280,7 +281,7 @@ namespace ReportService.Nancy.Modules.ApiModules
             }
         }
 
-        public OperationTemplatesModule(ILogic logic)
+        public OperationTemplatesModule(ILogic logic, ServiceConfiguration config) : base(config)
         {
             //can do through RequiresAnyClaim but more code
             this.RequiresClaims(c => c.Type == PermissionsType

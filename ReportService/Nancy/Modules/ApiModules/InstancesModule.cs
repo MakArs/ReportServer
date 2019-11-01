@@ -4,6 +4,7 @@ using Nancy.Security;
 using Nancy.Swagger.Annotations.Attributes;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Interfaces.Core;
 using ReportService.Nancy.Models;
 using Swagger.ObjectModel;
@@ -164,7 +165,7 @@ namespace ReportService.Nancy.Modules.ApiModules
             }
         }
 
-        public InstancesModule(ILogic logic)
+        public InstancesModule(ILogic logic, ServiceConfiguration config) : base(config)
         {
             this.RequiresClaims(c => c.Type == PermissionsType
                                      && (c.Value.Contains(ViewPermission)

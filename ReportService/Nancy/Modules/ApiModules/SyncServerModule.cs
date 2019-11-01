@@ -2,6 +2,7 @@
 using Nancy.ModelBinding;
 using Nancy.Security;
 using Nancy.Swagger.Annotations.Attributes;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Interfaces.Core;
 using ReportService.Nancy.Models;
 using Swagger.ObjectModel;
@@ -57,7 +58,7 @@ namespace ReportService.Nancy.Modules.ApiModules
             }
         }
 
-        public SyncServerModule(ILogic logic)
+        public SyncServerModule(ILogic logic, ServiceConfiguration config) : base(config)
         {
             //Get["/currentexporters"] = parameters =>
             //{

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Net.Mail;
 using Autofac;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 
@@ -12,10 +12,16 @@ namespace ReportService.ReportTask
     public class DefaultTaskExporter : IDefaultTaskExporter
     {
         private readonly IViewExecutor executor;
+        private readonly string smtpServer;
+        private readonly string fromAddress;
+        private readonly string administrativeAddresses;
 
-        public DefaultTaskExporter(ILifetimeScope autofac)
+        public DefaultTaskExporter(ILifetimeScope autofac, ServiceConfiguration serviceConfig)
         {
             executor = autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
+            smtpServer = serviceConfig.EmailSenderSettings.SMTPServer;
+            fromAddress = serviceConfig.EmailSenderSettings.From;
+            administrativeAddresses = serviceConfig.AdministrativeAddresses;
         }
 
         public string GetDefaultPackageView(string taskName, OperationPackage package)
@@ -25,15 +31,15 @@ namespace ReportService.ReportTask
 
         public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
         {
-            using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
+            using (var client = new SmtpClient(smtpServer, 25))
             using (var msg = new MailMessage())
             {
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
+                msg.From = new MailAddress(fromAddress);
 
-                foreach (var addr in ConfigurationManager.AppSettings["AdministrativeAddresses"]
+                foreach (var addr in administrativeAddresses
                     .Split(';'))
                 {
                     msg.To.Add(new MailAddress(addr));
@@ -100,13 +106,13 @@ namespace ReportService.ReportTask
 
         public void ForceSend(string defaultView, string taskName, string mailAddress)
         {
-            using (var client = new SmtpClient(ConfigurationManager.AppSettings["SMTPServer"], 25))
+            using (var client = new SmtpClient(smtpServer, 25))
             using (var msg = new MailMessage())
             {
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-                msg.From = new MailAddress(ConfigurationManager.AppSettings["From"]);
+                msg.From = new MailAddress(fromAddress);
 
                 msg.To.Add(new MailAddress(mailAddress));
 

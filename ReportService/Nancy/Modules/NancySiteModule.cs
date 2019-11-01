@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Nancy;
 using Nancy.Swagger.Annotations.Attributes;
+using ReportService.Entities.ServiceSettings;
 using ReportService.Interfaces.Core;
 using Swagger.ObjectModel;
 using Response = Nancy.Response;
@@ -130,7 +131,7 @@ namespace ReportService.Nancy.Modules
             }
         }
 
-        public SiteModule(ILogic logic)
+        public SiteModule(ILogic logic, ServiceConfiguration config) : base(config)
         {
             Get(GetAllTasksHtmlRoute,
                 async (parameters, token) => await GetAllTasksHtmlAsync(logic),

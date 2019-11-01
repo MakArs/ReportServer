@@ -73,13 +73,15 @@ namespace ReportService
         protected override void ConfigureConventions(NancyConventions nancyConventions)
         {
             base.ConfigureConventions(nancyConventions);
-        
+
             nancyConventions.StaticContentsConventions
                 .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
         }
 
         private ServiceConfiguration GetConfiguration()
         {
+            ServiceConfiguration serviceConfiguration = null;
+
             var settingsPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
                 , "ConsulSettings.json");
 
@@ -88,24 +90,73 @@ namespace ReportService
             using (StreamReader reader = new StreamReader(settingsPath))
                 consulSettings = JsonConvert.DeserializeObject<ConsulSettings>(reader.ReadToEnd());
 
-          
-            var store = new ConsulConfigurationStore(consulSettings.Url, consulSettings.Token);
+            try //todo: not try..catch?
+            {
+                var store = new ConsulConfigurationStore(consulSettings.Url, consulSettings.Token);
 
-            IExternalConfigurationProvider prov =
-                new ExternalConfigurationProvider(store, consulSettings.Environment);
+                IExternalConfigurationProvider prov =
+                    new ExternalConfigurationProvider(store, consulSettings.Environment);
 
-            var asfr = prov.GetServiceSettingsAsync(consulSettings.ServiceName).Result;
+                var serviceSettings = prov.GetServiceSettingsAsync(consulSettings.ServiceName).Result;
 
-            var appset = asfr["AppSettings"];
+                if (serviceSettings != null)
+                {
+                    var appset = serviceSettings["AppSettings"];
 
-            var serviceConfiguration = JsonConvert.DeserializeObject<ServiceConfiguration>(appset);
+                    serviceConfiguration = JsonConvert.DeserializeObject<ServiceConfiguration>(appset);
+                }
+            }
+
+            catch 
+            {
+                serviceConfiguration = new ServiceConfiguration
+                {
+                    AdministrativeAddresses = ConfigurationManager.AppSettings["AdministrativeAddresses"],
+                    ArchiveFormat = ConfigurationManager.AppSettings["ArchiveFormat"],
+                    B2BConnStr = ConfigurationManager.AppSettings["B2BConnStr"],
+                    BotToken = ConfigurationManager.AppSettings["BotToken"],
+                    DBConnStr = ConfigurationManager.AppSettings["DBConnStr"],
+                    EmailSenderSettings = new EmailSenderSettings
+                    {
+                        From = ConfigurationManager.AppSettings["From"],
+                        SMTPServer = ConfigurationManager.AppSettings["SMTPServer"]
+                    },
+                    MonikSettings = new MonikSettings
+                    {
+                        EndPoint = ConfigurationManager.AppSettings["EndPoint"],
+                        InstanceName = ConfigurationManager.AppSettings["InstanceName"]
+                    },
+                    PermissionsSettings = new PermissionsSettings
+                    {
+                        Permissions_Edit = ConfigurationManager.AppSettings["Permissions_Edit"],
+                        Permissions_StopRun = ConfigurationManager.AppSettings["Permissions_StopRun"],
+                        Permissions_View = ConfigurationManager.AppSettings["Permissions_View"]
+                    },
+                    ProxySettings = new ProxySettings
+                    {
+                        ProxyLogin = ConfigurationManager.AppSettings["ProxyLogin"],
+                        ProxyPassword = ConfigurationManager.AppSettings["ProxyPassword"],
+                        ProxyUriAddr = ConfigurationManager.AppSettings["ProxyUriAddr"]
+                    },
+                    TokenValidationSettings = new Entities.ServiceSettings.TokenValidationSettings
+                    {
+                        Token_Alg = ConfigurationManager.AppSettings["Token_Alg"],
+                        Token_Audience = ConfigurationManager.AppSettings["Token_Audience"],
+                        Token_Issuer = ConfigurationManager.AppSettings["Token_Issuer"],
+                        Token_Secret = ConfigurationManager.AppSettings["Token_Secret"]
+                    }
+                };
+            }
 
             return serviceConfiguration;
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-            var config = GetConfiguration();
+            var serviceConfiguration = GetConfiguration();
+
+            existingContainer.RegisterSingleInstance<ServiceConfiguration, ServiceConfiguration>
+                (serviceConfiguration);
 
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (existingContainer, "CommonDbImporter");
@@ -118,7 +169,7 @@ namespace ReportService
 
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>
                 (existingContainer, "CommonSshImporter");
-            
+
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (existingContainer, "CommonEmailSender");
 
@@ -144,7 +195,7 @@ namespace ReportService
                 (existingContainer, "GroupedViewex");
 
             RegisterNamedViewExecutor<CommonTableViewExecutor>
-            (existingContainer,"CommonTableViewEx");
+                (existingContainer, "CommonTableViewEx");
 
             existingContainer
                 .RegisterImplementationSingleton<ILogic, Logic>();
@@ -158,7 +209,7 @@ namespace ReportService
             #region ConfigureMonik
 
             var logSender = new AzureSender(
-                ConfigurationManager.AppSettings["EndPoint"],
+                serviceConfiguration.MonikSettings.EndPoint,
                 "incoming");
 
             existingContainer
@@ -167,7 +218,7 @@ namespace ReportService
             var monikSettings = new ClientSettings
             {
                 SourceName = "ReportServer",
-                InstanceName = ConfigurationManager.AppSettings["InstanceName"],
+                InstanceName = serviceConfiguration.MonikSettings.InstanceName,
                 AutoKeepAliveEnable = true
             };
 
@@ -179,7 +230,7 @@ namespace ReportService
 
             #endregion
 
-            var repository = new Repository(ConfigurationManager.AppSettings["DBConnStr"],
+            var repository = new Repository(serviceConfiguration.DBConnStr,
                 existingContainer.Resolve<IMonik>());
 
             existingContainer
@@ -204,7 +255,7 @@ namespace ReportService
             existingContainer.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
             existingContainer.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
 
-            switch (ConfigurationManager.AppSettings["ArchiveFormat"])
+            switch (serviceConfiguration.ArchiveFormat)
             {
                 case "Zip":
                     existingContainer.RegisterImplementation<IArchiver, ArchiverZip>();
@@ -226,13 +277,13 @@ namespace ReportService
 
             #region ConfigureBot
 
-            Uri proxyUri = new Uri(ConfigurationManager.AppSettings["ProxyUriAddr"]);
+            Uri proxyUri = new Uri(serviceConfiguration.ProxySettings.ProxyUriAddr);
             ICredentials credentials = new NetworkCredential(
-                ConfigurationManager.AppSettings["ProxyLogin"],
-                ConfigurationManager.AppSettings["ProxyPassword"]);
+                serviceConfiguration.ProxySettings.ProxyLogin,
+                serviceConfiguration.ProxySettings.ProxyPassword);
             WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
             TelegramBotClient bot =
-                new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"], proxy);
+                new TelegramBotClient(serviceConfiguration.BotToken, proxy);
             existingContainer
                 .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
 
@@ -244,14 +295,14 @@ namespace ReportService
             existingContainer.RegisterInstance<TokenValidationSettings, TokenValidationSettings>(
                 new TokenValidationSettings
                 {
-                    Audience = ConfigurationManager.AppSettings["Token_Audience"],
-                    Issuer = ConfigurationManager.AppSettings["Token_Issuer"],
+                    Audience = serviceConfiguration.TokenValidationSettings.Token_Audience,
+                    Issuer = serviceConfiguration.TokenValidationSettings.Token_Issuer,
                     Keys = new[]
                     {
                         new KeyInfo
                         {
-                            Key = ConfigurationManager.AppSettings["Token_Secret"],
-                            Alg = ConfigurationManager.AppSettings["Token_Alg"]
+                            Key = serviceConfiguration.TokenValidationSettings.Token_Secret,
+                            Alg = serviceConfiguration.TokenValidationSettings.Token_Alg
                         }
                     }
                 });

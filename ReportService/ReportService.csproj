@@ -95,6 +95,7 @@
     <Compile Include="Entities\Dto\DtoTask.cs" />
     <Compile Include="Entities\Dto\DtoTaskInstance.cs" />
     <Compile Include="Entities\Dto\DtoTelegramChannel.cs" />
+    <Compile Include="Entities\ServiceSettings\ConsulSettings.cs" />
     <Compile Include="Entities\ServiceSettings\EmailSenderSettings.cs" />
     <Compile Include="Entities\EnumInstanceState.cs" />
     <Compile Include="Entities\ServiceSettings\MonikSettings.cs" />
