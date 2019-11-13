@@ -9,16 +9,17 @@ ETL solution(windows service) for scheduled reports compilation and sending
 * SQL Database
 * Excel file
 * CSV file
-* SFTP server(file transmition)
+* SFTP server(file transfer)
 
 **Output report formats**
 * E-mail(Excel/Json attachements, message body as HTML table)
 * Telegram message
-* Database(raw data transmition into table/compressed reports)
-* FTP/SFTP server(file transmition, CSV,Excel,Json)
+* Database(raw data transfer into table/compressed reports)
+* FTP/SFTP server(file transfer, CSV,Excel,Json)
 
 # Configuration options
-* Via [Consul](https://github.com/MakArs/ReportServer/blob/master/ReportService/ConsulSettings.json)
+* Via [Consul](https://github.com/MakArs/ReportServer/blob/master/ReportService/ConsulSettings.json) (needs to have working Consul instance with [AppService](https://github.com/MakArs/ReportServer/blob/master/ReportService/AppService.json) file configured)
+or
 * Via [App.Config](https://github.com/MakArs/ReportServer/blob/master/ReportService/App.config) 
 
 # Desktop client

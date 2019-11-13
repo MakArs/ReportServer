@@ -101,7 +101,7 @@ namespace ReportService
 
                 if (serviceSettings != null)
                 {
-                    var appset = serviceSettings["AppSettings"];
+                    var appset = serviceSettings["AppService"];
 
                     serviceConfiguration = JsonConvert.DeserializeObject<ServiceConfiguration>(appset);
                 }
