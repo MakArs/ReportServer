@@ -1,204 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{993B2B5C-7574-467F-B4CD-0EA324DEFDE7}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ReportService</RootNamespace>
-    <AssemblyName>ReportService</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net462</TargetFramework>
     <LangVersion>7.1</LangVersion>
-    <Prefer32Bit>true</Prefer32Bit>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>
-    </StartupObject>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.OracleClient" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IdentityModel" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BootsTrap.cs" />
-    <Compile Include="Core\Archiver7Zip.cs" />
-    <Compile Include="Core\ArchiverZip.cs" />
-    <Compile Include="Entities\DependencyState.cs" />
-    <Compile Include="Entities\Dto\DtoOperation.cs" />
-    <Compile Include="Entities\Dto\DtoOperInstance.cs" />
-    <Compile Include="Entities\Dto\DtoOperTemplate.cs" />
-    <Compile Include="Entities\Dto\DtoRecepientGroup.cs" />
-    <Compile Include="Entities\Dto\DtoSchedule.cs" />
-    <Compile Include="Entities\Dto\DtoTask.cs" />
-    <Compile Include="Entities\Dto\DtoTaskInstance.cs" />
-    <Compile Include="Entities\Dto\DtoTelegramChannel.cs" />
-    <Compile Include="Entities\ServiceSettings\ConsulSettings.cs" />
-    <Compile Include="Entities\ServiceSettings\EmailSenderSettings.cs" />
-    <Compile Include="Entities\EnumInstanceState.cs" />
-    <Compile Include="Entities\ServiceSettings\MonikSettings.cs" />
-    <Compile Include="Entities\ServiceSettings\PermissionsSettings.cs" />
-    <Compile Include="Entities\ServiceSettings\ProxySettings.cs" />
-    <Compile Include="Entities\RecipientAddresses.cs" />
-    <Compile Include="Entities\RecipientGroup.cs" />
-    <Compile Include="Entities\ServiceSettings\ServiceConfiguration.cs" />
-    <Compile Include="Entities\ServiceSettings\TokenValidationSettings.cs" />
-    <Compile Include="Extensions\ErrorExtensions.cs" />
-    <Compile Include="Interfaces\Core\IDtoEntity.cs" />
-    <Compile Include="Interfaces\Operations\IImporterConfig.cs" />
-    <Compile Include="Interfaces\Operations\IOperationConfig.cs" />
-    <Compile Include="Interfaces\Protobuf\IPackageParser.cs" />
-    <Compile Include="Nancy\Models\ApiOperInstance.cs" />
-    <Compile Include="Nancy\Models\ApiTask.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\GeneralModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\InstancesModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\OperationTemplatesModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\RecipientGroupsModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\SchedulesModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\SyncServerModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\TasksModule.cs" />
-    <Compile Include="Nancy\Modules\ApiModules\TelegramChannelsModule.cs" />
-    <Compile Include="Nancy\NancyExtensions.cs" />
-    <Compile Include="Entities\CommonOperationProperties.cs" />
-    <Compile Include="Operations\DataExporters\B2BExporter.cs" />
-    <Compile Include="Operations\DataExporters\Configurations\B2BExporterConfig.cs" />
-    <Compile Include="Operations\DataExporters\Configurations\DbExporterConfig.cs" />
-    <Compile Include="Operations\DataExporters\Configurations\EmailExporterConfig.cs" />
-    <Compile Include="Interfaces\Operations\IExporterConfig.cs" />
-    <Compile Include="Operations\DataExporters\Configurations\FtpExporterConfig.cs" />
-    <Compile Include="Operations\DataExporters\Configurations\SshExporterConfig.cs" />
-    <Compile Include="Operations\DataExporters\Configurations\TelegramExporterConfig.cs" />
-    <Compile Include="Operations\DataExporters\FtpExporter.cs" />
-    <Compile Include="Operations\DataExporters\SshExporter.cs" />
-    <Compile Include="Operations\DataExporters\ViewExecutors\GroupedViewExecutor.cs" />
-    <Compile Include="Entities\MergedRow.cs" />
-    <Compile Include="Operations\DataImporters\Configurations\CsvImporterConfig.cs" />
-    <Compile Include="Operations\DataImporters\Configurations\DbImporterConfig.cs" />
-    <Compile Include="Operations\DataImporters\Configurations\ExcelImporterConfig.cs" />
-    <Compile Include="Operations\DataImporters\Configurations\HistoryImporterConfig.cs" />
-    <Compile Include="Operations\DataImporters\Configurations\SshImporterConfig.cs" />
-    <Compile Include="Operations\DataImporters\CsvImporter.cs" />
-    <Compile Include="Entities\ExcelReadingParameters.cs" />
-    <Compile Include="Operations\DataImporters\HistoryImporter.cs" />
-    <Compile Include="Operations\DataImporters\SshImporter.cs" />
-    <Compile Include="Entities\DataSetContent.cs" />
-    <Compile Include="Protobuf\OperationPackage.cs" />
-    <Compile Include="Entities\OrderSettings.cs" />
-    <Compile Include="Protobuf\ProtoPackageParser.cs" />
-    <Compile Include="ReportTask\DefaultTaskExporter.cs" />
-    <Compile Include="Protobuf\ProtoPackageBuilder.cs" />
-    <Compile Include="Protobuf\ProtoSerializer.cs" />
-    <Compile Include="ReportTask\ReportTaskRunContext.cs" />
-    <Compile Include="Entities\TaskDependency.cs" />
-    <Compile Include="ReportTask\TaskWorker.cs" />
-    <Compile Include="Operations\DataExporters\DbExporter.cs" />
-    <Compile Include="Operations\DataExporters\TelegramDataSender.cs" />
-    <Compile Include="Operations\DataImporters\DbImporter.cs" />
-    <Compile Include="Operations\DataImporters\ExcelImporter.cs" />
-    <Compile Include="Extensions\ExcelRangeExtension.cs" />
-    <Compile Include="Extensions\LifeTimeExtensions.cs" />
-    <Compile Include="Extensions\MailMessageExtension.cs" />
-    <Compile Include="Interfaces\Core\IArchiver.cs" />
-    <Compile Include="Interfaces\ReportTask\IDefaultTaskExporter.cs" />
-    <Compile Include="Interfaces\Protobuf\IPackageBuilder.cs" />
-    <Compile Include="Interfaces\Operations\IOperation.cs" />
-    <Compile Include="Interfaces\Protobuf\IProtoSerializer.cs" />
-    <Compile Include="Interfaces\ReportTask\IReportTaskRunContext.cs" />
-    <Compile Include="Interfaces\ReportTask\ITaskWorker.cs" />
-    <Compile Include="Nancy\HostHolder.cs" />
-    <Compile Include="Nancy\Modules\NancyBaseModule.cs" />
-    <Compile Include="Operations\DataExporters\EmailDataSender.cs" />
-    <Compile Include="ReportTask\ReportTask.cs" />
-    <Compile Include="Core\Scheduler.cs" />
-    <Compile Include="Interfaces\Core\IRepository.cs" />
-    <Compile Include="Interfaces\Core\IHostHolder.cs" />
-    <Compile Include="Interfaces\Core\ILogic.cs" />
-    <Compile Include="Interfaces\ReportTask\IReportTask.cs" />
-    <Compile Include="Interfaces\Core\IViewExecutor.cs" />
-    <Compile Include="Core\Repository.cs" />
-    <Compile Include="Core\Logic.cs" />
-    <Compile Include="Nancy\Modules\NancySiteModule.cs" />
-    <Compile Include="Operations\DataExporters\ViewExecutors\CommonTableViewExecutor.cs" />
-    <Compile Include="Operations\DataExporters\ViewExecutors\CommonViewExecutor.cs" />
-    <!--<Compile Include="PluginFolder\DailyReport.cs" />
-    <Compile Include="PluginFolder\WeeklyReport.cs" />
-    <Compile Include="PluginFolder\PrivateBootsTrap.cs" />-->
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <!--<Compile Include="Reports\PeriodicReportEmailSenderBase.cs" />
-    <Compile Include="Reports\PeriodicReportEmailSenders.cs" />-->
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-bundle.js.map" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-standalone-preset.js.map" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.css.map" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js.map" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\ReportPlugins\ServicePlugins\*.cs">
       <Link>Reports\%(FileName)</Link>
@@ -206,177 +12,58 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
     <None Include="ConsulSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="FodyWeavers.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <EmbeddedResource Include="Nancy\SwaggerDist\favicon-16x16.png" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\favicon-32x32.png" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\index.html" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\oauth2-redirect.html" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-bundle.js" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui-standalone-preset.js" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.css" />
-    <EmbeddedResource Include="Nancy\SwaggerDist\swagger-ui.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Autofac">
-      <Version>4.9.4</Version>
-    </PackageReference>
-    <PackageReference Include="AutoMapper">
-      <Version>9.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Costura.Fody">
-      <Version>3.3.3</Version>
-    </PackageReference>
-    <PackageReference Include="CsvHelper">
-      <Version>12.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Domain0.Auth.Nancy">
-      <Version>1.0.10</Version>
-    </PackageReference>
-    <PackageReference Include="EPPlus">
-      <Version>4.5.3.2</Version>
-    </PackageReference>
-    <PackageReference Include="ExternalConfigurationProvider">
-      <Version>0.4.0</Version>
-    </PackageReference>
-    <PackageReference Include="Fody">
-      <Version>4.2.1</Version>
+    <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="Costura.Fody" Version="3.3.3" />
+    <PackageReference Include="CsvHelper" Version="12.1.2" />
+    <PackageReference Include="Domain0.Auth.Nancy" Version="1.0.10" />
+    <PackageReference Include="EPPlus" Version="4.5.3.2" />
+    <PackageReference Include="ExternalConfigurationProvider" Version="0.4.0" />
+    <PackageReference Include="Fody" Version="4.2.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Gerakul.FastSql.SqlServer">
-      <Version>1.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Gerakul.ProtoBufSerializer">
-      <Version>1.2.1</Version>
-    </PackageReference>
-    <PackageReference Include="Google.Protobuf">
-      <Version>3.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Google.Protobuf.Tools">
-      <Version>3.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="jose-jwt">
-      <Version>2.4.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.AspNet.Razor">
-      <Version>3.2.7</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.Http">
-      <Version>2.2.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication">
-      <Version>1.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.DotNet.InternalAbstractions">
-      <Version>1.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyModel">
-      <Version>2.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
-      <Version>5.2.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect">
-      <Version>5.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="Monik.Client.Azure">
-      <Version>1.0.24</Version>
-    </PackageReference>
-    <PackageReference Include="Nancy.Authentication.Stateless">
-      <Version>2.0.0-clinteastwood</Version>
-    </PackageReference>
-    <PackageReference Include="Nancy.Bootstrappers.Autofac">
-      <Version>2.0.0-clinteastwood</Version>
-    </PackageReference>
-    <PackageReference Include="Nancy.Hosting.Self">
-      <Version>2.0.0-clinteastwood</Version>
-    </PackageReference>
-    <PackageReference Include="Nancy.Metadata.Modules">
-      <Version>2.0.0-clinteastwood</Version>
-    </PackageReference>
-    <PackageReference Include="Nancy.Swagger.Annotations">
-      <Version>2.2.53-alpha</Version>
-    </PackageReference>
-    <PackageReference Include="Nancy.Validation.DataAnnotations">
-      <Version>2.0.0-clinteastwood</Version>
-    </PackageReference>
-    <PackageReference Include="NCrontab">
-      <Version>3.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.2</Version>
-    </PackageReference>
-    <PackageReference Include="protobuf-net">
-      <Version>2.4.0</Version>
-    </PackageReference>
-    <PackageReference Include="RazorEngine">
-      <Version>3.10.0</Version>
-    </PackageReference>
-    <PackageReference Include="SharpZipLib">
-      <Version>1.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="Squid-Box.SevenZipSharp">
-      <Version>1.2.184</Version>
-    </PackageReference>
-    <PackageReference Include="SSH.NET">
-      <Version>2016.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Data.Common">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Data.SqlClient">
-      <Version>4.6.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Memory">
-      <Version>4.5.3</Version>
-    </PackageReference>
-    <PackageReference Include="System.Numerics.Vectors">
-      <Version>4.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.Algorithms">
-      <Version>4.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.X509Certificates">
-      <Version>4.3.2</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Principal.Windows">
-      <Version>4.5.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.ValueTuple">
-      <Version>4.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="Telegram.Bot">
-      <Version>15.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Topshelf">
-      <Version>4.2.1</Version>
-    </PackageReference>
-    <PackageReference Include="WindowsAzure.ServiceBus">
-      <Version>5.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="WinSCP">
-      <Version>5.15.3</Version>
-    </PackageReference>
+    <PackageReference Include="Gerakul.FastSql.SqlServer" Version="1.0.0" />
+    <PackageReference Include="Gerakul.ProtoBufSerializer" Version="1.2.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.7.0" />
+    <PackageReference Include="Google.Protobuf.Tools" Version="3.7.0" />
+    <PackageReference Include="jose-jwt" Version="2.4.0" />
+    <PackageReference Include="Microsoft.AspNet.Razor" Version="3.2.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.3.1" />
+    <PackageReference Include="Microsoft.DotNet.InternalAbstractions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.5.0" />
+    <PackageReference Include="Monik.Client.Azure" Version="1.0.24" />
+    <PackageReference Include="Nancy.Authentication.Stateless" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Nancy.Hosting.Self" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Nancy.Metadata.Modules" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Nancy.Swagger.Annotations" Version="2.2.53-alpha" />
+    <PackageReference Include="Nancy.Validation.DataAnnotations" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="NCrontab" Version="3.3.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="protobuf-net" Version="2.4.0" />
+    <PackageReference Include="RazorEngine" Version="3.10.0" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
+    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.184" />
+    <PackageReference Include="SSH.NET" Version="2016.1.0" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.5.1" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="Telegram.Bot" Version="15.0.0" />
+    <PackageReference Include="Topshelf" Version="4.2.1" />
+    <PackageReference Include="WindowsAzure.ServiceBus" Version="5.2.0" />
+    <PackageReference Include="WinSCP" Version="5.15.3" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
