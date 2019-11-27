@@ -28,8 +28,8 @@
     </PackageReference>
     <PackageReference Include="Gerakul.FastSql.SqlServer" Version="1.0.0" />
     <PackageReference Include="Gerakul.ProtoBufSerializer" Version="1.2.1" />
-    <PackageReference Include="Google.Protobuf" Version="3.7.0" />
-    <PackageReference Include="Google.Protobuf.Tools" Version="3.7.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.10.1" />
+    <PackageReference Include="Google.Protobuf.Tools" Version="3.10.1" />
     <PackageReference Include="jose-jwt" Version="2.4.0" />
     <PackageReference Include="Microsoft.AspNet.Razor" Version="3.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.1" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.5.0" />
-    <PackageReference Include="Monik.Client.Azure" Version="1.0.24" />
+    <PackageReference Include="Monik.Client.RabbitMQ" Version="1.0.6" />
     <PackageReference Include="Nancy.Authentication.Stateless" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Hosting.Self" Version="2.0.0-clinteastwood" />
@@ -57,10 +57,6 @@
     <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
-    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="4.5.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="Telegram.Bot" Version="15.0.0" />
     <PackageReference Include="Topshelf" Version="4.2.1" />
     <PackageReference Include="WindowsAzure.ServiceBus" Version="5.2.0" />

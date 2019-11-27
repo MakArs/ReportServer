@@ -208,12 +208,12 @@ namespace ReportService
 
             #region ConfigureMonik
 
-            var logSender = new AzureSender(
+            var logSender = new RabbitMqSender(
                 serviceConfiguration.MonikSettings.EndPoint,
-                "incoming");
+                "MonikQueue");
 
             existingContainer
-                .RegisterInstance<IMonikSender, AzureSender>(logSender);
+                .RegisterInstance<IMonikSender, RabbitMqSender>(logSender);
 
             var monikSettings = new ClientSettings
             {
