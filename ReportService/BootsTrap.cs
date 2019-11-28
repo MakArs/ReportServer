@@ -6,6 +6,7 @@ using System.Net;
 using System.Reflection;
 using Autofac;
 using AutoMapper;
+using Domain0.Auth.Nancy;
 using Domain0.Tokens;
 using ExternalConfiguration;
 using Monik.Client;
@@ -319,7 +320,7 @@ namespace ReportService
             NancyContext context)
         {
             base.RequestStartup(container, pipelines, context);
-
+            
             pipelines.AddDomain0Auth(container
                 .Resolve<TokenValidationSettings>());
         }
