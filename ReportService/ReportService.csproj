@@ -41,20 +41,19 @@
     <PackageReference Include="Nancy.Swagger.Annotations" Version="2.2.53-alpha" />
     <PackageReference Include="Nancy.Validation.DataAnnotations" Version="2.0.0-clinteastwood" />
     <PackageReference Include="NCrontab" Version="3.3.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="protobuf-net" Version="2.4.0" />
     <PackageReference Include="RazorEngine" Version="3.10.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
-    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.184" />
+    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.231" />
     <PackageReference Include="SSH.NET" Version="2016.1.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
     <PackageReference Include="Telegram.Bot" Version="15.0.0" />
     <PackageReference Include="Topshelf" Version="4.2.1" />
     <PackageReference Include="WindowsAzure.ServiceBus" Version="5.2.0" />
-    <PackageReference Include="WinSCP" Version="5.15.3" />
+    <PackageReference Include="WinSCP" Version="5.15.7" />
   </ItemGroup>
 </Project>
