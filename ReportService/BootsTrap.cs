@@ -250,6 +250,9 @@ namespace ReportService
 
             #endregion
 
+            var rnd = new ThreadSafeRandom();
+            existingContainer.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
+
             existingContainer.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
 
