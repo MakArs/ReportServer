@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using Microsoft.Extensions.FileProviders;
 using Nancy;
 using Nancy.Responses;
 
@@ -25,33 +25,24 @@ namespace ReportService.Nancy
                 var path = ctx.Request.Url.Path;
                 if (!path.StartsWith(requestPath))
                     return null;
-
-                var assembly = Assembly.GetExecutingAssembly();
                 var filename = Path.GetFileName(ctx.Request.Url.Path);
                 if (string.IsNullOrEmpty(filename))
                     return HttpStatusCode.NotFound;
 
-                var pathParts = string.Concat(embedDirectory, path.Substring(requestPath.Length)).Split('/');
-                if (pathParts.Length == 0)
-                    return HttpStatusCode.NotFound;
+                var manifestEmbeddedProvider =
+                    new ManifestEmbeddedFileProvider(typeof(Program).Assembly);
 
-                var embeddedPath = GetEmbeddedPath<T>(pathParts);
-                var stream = assembly.GetManifestResourceStream(embeddedPath);
+                var contents = manifestEmbeddedProvider.GetDirectoryContents(embedDirectory);
+                var fileInfo = contents.FirstOrDefault(finf => finf.Name == filename);
+                if (fileInfo == null)
+                    return HttpStatusCode.NotFound;
+                var stream = fileInfo.CreateReadStream();
+
                 if (stream == null)
                     return HttpStatusCode.NotFound;
 
                 return new StreamResponse(() => stream, MimeTypes.GetMimeType(filename));
             };
         }
-
-        private static string GetEmbeddedPath<T>(params string[] parts)
-        {
-            var path = string.Join(".", parts.Take(parts.Length - 1).Select(p => p.Replace("-", "_")));
-            if (!string.IsNullOrEmpty(path))
-                return $"{typeof(T).Namespace}.{path}.{parts.Last()}";
-
-            return $"{typeof(T).Namespace}.{parts.Last()}";
-        }
     }
 }
-

@@ -4,6 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <LangVersion>7.1</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\ReportPlugins\ServicePlugins\*.cs">
@@ -13,8 +14,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ConsulSettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="Nancy\SwaggerDist\*.*" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="3.0.0" />
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="CsvHelper" Version="12.1.2" />
