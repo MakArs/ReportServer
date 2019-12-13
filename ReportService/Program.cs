@@ -10,6 +10,7 @@ using Monik.Common;
 using ReportService.Core;
 using ReportService.Entities;
 using ReportService.Extensions;
+using ReportService.Interfaces.Core;
 
 namespace ReportService
 {
@@ -33,7 +34,8 @@ namespace ReportService
 
         private static void ConfigureContainer(ContainerBuilder builder)
         {
-            var configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
+            var configBuilder = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json");
             var config = configBuilder.Build();
             
             //existingContainer.RegisterSingleInstance<ServiceConfiguration, ServiceConfiguration>
@@ -111,23 +113,20 @@ namespace ReportService
 
             #endregion
 
-            //var repository = new Repository(serviceConfiguration.DBConnStr,
-            //    existingContainer.Resolve<IMonik>());
-
-            //existingContainer
-            //    .RegisterInstance<IRepository, Repository>(repository);
+            builder
+                .Register(c=>new Repository(config["DBConnStr"],c.Resolve<IMonik>()))
+                .As<IRepository>()
+                .SingleInstance();
 
             #region ConfigureMapper
 
             var mapperConfig =
                 new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
 
-            // Hint: add to ctor if many profiles needed: cfg.AddProfile(typeof(AutoMapperProfile));
             builder.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
                 mapperConfig);
-            //var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
-            //builder.RegisterSingleInstance<IMapper, IMapper>(mapper);
             builder.Register(c => c.Resolve<MapperConfiguration>().CreateMapper())
+                .As<IMapper>()
                 .SingleInstance();
 
             #endregion

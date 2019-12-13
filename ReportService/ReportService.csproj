@@ -10,8 +10,11 @@
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="Gerakul.FastSql.SqlServer" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="Monik.Client.RabbitMQ" Version="1.0.6" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
+    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.231" />
   </ItemGroup>
 </Project>
