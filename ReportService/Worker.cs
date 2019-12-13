@@ -1,28 +1,43 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Monik.Common;
+using ReportService.Entities;
 
 namespace ReportService
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger<Worker> logger;
+        public int Period { get; set; } = 3;
+        private Action Method { get; set; }
+        private readonly IMonik monik;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, ThreadSafeRandom rnd, IMonik monik)
         {
-            _logger = logger;
+            var yup = 0;
+            this.logger = logger;
+            Method = () => Console.WriteLine($"Cycle:{yup++}");
+            monik.ApplicationInfo("Test message 2548");
+            this.monik = monik;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancelToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            var yap = 1;
+            while (!cancelToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
+                monik.ApplicationInfo($"Test message {2549+yap++}");
+
+                logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+
+                await Task.Factory.StartNew(Method, cancelToken);
+
+                await Task.Delay(Period * 1000, cancelToken);
             }
         }
     }
