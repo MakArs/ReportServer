@@ -1,4 +1,5 @@
-using System.Runtime.CompilerServices;
+using System;
+using System.Net;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
@@ -11,6 +12,11 @@ using ReportService.Core;
 using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Protobuf;
+using ReportService.Interfaces.ReportTask;
+using ReportService.Protobuf;
+using ReportService.ReportTask;
+using Telegram.Bot;
 
 namespace ReportService
 {
@@ -37,9 +43,9 @@ namespace ReportService
             var configBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json");
             var config = configBuilder.Build();
-            
-            //existingContainer.RegisterSingleInstance<ServiceConfiguration, ServiceConfiguration>
-            //    (serviceConfiguration);
+
+            builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
+                (config);
 
             //RegisterNamedDataImporter<DbImporter, DbImporterConfig>
             //    (existingContainer, "CommonDbImporter");
@@ -134,43 +140,43 @@ namespace ReportService
             var rnd = new ThreadSafeRandom();
             builder.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
 
-            //existingContainer.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
+            builder.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
 
-            //existingContainer.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
-            //existingContainer.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
+            builder.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
+            builder.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
 
-            //switch (serviceConfiguration.ArchiveFormat)
-            //{
-            //    case "Zip":
-            //        existingContainer.RegisterImplementation<IArchiver, ArchiverZip>();
-            //        break;
-            //    case "7Zip":
-            //        existingContainer.RegisterImplementation<IArchiver, Archiver7Zip>();
-            //        break;
-            //}
+            switch (config["ArchiveFormat"])
+            {
+                case "Zip":
+                    builder.RegisterImplementation<IArchiver, ArchiverZip>();
+                    break;
+                case "7Zip":
+                    builder.RegisterImplementation<IArchiver, Archiver7Zip>();
+                    break;
+            }
 
 
             //existingContainer.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
 
-            //existingContainer.RegisterImplementation<ITaskWorker, TaskWorker>();
+            //builder.RegisterImplementation<ITaskWorker, TaskWorker>();
 
-            //existingContainer.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
-            //existingContainer.RegisterImplementation<IPackageParser, ProtoPackageParser>();
+            builder.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
+            builder.RegisterImplementation<IPackageParser, ProtoPackageParser>();
 
-            //existingContainer.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
+            builder.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
 
             #region ConfigureBot
 
-            //Uri proxyUri = new Uri(serviceConfiguration.ProxySettings.ProxyUriAddr);
-            //ICredentials credentials = new NetworkCredential(
-            //    serviceConfiguration.ProxySettings.ProxyLogin,
-            //    serviceConfiguration.ProxySettings.ProxyPassword);
-            //WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
-            //TelegramBotClient bot =
-            //    new TelegramBotClient(serviceConfiguration.BotToken, proxy);
-            //existingContainer
-            //    .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
+            Uri proxyUri = new Uri(config["ProxySettings:ProxyUriAddr"]);
+            ICredentials credentials = new NetworkCredential(
+                config["ProxySettings:ProxyLogin"],
+                config["ProxySettings:ProxyPassword"]);
+            WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
+            TelegramBotClient bot =
+                new TelegramBotClient(config["BotToken"], proxy);
+            builder
+                .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
 
             #endregion
 
