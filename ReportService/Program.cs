@@ -12,20 +12,31 @@ using ReportService.Core;
 using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
+using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
+using ReportService.Operations.DataExporters;
+using ReportService.Operations.DataExporters.Configurations;
+using ReportService.Operations.DataExporters.ViewExecutors;
+using ReportService.Operations.DataImporters;
+using ReportService.Operations.DataImporters.Configurations;
 using ReportService.Protobuf;
 using ReportService.ReportTask;
 using Telegram.Bot;
 
 namespace ReportService
 {
-    public class Program
+    public interface IPrivateBootstrapper
+    {
+        void PrivateConfigureApplicationContainer(ContainerBuilder builder);
+    }
+    public partial class Program
     {
         public static ILifetimeScope Container;
+
         public static void Main(string[] args)
         {
-            
+
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -33,10 +44,7 @@ namespace ReportService
             Host.CreateDefaultBuilder(args)
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<Worker>();
-                });
+                .ConfigureServices((hostContext, services) => { services.AddHostedService<Worker>(); });
 
         private static void ConfigureContainer(ContainerBuilder builder)
         {
@@ -47,53 +55,53 @@ namespace ReportService
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
                 (config);
 
-            //RegisterNamedDataImporter<DbImporter, DbImporterConfig>
-            //    (existingContainer, "CommonDbImporter");
+            RegisterNamedDataImporter<DbImporter, DbImporterConfig>
+                (builder, "CommonDbImporter");
 
-            //RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
-            //    (existingContainer, "CommonExcelImporter");
+            RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
+                (builder, "CommonExcelImporter");
 
-            //RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>
-            //    (existingContainer, "CommonCsvImporter");
+            RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>
+                (builder, "CommonCsvImporter");
 
-            //RegisterNamedDataImporter<SshImporter, SshImporterConfig>
-            //    (existingContainer, "CommonSshImporter");
+            RegisterNamedDataImporter<SshImporter, SshImporterConfig>
+                (builder, "CommonSshImporter");
 
-            //RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
-            //    (existingContainer, "CommonEmailSender");
+            RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
+                (builder, "CommonEmailSender");
 
-            //RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>
-            //    (existingContainer, "CommonTelegramSender");
+            RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>
+                (builder, "CommonTelegramSender");
 
-            //RegisterNamedDataExporter<DbExporter, DbExporterConfig>
-            //    (existingContainer, "CommonDbExporter");
+            RegisterNamedDataExporter<DbExporter, DbExporterConfig>
+                (builder, "CommonDbExporter");
 
-            //RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
-            //    (existingContainer, "CommonB2BExporter");
+            RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
+                (builder, "CommonB2BExporter");
 
-            //RegisterNamedDataExporter<SshExporter, SshExporterConfig>
-            //    (existingContainer, "CommonSshExporter");
+            RegisterNamedDataExporter<SshExporter, SshExporterConfig>
+                (builder, "CommonSshExporter");
 
-            //RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>
-            //    (existingContainer, "CommonFtpExporter");
+            RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>
+                (builder, "CommonFtpExporter");
 
-            //RegisterNamedViewExecutor<CommonViewExecutor>
-            //    (existingContainer, "commonviewex");
+            RegisterNamedViewExecutor<CommonViewExecutor>
+                (builder, "commonviewex");
 
-            //RegisterNamedViewExecutor<GroupedViewExecutor>
-            //    (existingContainer, "GroupedViewex");
+            RegisterNamedViewExecutor<GroupedViewExecutor>
+                (builder, "GroupedViewex");
 
-            //RegisterNamedViewExecutor<CommonTableViewExecutor>
-            //    (existingContainer, "CommonTableViewEx");
+            RegisterNamedViewExecutor<CommonTableViewExecutor>
+                (builder, "CommonTableViewEx");
 
-            //builder
-            //    .RegisterImplementationSingleton<ILogic, Logic>();
-            //builder
-            //    .RegisterImplementation<IReportTask, ReportTask.ReportTask>();
+            builder
+                .RegisterImplementationSingleton<ILogic, Logic>();
+            builder
+                .RegisterImplementation<IReportTask, ReportTask.ReportTask>();
 
-            //// Partial bootstrapper for private named implementations registration
+            // Partial bootstrapper for private named implementations registration
             //(this as IPrivateBootstrapper)?
-            //    .PrivateConfigureApplicationContainer(existingContainer);
+            //    .PrivateConfigureApplicationContainer(builder);
 
             #region ConfigureMonik
 
@@ -120,7 +128,7 @@ namespace ReportService
             #endregion
 
             builder
-                .Register(c=>new Repository(config["DBConnStr"],c.Resolve<IMonik>()))
+                .Register(c => new Repository(config["DBConnStr"], c.Resolve<IMonik>()))
                 .As<IRepository>()
                 .SingleInstance();
 
@@ -156,10 +164,9 @@ namespace ReportService
                     break;
             }
 
+            builder.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
 
-            //existingContainer.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
-
-            //builder.RegisterImplementation<ITaskWorker, TaskWorker>();
+            builder.RegisterImplementation<ITaskWorker, TaskWorker>();
 
             builder.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
             builder.RegisterImplementation<IPackageParser, ProtoPackageParser>();
@@ -199,5 +206,34 @@ namespace ReportService
             //    });
         }
 
+        private static void RegisterNamedDataExporter<TImplementation, TConfigType>
+            (ContainerBuilder builder, string name)
+            where TImplementation : IOperation
+            where TConfigType : IExporterConfig
+        {
+            builder
+                .RegisterType<TImplementation>()
+                .Named<IOperation>(name)
+                .Keyed<IOperation>(typeof(TConfigType));
+        }
+
+        private static void RegisterNamedDataImporter<TImplementation, TConfigType>
+            (ContainerBuilder builder, string name)
+            where TImplementation : IOperation
+            where TConfigType : IImporterConfig
+        {
+            builder
+                .RegisterType<TImplementation>()
+                .Named<IOperation>(name)
+                .Keyed<IOperation>(typeof(TConfigType));
+        }
+
+        private static void RegisterNamedViewExecutor<TImplementation>
+            (ContainerBuilder builder, string name) where TImplementation : IViewExecutor
+        {
+            builder
+                .RegisterType<TImplementation>()
+                .Named<IViewExecutor>(name);
+        }
     }
 }

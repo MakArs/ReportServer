@@ -1,40 +1,39 @@
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Monik.Common;
-using ReportService.Entities;
+using ReportService.Interfaces.Core;
 
 namespace ReportService
 {
     public class Worker : BackgroundService
-    {
-        private readonly ILogger<Worker> logger;
-        public int Period { get; set; } = 3;
+    { public int Period { get; set; } = 60;
         private Action Method { get; set; }
         private readonly IMonik monik;
-
-        public Worker(ILogger<Worker> logger, ThreadSafeRandom rnd, IMonik monik)
+        private readonly string stringVersion;
+        public Worker(IMonik monik,ILogic logic)
         {
-            var yup = 0;
-            this.logger = logger;
-            Method = () => Console.WriteLine($"Cycle:{yup++}");
-            monik.ApplicationInfo("Test message 2548");
+
+            stringVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+            Method = logic.CheckScheduleAndExecute;
+
             this.monik = monik;
+            logic.Start();
+
+            monik.ApplicationInfo("Worker.ctor");
+            Console.WriteLine("HostHolder.ctor");
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancelToken)
         {
-            var yap = 1;
+            monik.ApplicationWarning(stringVersion + " Started");
+            Console.WriteLine(stringVersion + " Started");
+
             while (!cancelToken.IsCancellationRequested)
             {
-                monik.ApplicationInfo($"Test message {2549+yap++}");
-
-                logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-
                 await Task.Factory.StartNew(Method, cancelToken);
 
                 await Task.Delay(Period * 1000, cancelToken);
