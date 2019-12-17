@@ -145,11 +145,14 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             if (useAllSets)
             {
-                for (int i = 0; i < packageContent.Count; i++)
+                var i = 1;
+                foreach (var ds in packageContent)
                 {
-                    AddDataSetToExcel(pack, packageContent[i]);
-                    if (pack.Workbook.Worksheets[i + 1].Name == "NoNamedList")
-                        pack.Workbook.Worksheets[i + 1].Name = $"Dataset{i + 1}";
+                    AddDataSetToExcel(pack, ds);
+
+                    if (pack.Workbook.Worksheets.Last().Name == "NoNamedList")
+                        pack.Workbook.Worksheets.Last().Name = $"Dataset{i}";
+                    i++;
                 }
 
                 // foreach (var set in packageContent)
