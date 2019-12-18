@@ -72,9 +72,12 @@ namespace ReportService.ReportTask
                     if (dependsOnStates.Any(state => state.InProcessCount > 0))
                     {
                         var waitInterval = Math.Min(dependenciesWaitingSeconds,
-                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min()-60) * 1000;
+                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) *
+                                           1000;
 
-                     Task.Delay(waitInterval).Wait(taskContext.CancelSource.Token);
+                        Task.Delay(waitInterval > 0
+                            ? waitInterval
+                            : 1000).Wait(taskContext.CancelSource.Token);
                     }
 
                     unCompletedDependencies = string.Join(", ",
@@ -82,9 +85,7 @@ namespace ReportService.ReportTask
                             .Select(state => state.TaskId));
 
                     dependenciesWaitingCount--;
-                }
-
-                while (!string.IsNullOrEmpty(unCompletedDependencies) && dependenciesWaitingCount > 0);
+                } while (!string.IsNullOrEmpty(unCompletedDependencies) && dependenciesWaitingCount > 0);
 
                 if (!string.IsNullOrEmpty(unCompletedDependencies))
                 {
@@ -97,16 +98,16 @@ namespace ReportService.ReportTask
 
             catch (Exception e)
             {
-                var msg = $"Task {taskContext.TaskId} was not executed (" + e.Message+")";
+                var msg = $"Task {taskContext.TaskId} was not executed (" + e.Message + ")";
 
                 var oper = taskContext.OpersToExecute.First();
 
                 exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
 
-                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
-
                 monik.ApplicationInfo(msg);
                 Console.WriteLine(msg);
+
+                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
 
                 taskContext.TaskInstance.Duration = 0;
 
@@ -183,20 +184,22 @@ namespace ReportService.ReportTask
                 else
                 {
                     success = false;
-                    taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
                     var msg = $"Task {taskContext.TaskId} completed with errors";
                     monik.ApplicationInfo(msg);
                     Console.WriteLine(msg);
+
+                    taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
                 }
             }
 
             catch (Exception e)
             {
                 success = false;
-                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
                 var msg = $"Task {taskContext.TaskId} is not completed. An error has occurred: {e.Message}";
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
+
+                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
             }
 
             duration.Stop();

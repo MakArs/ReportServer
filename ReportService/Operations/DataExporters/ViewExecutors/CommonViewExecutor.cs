@@ -127,7 +127,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 }
             }
 
-            ws.Cells[1, 1, i, propNum].AutoFitColumns(5, 50);
+            ws.Cells[1, 1, Math.Max(i, 1), propNum].AutoFitColumns(5, 50); //case if there are no rows in dataset
 
             for (int j = 1; j <= propNum; j++)
             {
