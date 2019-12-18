@@ -45,7 +45,7 @@
     <PackageReference Include="Nancy.Validation.DataAnnotations" Version="2.0.0-clinteastwood" />
     <PackageReference Include="NCrontab" Version="3.3.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="protobuf-net" Version="2.4.0" />
+    <PackageReference Include="protobuf-net" Version="2.4.4" />
     <PackageReference Include="RazorEngine" Version="3.10.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
     <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.231" />

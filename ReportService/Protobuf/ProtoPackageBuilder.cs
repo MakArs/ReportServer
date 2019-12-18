@@ -84,17 +84,20 @@ namespace ReportService.Protobuf
 
             var rows = new RepeatedField<Row>();
 
-            while (reader.Read())
+            if (reader.HasRows)
             {
-                var row = new Row();
-
-                for (int i = 0; i < columns.Count; i++)
+                while (reader.Read())
                 {
-                    var value = reader.IsDBNull(i) ? null : reader[i];
-                    row.Values.Add(FillVariantValue(columns[i], value));
-                }
+                    var row = new Row();
 
-                rows.Add(row);
+                    for (int i = 0; i < columns.Count; i++)
+                    {
+                        var value = reader.IsDBNull(i) ? null : reader[i];
+                        row.Values.Add(FillVariantValue(columns[i], value));
+                    }
+
+                    rows.Add(row);
+                }
             }
 
             return new DataSet
@@ -113,10 +116,9 @@ namespace ReportService.Protobuf
                 Created = ((DateTimeOffset) date).ToUnixTimeSeconds()
             };
 
-            if (reader.HasRows)
-                queryPackage.DataSets.Add(GetDataSet(reader));
+           queryPackage.DataSets.Add(GetDataSet(reader));
 
-            while (reader.NextResult() && reader.HasRows)
+            while (reader.NextResult())
                 queryPackage.DataSets.Add(GetDataSet(reader));
 
             if (!string.IsNullOrEmpty(groupNumbers))
@@ -125,6 +127,9 @@ namespace ReportService.Protobuf
             for (int i = 0; i < queryPackage.DataSets.Count; i++)
                 if (string.IsNullOrEmpty(queryPackage.DataSets[i].Name))
                     queryPackage.DataSets[i].Name = $"Dataset{i + 1}";
+
+            if(queryPackage.DataSets.Count==1 && !queryPackage.DataSets.First().Rows.Any())
+                queryPackage.DataSets.Remove(queryPackage.DataSets.First());
 
             return queryPackage;
         }

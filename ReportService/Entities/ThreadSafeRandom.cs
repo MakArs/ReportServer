@@ -1,41 +1,44 @@
 ﻿using System;
 
-public class ThreadSafeRandom
+namespace ReportService.Entities
 {
-    private static readonly Random global = new Random();
-    [ThreadStatic] private static Random local;
-
-    public int Next()
+    public class ThreadSafeRandom
     {
-        if (local == null)
+        private static readonly Random global = new Random();
+        [ThreadStatic] private static Random local;
+
+        public int Next()
         {
-            lock (global)
+            if (local == null)
             {
-                if (local == null)
+                lock (global)
                 {
-                    int seed = global.Next();
-                    local = new Random(seed);
+                    if (local == null)
+                    {
+                        int seed = global.Next();
+                        local = new Random(seed);
+                    }
                 }
             }
+
+            return local.Next();
         }
 
-        return local.Next();
-    }
-
-    public int Next(int minValue, int maxValue)
-    {
-        if (local == null)
+        public int Next(int minValue, int maxValue)
         {
-            lock (global)
+            if (local == null)
             {
-                if (local == null)
+                lock (global)
                 {
-                    int seed = global.Next();
-                    local = new Random(seed);
+                    if (local == null)
+                    {
+                        int seed = global.Next();
+                        local = new Random(seed);
+                    }
                 }
             }
-        }
 
-        return local.Next(minValue, maxValue);
+            return local.Next(minValue, maxValue);
+        }
     }
 }
