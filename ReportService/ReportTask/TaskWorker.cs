@@ -72,9 +72,12 @@ namespace ReportService.ReportTask
                     if (dependsOnStates.Any(state => state.InProcessCount > 0))
                     {
                         var waitInterval = Math.Min(dependenciesWaitingSeconds,
-                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min()-60) * 1000;
+                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) *
+                                           1000;
 
-                     Task.Delay(waitInterval).Wait(taskContext.CancelSource.Token);
+                        Task.Delay(waitInterval > 0 ? 
+                            waitInterval 
+                            : 1000).Wait(taskContext.CancelSource.Token);
                     }
 
                     unCompletedDependencies = string.Join(", ",
