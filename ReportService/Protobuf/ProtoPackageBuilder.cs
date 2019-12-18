@@ -111,12 +111,14 @@ namespace ReportService.Protobuf
         {
             var date = DateTime.Now.ToUniversalTime();
 
+            var creationTime = ((DateTimeOffset) date).ToUnixTimeSeconds();
+
             var queryPackage = new OperationPackage
             {
-                Created = ((DateTimeOffset) date).ToUnixTimeSeconds()
+                Created = creationTime
             };
 
-           queryPackage.DataSets.Add(GetDataSet(reader));
+            queryPackage.DataSets.Add(GetDataSet(reader));
 
             while (reader.NextResult())
                 queryPackage.DataSets.Add(GetDataSet(reader));
@@ -128,8 +130,11 @@ namespace ReportService.Protobuf
                 if (string.IsNullOrEmpty(queryPackage.DataSets[i].Name))
                     queryPackage.DataSets[i].Name = $"Dataset{i + 1}";
 
-            if(queryPackage.DataSets.Count==1 && !queryPackage.DataSets.First().Rows.Any())
-                queryPackage.DataSets.Remove(queryPackage.DataSets.First());
+            if (queryPackage.DataSets.All(set => !set.Rows.Any()))
+                queryPackage = new OperationPackage //better than delete all of multiple datasets
+                {
+                    Created = creationTime
+                };
 
             return queryPackage;
         }
