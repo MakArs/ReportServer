@@ -82,6 +82,9 @@ namespace ReportService.Protobuf
         {
             var columns = GetCurrentResultParameters(reader);
 
+            if (columns == null)
+                return new DataSet();
+
             var rows = new RepeatedField<Row>();
 
             if (reader.HasRows)
