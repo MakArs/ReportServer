@@ -1,8 +1,5 @@
 ﻿using CsvHelper;
 using OfficeOpenXml;
-using RazorEngine;
-using RazorEngine.Configuration;
-using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
@@ -10,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using RazorLight;
 using ReportService.Entities;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
@@ -27,17 +25,6 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         {
             string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
 
-            TemplateServiceConfiguration templateConfig =
-                new TemplateServiceConfiguration
-                {
-                    DisableTempFileLocking = true,
-                    CachingProvider = new DefaultCachingProvider(t => { })
-                };
-
-            var serv = RazorEngineService.Create(templateConfig);
-
-            Engine.Razor = serv;
-            Engine.Razor.Compile(viewTemplate, "somekey");
 
             if (!package.DataSets.Any()) return "No information obtained by query";
 
@@ -52,7 +39,14 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 Date = date
             };
 
-            return Engine.Razor.Run("somekey", null, model);
+            var engine = new RazorLightEngineBuilder()
+                .UseEmbeddedResourcesProject(typeof(Program))
+                .UseMemoryCachingProvider()
+                .Build();
+
+            var result = engine.CompileRenderStringAsync("templateKey", viewTemplate, model).Result;
+
+            return result;
         }
 
         private string AddDataSetToTelegView(string tmRep, DataSetContent content)

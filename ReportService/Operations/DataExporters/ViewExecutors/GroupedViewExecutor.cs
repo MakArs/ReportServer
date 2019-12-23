@@ -1,7 +1,4 @@
 ﻿using OfficeOpenXml;
-using RazorEngine;
-using RazorEngine.Configuration;
-using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces.Protobuf;
 using System;
@@ -9,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml.Style;
+using RazorLight;
 using ReportService.Entities;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
@@ -23,17 +21,6 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         {
             string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
 
-            TemplateServiceConfiguration templateConfig =
-                new TemplateServiceConfiguration
-                {
-                    DisableTempFileLocking = true,
-                    CachingProvider = new DefaultCachingProvider(t => { })
-                };
-
-            templateConfig.Namespaces
-                .Add("ReportService.Operations.DataExporters.ViewExecutors");
-
-            var serv = RazorEngineService.Create(templateConfig);
 
             if (!package.DataSets.Any()) return "No information obtained by query";
 
@@ -93,10 +80,14 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 Date = date
             };
 
-            Engine.Razor = serv;
-            Engine.Razor.Compile(tableTemplate, "somekey");
+            var engine = new RazorLightEngineBuilder()
+                .UseEmbeddedResourcesProject(typeof(Program))
+                .UseMemoryCachingProvider()
+                .Build();
 
-            return Engine.Razor.Run("somekey", null, model);
+            var result = engine.CompileRenderStringAsync("templateKey", tableTemplate, model).Result;
+
+            return result;
         }
 
         private List<string> ChangeHeadersOrder(List<string> headers, List<int> groupColumns)

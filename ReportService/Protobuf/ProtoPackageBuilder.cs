@@ -81,6 +81,9 @@ namespace ReportService.Protobuf
         private DataSet GetDataSet(DbDataReader reader)
         {
             var columns = GetCurrentResultParameters(reader);
+            
+            if (columns == null)
+                return new DataSet();
 
             var rows = new RepeatedField<Row>();
 
