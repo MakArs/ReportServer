@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -54,6 +55,54 @@ namespace ReportService.Operations.DataExporters
             this.autofac = autofac;
         } //ctor
 
+        private SmtpClient ConfigureClient()
+        {
+            var client = new SmtpClient(smtpServer, 25)
+            {
+                DeliveryFormat = SmtpDeliveryFormat.International,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network
+            };
+
+            return client;
+        }
+
+        private MailMessage ConfigureMessage(IReportTaskRunContext taskContext, string filename)
+        {
+            var msg = new MailMessage
+            {
+                From = new MailAddress(fromAddress),
+                Subject = filename
+            };
+
+            msg.AddRecipientsFromGroup(addresses);
+
+            if (!string.IsNullOrEmpty(RecepientsDatasetName))
+                msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
+
+            return msg;
+        }
+
+        private void AddDataSetsJson(List<DataSetContent> dataSets, MailMessage msg,
+            MemoryStream streamJson, string fileName)
+        {
+            msg.Attachments.Add(new Attachment(streamJson, $@"{fileName}.json",
+                @"application/json"));
+        }
+
+        private void AddDataSetsXlsx(OperationPackage package, MailMessage msg,
+            MemoryStream streamXlsx, string fileName)
+        {
+            var excel = viewExecutor.ExecuteXlsx(package, fileName, UseAllSetsXlsx);
+            excel.SaveAs(streamXlsx);
+            excel.Dispose();
+
+            streamXlsx.Position = 0;
+
+            msg.Attachments.Add(new Attachment(streamXlsx, $@"{fileName}.xlsx",
+                @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        }
+
         public void Execute(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
@@ -61,34 +110,20 @@ namespace ReportService.Operations.DataExporters
             if (!RunIfVoidPackage && package.DataSets.Count == 0)
                 return;
 
-            string filename = (string.IsNullOrEmpty(ReportName)
+            string fileName = (string.IsNullOrEmpty(ReportName)
                                   ? $@"{Properties.PackageName}"
                                   : taskContext.SetStringParameters(ReportName))
                               + (DateInName
                                   ? null
                                   : $" {DateTime.Now:dd.MM.yy}");
 
-            string filenameJson = $@"{filename}.json";
-            string filenameXlsx = $@"{filename}.xlsx";
+            using var client = ConfigureClient();
+            using var msg = ConfigureMessage(taskContext, fileName);
 
-            using var client = new SmtpClient(smtpServer, 25);
-            using var msg = new MailMessage();
+            var dataSets = parser.GetPackageValues(package);
+            var firstSet = dataSets.First();
 
-            client.DeliveryFormat = SmtpDeliveryFormat.International;
-            client.EnableSsl = true;
-            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-
-            msg.From = new MailAddress(fromAddress);
-            msg.AddRecipientsFromGroup(addresses);
-
-            if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
-
-            msg.Subject = filename;
-
-            var dataset = parser.GetPackageValues(package).First();
-
-            viewExecutor = dataset.GroupColumns != null && dataset.GroupColumns.Any()
+            viewExecutor = firstSet.GroupColumns != null && firstSet.GroupColumns.Any()
                 ? autofac.ResolveNamed<IViewExecutor>("GroupedViewex")
                 : !string.IsNullOrEmpty(ViewTemplate)
                     ? autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx")
@@ -107,27 +142,21 @@ namespace ReportService.Operations.DataExporters
             {
                 if (HasJsonAttachment)
                 {
-                    var sets = parser.GetPackageValues(package);
                     var dataToSave = UseAllSetsJson
-                        ? JsonConvert.SerializeObject(sets)
-                        : JsonConvert.SerializeObject(sets.First());
+                        ? JsonConvert.SerializeObject(dataSets)
+                        : JsonConvert.SerializeObject(dataSets.First());
 
                     streamJson =
                         new MemoryStream(System.Text.Encoding.UTF8
                             .GetBytes(dataToSave));
-                    msg.Attachments.Add(new Attachment(streamJson, filenameJson,
-                        @"application/json"));
+
+                    AddDataSetsJson(dataSets, msg, streamJson, fileName);
                 }
 
                 if (HasXlsxAttachment)
                 {
                     streamXlsx = new MemoryStream();
-                    var excel = viewExecutor.ExecuteXlsx(package, filename, UseAllSetsXlsx);
-                    excel.SaveAs(streamXlsx);
-                    excel.Dispose();
-                    streamXlsx.Position = 0;
-                    msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
-                        @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                    AddDataSetsXlsx(package, msg, streamXlsx, fileName);
                 }
 
                 var tryCount = 0;
@@ -164,28 +193,19 @@ namespace ReportService.Operations.DataExporters
                 if (!RunIfVoidPackage && package.DataSets.Count == 0)
                     return;
 
-            string filename = (string.IsNullOrEmpty(ReportName)
+            string fileName = (string.IsNullOrEmpty(ReportName)
                                   ? $@"{Properties.PackageName}"
                                   : taskContext.SetStringParameters(ReportName))
                               + (DateInName
                                   ? $" {DateTime.Now:dd.MM.yy}"
                                   : null);
 
-            string filenameJson = $@"{filename}.json";
-            string filenameXlsx = $@"{filename}.xlsx";
+            using var msg = ConfigureMessage(taskContext, fileName);
 
-            using var msg = new MailMessage {From = new MailAddress(fromAddress)};
+            var dataSets = parser.GetPackageValues(package);
+            var firstSet = dataSets.First();
 
-            msg.AddRecipientsFromGroup(addresses);
-
-            if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
-
-            msg.Subject = filename;
-
-            var dataset = parser.GetPackageValues(package).First();
-
-            viewExecutor = dataset.GroupColumns != null && dataset.GroupColumns.Any()
+            viewExecutor = firstSet.GroupColumns != null && firstSet.GroupColumns.Any()
                 ? autofac.ResolveNamed<IViewExecutor>("GroupedViewex")
                 : string.IsNullOrEmpty(ViewTemplate)
                     ? autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx")
@@ -204,36 +224,24 @@ namespace ReportService.Operations.DataExporters
             {
                 if (HasJsonAttachment)
                 {
-                    var sets = parser.GetPackageValues(package);
                     var dataToSave = UseAllSetsJson
-                        ? JsonConvert.SerializeObject(sets)
-                        : JsonConvert.SerializeObject(sets.First());
+                        ? JsonConvert.SerializeObject(dataSets)
+                        : JsonConvert.SerializeObject(dataSets.First());
 
                     streamJson =
                         new MemoryStream(System.Text.Encoding.UTF8
                             .GetBytes(dataToSave));
-                    msg.Attachments.Add(new Attachment(streamJson, filenameJson,
-                        @"application/json"));
+
+                    AddDataSetsJson(dataSets, msg, streamJson, fileName);
                 }
 
                 if (HasXlsxAttachment)
                 {
                     streamXlsx = new MemoryStream();
-                    var excel = viewExecutor.ExecuteXlsx(package, filename, UseAllSetsXlsx);
-                    excel.SaveAs(streamXlsx);
-                    excel.Dispose();
-                    streamXlsx.Position = 0;
-                    msg.Attachments.Add(new Attachment(streamXlsx, filenameXlsx,
-                        @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                    AddDataSetsXlsx(package, msg, streamXlsx, fileName);
                 }
 
-                using var client = new SmtpClient(smtpServer, 25)
-                {
-                    DeliveryFormat = SmtpDeliveryFormat.International,
-                    EnableSsl = true,
-                    DeliveryMethod = SmtpDeliveryMethod.Network
-                };
-
+                using var client = ConfigureClient();
 
                 await using (taskContext.CancelSource.Token.Register(() => client.SendAsyncCancel()))
                 {
@@ -255,6 +263,7 @@ namespace ReportService.Operations.DataExporters
                     }
                 }
             }
+
             finally
             {
                 streamJson?.Dispose();
