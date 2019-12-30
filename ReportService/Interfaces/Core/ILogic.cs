@@ -14,7 +14,6 @@ namespace ReportService.Interfaces.Core
 
         void CheckScheduleAndExecute();
         void Start();
-        void Stop();
         string SendDefault(int taskId, string mail);
         string ForceExecute(int taskId);
 

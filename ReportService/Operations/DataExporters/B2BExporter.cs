@@ -44,7 +44,6 @@ namespace ReportService.Operations.DataExporters
 
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
-            
 
             if (context.CreateSimple($@" IF OBJECT_ID('{ExportTableName}') IS NOT NULL
                 IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {taskContext.TaskId})
@@ -92,11 +91,7 @@ namespace ReportService.Operations.DataExporters
 
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
-
-
-            //Properties.Id = 3;
-            //taskContext.TaskId = 3;
-
+            
             if (await context.CreateSimple($@"IF OBJECT_ID('{ExportTableName}') IS NOT NULL
                 IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {taskContext.TaskId})
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
@@ -118,7 +113,7 @@ namespace ReportService.Operations.DataExporters
 
             byte[] archivedPackage;
 
-            using (var stream = new MemoryStream())
+            await using (var stream = new MemoryStream())
             {
                 package.WriteTo(stream);
                 archivedPackage = archiver.CompressStream(stream);

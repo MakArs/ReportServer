@@ -29,15 +29,34 @@ namespace ReportService.ReportTask
             return executor.ExecuteHtml(taskName, package);
         }
 
+        private SmtpClient ConfigureClient()
+        {
+            var client = new SmtpClient(smtpServer, 25)
+            {
+                DeliveryFormat = SmtpDeliveryFormat.International,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network
+            };
+            
+            return client;
+        }
+
+        private MailMessage ConfigureHtmlMessage()
+        {
+            var msg = new MailMessage
+            {
+                From = new MailAddress(fromAddress),
+                IsBodyHtml = true
+            };
+            
+            return msg;
+        }
+
         public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
         {
-            using var client = new SmtpClient(smtpServer, 25);
-            using var msg = new MailMessage();
+            using var client = ConfigureClient();
 
-            client.EnableSsl = true;
-            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-
-            msg.From = new MailAddress(fromAddress);
+            using var msg = ConfigureHtmlMessage();
 
             foreach (var addr in administrativeAddresses
                 .Split(';'))
@@ -47,8 +66,6 @@ namespace ReportService.ReportTask
 
             msg.Subject = $"Errors occured in task {taskName} at" +
                           $" {DateTime.Now:dd.MM.yy HH:mm}";
-
-            msg.IsBodyHtml = true;
 
             List<ColumnInfo> columns = new List<ColumnInfo>
             {
@@ -105,19 +122,13 @@ namespace ReportService.ReportTask
 
         public void ForceSend(string defaultView, string taskName, string mailAddress)
         {
-            using var client = new SmtpClient(smtpServer, 25);
-            using var msg = new MailMessage();
+            using var client = ConfigureClient();
 
-            client.EnableSsl = true;
-            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-
-            msg.From = new MailAddress(fromAddress);
+            using var msg = ConfigureHtmlMessage();
 
             msg.To.Add(new MailAddress(mailAddress));
 
             msg.Subject = taskName + $" {DateTime.Now:dd.MM.yy HH:mm}";
-
-            msg.IsBodyHtml = true;
 
             msg.Body = defaultView;
 

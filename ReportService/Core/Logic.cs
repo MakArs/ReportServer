@@ -26,9 +26,10 @@ namespace ReportService.Core
         private readonly ILifetimeScope autofac;
         private readonly IMapper mapper;
         private readonly IMonik monik;
-        private readonly IArchiver archiver;
         private readonly ITelegramBotClient bot;
+
         private readonly IRepository repository;
+
         //private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
         private readonly IPackageBuilder packageBuilder;
@@ -45,20 +46,16 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
-            IMapper mapper, IArchiver archiver, ITelegramBotClient bot, IPackageBuilder builder)
+            IMapper mapper, ITelegramBotClient bot, IPackageBuilder builder)
         {
             this.autofac = autofac;
             this.mapper = mapper;
             this.monik = monik;
-            this.archiver = archiver;
             this.bot = bot;
             bot.StartReceiving();
             this.repository = repository;
             packageBuilder = builder;
             contextsInWork = new Dictionary<long, IReportTaskRunContext>();
-
-            //checkScheduleAndExecuteScheduler =
-            //    new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
 
             tableView = this.autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
 
@@ -113,6 +110,7 @@ namespace ReportService.Core
                     }
                 } //lock
             }
+
             catch (Exception e)
             {
                 var msg = $"Error while updating tasks: {e.Message}";
@@ -123,6 +121,8 @@ namespace ReportService.Core
 
         public void CheckScheduleAndExecute()
         {
+            monik.ApplicationInfo($"{DateTime.Now}");
+
             List<IReportTask> currentTasks;
             lock (this)
                 currentTasks = tasks.ToList();
@@ -174,6 +174,7 @@ namespace ReportService.Core
         {
             if (!contextsInWork.ContainsKey(taskInstanceId))
                 return;
+
             var context = contextsInWork[taskInstanceId];
 
             context.CancelSource.Dispose();
@@ -230,8 +231,6 @@ namespace ReportService.Core
 
             UpdateTaskList();
 
-            //checkScheduleAndExecuteScheduler.OnStart();
-
             UpdateInstances();
         } //start
 
@@ -246,11 +245,6 @@ namespace ReportService.Core
 
             if (taskids.Count > 0)
                 SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", taskids)}");
-        }
-
-        public void Stop()
-        {
-            //checkScheduleAndExecuteScheduler.OnStop();
         }
 
         public string SendDefault(int taskId, string mailAddress)
@@ -270,7 +264,7 @@ namespace ReportService.Core
             var context = task.GetCurrentContext(true);
 
             if (context == null)
-                return $"Task {taskId} stopped";
+                return $"Service is unable to create default context of task {taskId}";
 
             var instanceId = context.TaskInstance.Id;
 
@@ -298,7 +292,7 @@ namespace ReportService.Core
             var context = task.GetCurrentContext(false);
 
             if (context == null)
-                return $"Task {taskId} stopped";
+                return $"Service is unable to create context of task {taskId}";
 
             var instanceId = context.TaskInstance.Id;
 
@@ -763,7 +757,9 @@ namespace ReportService.Core
                     break;
             }
 
-            if (chatId != 0 && !telegramChannels.Select(channel => channel.ChatId).Contains(chatId))
+            if (chatId == 0 || telegramChannels
+                    .Select(channel => channel.ChatId).Contains(chatId))
+                return;
             {
                 DtoTelegramChannel channel =
                     new DtoTelegramChannel

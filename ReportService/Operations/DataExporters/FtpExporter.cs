@@ -65,6 +65,7 @@ namespace ReportService.Operations.DataExporters
                                       : null);
 
             var uri = new Uri(Host);
+
             SessionOptions sessionOptions = new SessionOptions
             {
                 Protocol = Protocol.Ftp,
