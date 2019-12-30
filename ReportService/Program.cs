@@ -7,11 +7,10 @@ namespace ReportService
 {
     public class Program
     {
-        public static ILifetimeScope Container;
-
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

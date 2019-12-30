@@ -9,7 +9,8 @@ using ReportService.Interfaces.Core;
 namespace ReportService
 {
     public class Worker : BackgroundService
-    { public int Period { get; set; } = 60;
+    { 
+        public int Period { get; set; } = 60;
         private Action Method { get; set; }
         private readonly IMonik monik;
         private readonly string stringVersion;
@@ -38,6 +39,14 @@ namespace ReportService
 
                 await Task.Delay(Period * 1000, cancelToken);
             }
+        }
+
+        public override async Task StopAsync(CancellationToken cancelToken)
+        {
+            monik.ApplicationWarning(stringVersion + " Stopped");
+            Console.WriteLine(stringVersion + " Stopped");
+
+            await Task.Delay(2000, cancelToken);
         }
     }
 }
