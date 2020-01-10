@@ -14,7 +14,7 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class ReportTask : IReportTask //todo:mapping for operation props&context
+    public class ReportTask : IReportTask 
     {
         public int Id { get; }
         public string Name { get; }

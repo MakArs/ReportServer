@@ -131,47 +131,14 @@ namespace ReportService
             (this as IPrivateBootstrapper)?
                 .PrivateConfigureApplicationContainer(builder);
 
-            #region ConfigureMonik
-
-            var logSender = new RabbitMqSender(
-                config["MonikSettings:EndPoint"],
-                "MonikQueue");
-
-            builder
-                .RegisterInstance<IMonikSender, RabbitMqSender>(logSender);
-
-            var monikSettings = new ClientSettings
-            {
-                SourceName = "ReportServer",
-                InstanceName = config["MonikSettings:InstanceName"],
-                AutoKeepAliveEnable = true
-            };
-
-            builder
-                .RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
-
-            builder
-                .RegisterImplementationSingleton<IMonik, MonikClient>();
-
-            #endregion
+            ConfigureMonik(builder, config);
 
             builder
                 .Register(c => new Repository(config["DBConnStr"], c.Resolve<IMonik>()))
                 .As<IRepository>()
                 .SingleInstance();
 
-            #region ConfigureMapper
-
-            var mapperConfig =
-                new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
-
-            builder.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
-                mapperConfig);
-            builder.Register(c => c.Resolve<MapperConfiguration>().CreateMapper())
-                .As<IMapper>()
-                .SingleInstance();
-
-            #endregion
+            ConfigureMapper(builder);
 
             var rnd = new ThreadSafeRandom();
             builder.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
@@ -201,8 +168,23 @@ namespace ReportService
 
             builder.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
 
-            #region ConfigureBot
+            ConfigureTelegramBot(builder, config);
+        }
 
+        private void ConfigureMapper(ContainerBuilder builder)
+        {
+            var mapperConfig =
+                 new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
+
+            builder.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
+                mapperConfig);
+            builder.Register(c => c.Resolve<MapperConfiguration>().CreateMapper())
+                .As<IMapper>()
+                .SingleInstance();
+        }
+
+        private void ConfigureTelegramBot(ContainerBuilder builder, IConfigurationRoot config)
+        {
             Uri proxyUri = new Uri(config["ProxySettings:ProxyUriAddr"]);
             ICredentials credentials = new NetworkCredential(
                 config["ProxySettings:ProxyLogin"],
@@ -212,9 +194,31 @@ namespace ReportService
                 new TelegramBotClient(config["BotToken"], proxy);
             builder
                 .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
-
-            #endregion
         }
+
+        private void ConfigureMonik(ContainerBuilder builder, IConfigurationRoot config)
+        {
+            var logSender = new RabbitMqSender(
+                  config["MonikSettings:EndPoint"],
+                  "MonikQueue");
+
+            builder
+                .RegisterInstance<IMonikSender, RabbitMqSender>(logSender);
+
+            var monikSettings = new ClientSettings
+            {
+                SourceName = "ReportServer",
+                InstanceName = config["MonikSettings:InstanceName"],
+                AutoKeepAliveEnable = true
+            };
+
+            builder
+                .RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
+
+            builder
+                .RegisterImplementationSingleton<IMonik, MonikClient>();
+        }
+
 
         private static void RegisterNamedDataExporter<TImplementation, TConfigType>
             (ContainerBuilder builder, string name)

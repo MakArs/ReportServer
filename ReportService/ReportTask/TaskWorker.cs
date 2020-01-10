@@ -18,22 +18,19 @@ namespace ReportService.ReportTask
     public class TaskWorker : ITaskWorker
     {
         private readonly IRepository repository;
-        private readonly IMapper mapper;
         private readonly IMonik monik;
         private int dependenciesWaitingCount = 3;
         private readonly int dependenciesWaitingSeconds = 300;
 
-        public TaskWorker(IRepository repository, IMapper mapper,
-            IMonik monik)
+        public TaskWorker(IRepository repository, IMonik monik)
         {
             this.repository = repository;
-            this.mapper = mapper;
             this.monik = monik;
         }
 
         private string GetOperationStateFromInstance(string operName, DtoOperInstance instance)
         {
-            var state = (InstanceState) instance.State;
+            var state = (InstanceState)instance.State;
 
             return operName +
                    $" (State: {state.ToString()}," +
@@ -42,6 +39,41 @@ namespace ReportService.ReportTask
                        ? $", duration: {instance.Duration / 60000} m {(instance.Duration % 60000) / 1000.0:f0} s"
                        : "")
                    + ")";
+        }
+
+        private void ProcessNotExecutedTask(IReportTaskRunContext taskContext,
+            List<Tuple<Exception, string>> exceptions, Exception e)
+        {
+
+            var oper = taskContext.OpersToExecute.First();
+
+            exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
+
+            var msg = $"Task {taskContext.TaskId} was not executed (" + e.Message + ")";
+
+            SendServiceInfo(msg);
+
+            taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
+
+            taskContext.TaskInstance.Duration = 0;
+
+            taskContext.TaskInstance.State =
+                (int)InstanceState.Failed;
+
+            var dtoOperInstance = new DtoOperInstance
+            {
+                TaskInstanceId = taskContext.TaskInstance.Id,
+                OperationId = oper.Properties.Id,
+                StartTime = DateTime.Now,
+                Duration = 0,
+                ErrorMessage = e.Message,
+                State = (int)InstanceState.Failed
+            };
+
+            dtoOperInstance.Id =
+                repository.CreateEntity<DtoOperInstance, long>(dtoOperInstance);
+
+            repository.UpdateEntity(taskContext.TaskInstance);
         }
 
         private bool CheckIfDependenciesCompleted(IReportTaskRunContext taskContext,
@@ -72,8 +104,7 @@ namespace ReportService.ReportTask
                     if (dependsOnStates.Any(state => state.InProcessCount > 0))
                     {
                         var waitInterval = Math.Min(dependenciesWaitingSeconds,
-                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) *
-                                           1000;
+                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) * 1000;
 
                         Task.Delay(waitInterval > 0
                             ? waitInterval
@@ -85,7 +116,10 @@ namespace ReportService.ReportTask
                             .Select(state => state.TaskId));
 
                     dependenciesWaitingCount--;
-                } while (!string.IsNullOrEmpty(unCompletedDependencies) && dependenciesWaitingCount > 0);
+                }
+
+                while (!string.IsNullOrEmpty(unCompletedDependencies)
+                    && dependenciesWaitingCount > 0);
 
                 if (!string.IsNullOrEmpty(unCompletedDependencies))
                 {
@@ -98,36 +132,7 @@ namespace ReportService.ReportTask
 
             catch (Exception e)
             {
-                var msg = $"Task {taskContext.TaskId} was not executed (" + e.Message + ")";
-
-                var oper = taskContext.OpersToExecute.First();
-
-                exceptions.Add(new Tuple<Exception, string>(e, oper.Properties.Name));
-
-                monik.ApplicationInfo(msg);
-                Console.WriteLine(msg);
-
-                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
-
-                taskContext.TaskInstance.Duration = 0;
-
-                taskContext.TaskInstance.State =
-                    (int) InstanceState.Failed;
-
-                var dtoOperInstance = new DtoOperInstance
-                {
-                    TaskInstanceId = taskContext.TaskInstance.Id,
-                    OperationId = oper.Properties.Id,
-                    StartTime = DateTime.Now,
-                    Duration = 0,
-                    ErrorMessage = e.Message,
-                    State = (int) InstanceState.Failed
-                };
-
-                dtoOperInstance.Id =
-                    repository.CreateEntity<DtoOperInstance, long>(dtoOperInstance);
-
-                repository.UpdateEntity(taskContext.TaskInstance);
+                ProcessNotExecutedTask(taskContext, exceptions, e);
 
                 return false;
             }
@@ -172,21 +177,19 @@ namespace ReportService.ReportTask
                     RunOperation(taskContext, oper, dtoTaskInstance, exceptions);
                 }
 
-                if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)
+                if (exceptions.Count == 0 || dtoTaskInstance.State == (int)InstanceState.Canceled)
                 {
-                    var msg = dtoTaskInstance.State == (int) InstanceState.Canceled
+                    var msg = dtoTaskInstance.State == (int)InstanceState.Canceled
                         ? $"Task {taskContext.TaskId} stopped"
                         : $"Task {taskContext.TaskId} completed successfully";
-                    monik.ApplicationInfo(msg);
-                    Console.WriteLine(msg);
+                    SendServiceInfo(msg);
                 }
 
                 else
                 {
                     success = false;
                     var msg = $"Task {taskContext.TaskId} completed with errors";
-                    monik.ApplicationInfo(msg);
-                    Console.WriteLine(msg);
+                    SendServiceInfo(msg);
 
                     taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
                 }
@@ -210,9 +213,9 @@ namespace ReportService.ReportTask
             dtoTaskInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
 
             dtoTaskInstance.State =
-                success ? (int) InstanceState.Success
-                : dtoTaskInstance.State == (int) InstanceState.Canceled ? (int) InstanceState.Canceled
-                : (int) InstanceState.Failed;
+                success ? (int)InstanceState.Success
+                : dtoTaskInstance.State == (int)InstanceState.Canceled ? (int)InstanceState.Canceled
+                : (int)InstanceState.Failed;
 
             repository.UpdateEntity(dtoTaskInstance);
         }
@@ -227,7 +230,7 @@ namespace ReportService.ReportTask
                     OperationId = oper.Properties.Id,
                     StartTime = DateTime.Now,
                     Duration = 0,
-                    State = (int) InstanceState.InProcess
+                    State = (int)InstanceState.InProcess
                 };
 
                 dtoOperInstance.Id =
@@ -248,7 +251,7 @@ namespace ReportService.ReportTask
                         dtoOperInstance.DataSet =
                             taskContext.GetCompressedPackage(oper.Properties.PackageName);
 
-                    dtoOperInstance.State = (int) InstanceState.Success;
+                    dtoOperInstance.State = (int)InstanceState.Success;
                     operDuration.Stop();
                     dtoOperInstance.Duration =
                         Convert.ToInt32(operDuration.ElapsedMilliseconds);
@@ -258,7 +261,7 @@ namespace ReportService.ReportTask
                 catch (Exception e)
                 {
                     if (e is OperationCanceledException)
-                        dtoOperInstance.State = (int) InstanceState.Canceled;
+                        dtoOperInstance.State = (int)InstanceState.Canceled;
 
                     else
                     {
@@ -279,7 +282,7 @@ namespace ReportService.ReportTask
                                 string.Join("\n", allExceptions.Select(exx => exx.Message));
                         }
 
-                        dtoOperInstance.State = (int) InstanceState.Failed;
+                        dtoOperInstance.State = (int)InstanceState.Failed;
                     }
 
                     operDuration.Stop();
@@ -306,7 +309,6 @@ namespace ReportService.ReportTask
             return taskContext.DefaultExporter.GetDefaultPackageView(taskContext.TaskName, val);
         }
 
-
         public async Task RunTaskAndSendLastViewAsync(IReportTaskRunContext taskContext,
             string mailAddress)
         {
@@ -316,5 +318,12 @@ namespace ReportService.ReportTask
 
             taskContext.DefaultExporter.ForceSend(view, taskContext.TaskName, mailAddress);
         }
+
+        private void SendServiceInfo(string msg)
+        {
+            monik.ApplicationInfo(msg);
+            Console.WriteLine(msg);
+        }
+
     }
 }

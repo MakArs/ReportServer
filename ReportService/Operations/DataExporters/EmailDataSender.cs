@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -83,7 +82,7 @@ namespace ReportService.Operations.DataExporters
             return msg;
         }
 
-        private void AddDataSetsJson(List<DataSetContent> dataSets, MailMessage msg,
+        private void AddDataSetsJson(MailMessage msg,
             MemoryStream streamJson, string fileName)
         {
             msg.Attachments.Add(new Attachment(streamJson, $@"{fileName}.json",
@@ -150,7 +149,7 @@ namespace ReportService.Operations.DataExporters
                         new MemoryStream(System.Text.Encoding.UTF8
                             .GetBytes(dataToSave));
 
-                    AddDataSetsJson(dataSets, msg, streamJson, fileName);
+                    AddDataSetsJson(msg, streamJson, fileName);
                 }
 
                 if (HasXlsxAttachment)
@@ -232,12 +231,13 @@ namespace ReportService.Operations.DataExporters
                         new MemoryStream(System.Text.Encoding.UTF8
                             .GetBytes(dataToSave));
 
-                    AddDataSetsJson(dataSets, msg, streamJson, fileName);
+                    AddDataSetsJson(msg, streamJson, fileName);
                 }
 
                 if (HasXlsxAttachment)
                 {
                     streamXlsx = new MemoryStream();
+
                     AddDataSetsXlsx(package, msg, streamXlsx, fileName);
                 }
 
