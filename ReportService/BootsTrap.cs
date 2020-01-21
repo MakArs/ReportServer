@@ -39,7 +39,6 @@ namespace ReportService
                 .AddJsonFile("ConsulSettings.json");
 
             var config = configBuilder.Build();
-
             try
             {
                 var store = new ConsulConfigurationStore(config["Url"], config["Token"]);
