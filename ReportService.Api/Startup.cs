@@ -27,11 +27,10 @@ namespace ReportService.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHostedService<Worker>();
+            services.AddSingleton<Worker>();
             services.AddControllers();
-            services.AddSingleton<Worker>();        
+           // services.AddMvcCore();
         }
-
         
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,11 +41,10 @@ namespace ReportService.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-            //port
             //exceptions
             //Https disabling
 
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 
@@ -57,19 +55,7 @@ namespace ReportService.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });
-
-            var x = 2;
-
-
-
-            app.Run(async (context) =>
-            {
-                x = x * 2;
-                await context.Response.WriteAsync($"Result: {x}");
-
-            });
-
+            });            
         }
     }
 }

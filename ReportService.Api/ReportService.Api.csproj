@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>ce3b5365-7394-48f9-9344-a7943ffe2885</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <!--for razorengine work-->
+    <PreserveCompilationReferences>true</PreserveCompilationReferences>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <!--for razorengine work-->
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +17,5 @@
   <ItemGroup>
     <ProjectReference Include="..\ReportService\ReportService.csproj" />
   </ItemGroup>
-
 
 </Project>
