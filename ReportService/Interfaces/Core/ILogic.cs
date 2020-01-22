@@ -53,7 +53,7 @@ namespace ReportService.Interfaces.Core
         void DeleteTaskInstanceById(long id);
         string GetAllTaskInstancesJson();
         string GetAllTaskInstancesByTaskIdJson(int taskId);
-        Task<string> GetFullInstanceList_HtmlPageAsync(int taskId);
+        Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 
         void DeleteOperInstanceById(long operInstanceId);
         //string GetOperInstancesByTaskInstanceIdJson(int id);

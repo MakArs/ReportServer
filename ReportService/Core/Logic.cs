@@ -73,7 +73,7 @@ namespace ReportService.Core
         {
             var repositoryList = repository.GetListEntitiesByDtoType<T>();
             if (repositoryList == null) return;
-            lock (this)
+            lock (list)
             {
                 list.Clear();
                 foreach (var entity in repositoryList)
@@ -87,7 +87,7 @@ namespace ReportService.Core
             {
                 var taskList = repository.GetListEntitiesByDtoType<DtoTask>();
                 if (taskList == null) return;
-                lock (this)
+                lock (tasks)
                 {
                     tasks.Clear();
 
@@ -124,7 +124,7 @@ namespace ReportService.Core
             monik.ApplicationInfo($"{DateTime.Now}");
 
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
@@ -186,7 +186,7 @@ namespace ReportService.Core
             var context = contextsInWork[taskInstanceId];
             context.CancelSource.Cancel();
 
-            context.TaskInstance.State = (int) InstanceState.Canceled;
+            context.TaskInstance.State = (int)InstanceState.Canceled;
             repository.UpdateEntity(context.TaskInstance);
             contextsInWork.Remove(taskInstanceId);
         }
@@ -205,8 +205,8 @@ namespace ReportService.Core
                     .IsAssignableFrom(r.Activator.LimitType))
                 .Where(r =>
                 {
-                    var serviceKey = ((KeyedService) r.Services.ToList().Last())?.ServiceKey;
-                    return serviceKey != null && ((Type) serviceKey).GetInterfaces().Contains(typeof(TU));
+                    var serviceKey = ((KeyedService)r.Services.ToList().Last())?.ServiceKey;
+                    return serviceKey != null && ((Type)serviceKey).GetInterfaces().Contains(typeof(TU));
                 })
                 .Select(r =>
                     new KeyValuePair<string, Type>(
@@ -251,7 +251,7 @@ namespace ReportService.Core
         {
             List<IReportTask> currentTasks;
 
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
@@ -280,7 +280,7 @@ namespace ReportService.Core
         {
             List<IReportTask> currentTasks;
 
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
@@ -310,7 +310,7 @@ namespace ReportService.Core
         public string GetAllOperTemplatesJson()
         {
             List<DtoOperTemplate> currentTemplates;
-            lock (this)
+            lock (operTemplates)
                 currentTemplates = operTemplates.ToList();
 
             return JsonConvert.SerializeObject(currentTemplates);
@@ -319,7 +319,7 @@ namespace ReportService.Core
         public string GetAllRecepientGroupsJson()
         {
             List<DtoRecepientGroup> currentRecepients;
-            lock (this)
+            lock (recepientGroups)
                 currentRecepients = recepientGroups.ToList();
 
             return JsonConvert.SerializeObject(currentRecepients);
@@ -328,7 +328,7 @@ namespace ReportService.Core
         public string GetAllTelegramChannelsJson()
         {
             List<DtoTelegramChannel> currentChannels;
-            lock (this)
+            lock (telegramChannels)
                 currentChannels = telegramChannels.ToList();
 
             return JsonConvert.SerializeObject(currentChannels);
@@ -337,7 +337,7 @@ namespace ReportService.Core
         public string GetAllSchedulesJson()
         {
             List<DtoSchedule> currentSchedules;
-            lock (this)
+            lock (schedules)
                 currentSchedules = schedules.ToList();
 
             return JsonConvert.SerializeObject(currentSchedules);
@@ -346,7 +346,7 @@ namespace ReportService.Core
         public string GetAllOperationsJson()
         {
             List<DtoOperation> currentOperations;
-            lock (this)
+            lock (operations)
                 currentOperations = operations.Where(oper => !oper.IsDeleted).ToList();
 
             return JsonConvert.SerializeObject(currentOperations);
@@ -365,7 +365,7 @@ namespace ReportService.Core
 
         public string GetEntitiesCountJson()
         {
-            var entities = new Dictionary<string, int>
+            var entities = new Dictionary<string, int>()
             {
                 {"operTemplates", operTemplates.Count},
                 {"recepientGroups", recepientGroups.Count},
@@ -522,7 +522,7 @@ namespace ReportService.Core
         public async Task<string> GetTasksList_HtmlPageAsync()
         {
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var tasksData = currentTasks.Select(task => new
@@ -549,7 +549,7 @@ namespace ReportService.Core
         public async Task<string> GetTasksInWorkList_HtmlPageAsync()
         {
             List<IReportTaskRunContext> tasksInWork;
-            lock (this)
+            lock (contextsInWork)
                 tasksInWork = contextsInWork.Select(pair => pair.Value).ToList();
 
             var inWorkData = tasksInWork.Select(context => new
@@ -570,7 +570,7 @@ namespace ReportService.Core
         public async Task<string> GetCurrentViewByTaskIdAsync(int taskId)
         {
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
@@ -614,7 +614,7 @@ namespace ReportService.Core
         }
 
         public async Task<string> GetFullInstanceList_HtmlPageAsync(
-            int taskId)
+            long taskId)
         {
             var instances = repository.GetInstancesByTaskId(taskId)
                 .Select(instance => new
@@ -622,7 +622,7 @@ namespace ReportService.Core
                     instance.Id,
                     instance.StartTime,
                     instance.Duration,
-                    State = ((InstanceState) instance.State).ToString()
+                    State = ((InstanceState)instance.State).ToString()
                 });
 
             var pack = packageBuilder.GetPackage(instances);
@@ -766,7 +766,7 @@ namespace ReportService.Core
                     {
                         ChatId = chatId,
                         Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
-                        Type = (int) chatType
+                        Type = (int)chatType
                     };
 
                 channel.Id = repository.CreateEntity<DtoTelegramChannel, int>(channel);
