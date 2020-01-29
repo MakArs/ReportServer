@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Domain0.Auth.AspNet;
+using Domain0.Tokens;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 
 namespace ReportService.Api
@@ -29,14 +23,26 @@ namespace ReportService.Api
         {
             services.AddSingleton<Worker>();
             services.AddControllers();
-           // services.AddMvcCore();
+            services.AddDomain0Auth(new TokenValidationSettings
+            {
+                Audience = Configuration["TokenValidationSettings:Token_Audience"],
+                Issuer = Configuration["TokenValidationSettings:Token_Issuer"],
+                Keys = new[]
+                {
+                    new KeyInfo
+                    {
+                        Key=Configuration["TokenValidationSettings:Token_Secret"],
+                        Alg=Configuration["TokenValidationSettings:Token_Alg"]
+                    }
+                }
+            });
         }
-        
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Worker worker)
         {
-            //worker.StartAsync();
+            //TODO: worker.StartAsync();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -44,7 +50,7 @@ namespace ReportService.Api
             //exceptions
             //Https disabling
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection(); //TODO: client redirection
 
             app.UseRouting();
 
@@ -55,7 +61,7 @@ namespace ReportService.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });            
+            });
         }
     }
 }
