@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -172,14 +173,23 @@ namespace ReportService
 
         private void ConfigureMapper(ContainerBuilder builder)
         {
-            var mapperConfig =
-                 new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
+            builder.RegisterType<MapperProfile>().As<Profile>().SingleInstance();
 
-            builder.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
-                mapperConfig);
-            builder.Register(c => c.Resolve<MapperConfiguration>().CreateMapper())
-                .As<IMapper>()
-                .SingleInstance();
+            builder.Register(c =>
+            {
+                var profiles = c.Resolve<IEnumerable<Profile>>();
+
+                var mapperConfig =
+                 new MapperConfiguration(cfg =>
+                 {
+                     foreach (var prof in profiles)
+                         cfg.AddProfile(prof);
+                 });
+
+                return mapperConfig.CreateMapper();
+            })
+            .As<IMapper>()
+            .SingleInstance();
         }
 
         private void ConfigureTelegramBot(ContainerBuilder builder, IConfigurationRoot config)

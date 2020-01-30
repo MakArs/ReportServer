@@ -23,6 +23,7 @@ namespace ReportService.Api
         {
             services.AddSingleton<Worker>();
             services.AddControllers();
+
             services.AddDomain0Auth(new TokenValidationSettings
             {
                 Audience = Configuration["TokenValidationSettings:Token_Audience"],

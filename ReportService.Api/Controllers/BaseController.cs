@@ -1,21 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ReportService.Api.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class BaseController : ControllerBase
     {
-        protected string PermissionsType = "permissions";
-        protected string ViewPermission;
-        protected string EditPermission;
-        protected string StopRunPermission;
-        protected BaseController(IConfigurationRoot config)
+        protected readonly string PermissionsType = "permissions";
+        private readonly string InternalErrorMessage = "Internal error during request execution";
+        protected ContentResult GetInternalErrorResult()
         {
-            ViewPermission = config["PermissionsSettings:Permissions_View"];
-            EditPermission = config["PermissionsSettings:Permissions_Edit"];
-            StopRunPermission = config["PermissionsSettings:Permissions_StopRun"];
+            return new ContentResult
+            {
+                Content = InternalErrorMessage,
+                StatusCode = StatusCodes.Status500InternalServerError
+            };
         }
     }
 }

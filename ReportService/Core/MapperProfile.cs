@@ -22,22 +22,7 @@ namespace ReportService.Core
                 .ForMember("Parameters", opt =>
                     opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)))
                 .ForMember("DependsOn", opt =>
-                    opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
-
-            //CreateMap<ReportTask.ReportTask, ApiTask>()
-            //    .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-            //    .ForMember("Parameters", opt =>
-            //        opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)));
-
-            //CreateMap<ApiTask, DtoTask>()
-            //    .ForMember("DependsOn", opt =>
-            //        opt.MapFrom(s =>
-            //            s.DependsOn == null
-            //                ? null
-            //                : JsonConvert.SerializeObject(s.DependsOn)));
-
-            //CreateMap<DtoOperInstance, ApiOperInstance>()
-            //    .ForMember("DataSet", opt => opt.Ignore());
+                    opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));          
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
 

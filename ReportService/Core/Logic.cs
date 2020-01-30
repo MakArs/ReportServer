@@ -26,6 +26,7 @@ namespace ReportService.Core
         private readonly ILifetimeScope autofac;
         private readonly IMapper mapper;
         private readonly IMonik monik;
+        private readonly IArchiver archiver;
         private readonly ITelegramBotClient bot;
 
         private readonly IRepository repository;
@@ -46,11 +47,12 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
-            IMapper mapper, ITelegramBotClient bot, IPackageBuilder builder)
+            IMapper mapper, IArchiver archiver, ITelegramBotClient bot, IPackageBuilder builder)
         {
             this.autofac = autofac;
             this.mapper = mapper;
             this.monik = monik;
+            this.archiver = archiver;
             this.bot = bot;
             bot.StartReceiving();
             this.repository = repository;
@@ -602,11 +604,6 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted task instance {id}");
         }
 
-        public string GetAllTaskInstancesJson()
-        {
-            return JsonConvert.SerializeObject(
-                repository.GetListEntitiesByDtoType<DtoTaskInstance>());
-        }
 
         public string GetAllTaskInstancesByTaskIdJson(int taskId)
         {
@@ -636,32 +633,16 @@ namespace ReportService.Core
             repository.DeleteEntity<DtoOperInstance, long>(operInstanceId);
         }
 
-        //public string GetOperInstancesByTaskInstanceIdJson(int id)
-        //{
-        //    var instances = repository
-        //        .GetOperInstancesByTaskInstanceId(id);
+        public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id)
+        {
+            return repository
+                .GetOperInstancesByTaskInstanceId(id);
+        }
 
-        //    var apiInstances = instances.Select(inst =>
-        //        mapper.Map<ApiOperInstance>(inst)).ToList();
-
-        //    apiInstances.ForEach(apiinst => apiinst.OperName = operations
-        //        .FirstOrDefault(op => op.Id == apiinst.OperationId)?.Name);
-
-        //    return JsonConvert.SerializeObject(apiInstances);
-        //}
-
-        //public string GetFullOperInstanceByIdJson(int id)
-        //{
-        //    var instance = repository.GetFullOperInstanceById(id);
-        //    var apiInstance = mapper.Map<ApiOperInstance>(instance);
-
-        //    apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);
-
-        //    apiInstance.OperName = operations.FirstOrDefault(op =>
-        //        op.Id == apiInstance.OperationId)?.Name;
-
-        //    return JsonConvert.SerializeObject(apiInstance);
-        //}
+        public DtoOperInstance GetFullOperInstanceById(long id)
+        {
+            return repository.GetFullOperInstanceById(id);
+        }
 
         public string GetAllRegisteredImportersJson()
         {

@@ -1,8 +1,9 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using AutoMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using System.Net;
+using ReportService.Api.Models;
 
 namespace ReportService.Api
 {
@@ -16,7 +17,10 @@ namespace ReportService.Api
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                     .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-                    .ConfigureContainer<ContainerBuilder>(builder=> {
+                    .ConfigureContainer<ContainerBuilder>(builder =>
+                    {
+                        builder.RegisterType<ModelsMapperProfile>().As<Profile>().SingleInstance();
+
                         var boots = new Bootstrapper();
                         boots.ConfigureContainer(builder);
                     })

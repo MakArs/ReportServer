@@ -51,13 +51,12 @@ namespace ReportService.Interfaces.Core
         Task<string> GetCurrentViewByTaskIdAsync(int id);
 
         void DeleteTaskInstanceById(long id);
-        string GetAllTaskInstancesJson();
         string GetAllTaskInstancesByTaskIdJson(int taskId);
         Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 
         void DeleteOperInstanceById(long operInstanceId);
-        //string GetOperInstancesByTaskInstanceIdJson(int id);
-        //string GetFullOperInstanceByIdJson(int id);
+        List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id);
+        DtoOperInstance GetFullOperInstanceById(long id);
 
         //todo: int CreateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void UpdateEntity<T>(T entity) where T : IDtoEntity;
