@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
-using ReportService.Extensions;
+using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Interfaces.Core
 {
@@ -15,14 +15,14 @@ namespace ReportService.Interfaces.Core
         void CheckScheduleAndExecute();
         void Start();
         string SendDefault(int taskId, string mail);
-        string ForceExecute(int taskId);
+        string ForceExecute(long taskId);
 
         string GetAllOperTemplatesJson();
         string GetAllRecepientGroupsJson();
         string GetAllTelegramChannelsJson();
         string GetAllSchedulesJson();
         string GetAllOperationsJson();
-        //string GetAllTasksJson();
+        List<IReportTask> GetAllTasksJson();
         string GetEntitiesCountJson();
 
         int CreateOperationTemplate(DtoOperTemplate operTemplate);
@@ -42,16 +42,16 @@ namespace ReportService.Interfaces.Core
         void UpdateSchedule(DtoSchedule schedule);
         void DeleteSchedule(int id);
 
-        //long CreateTask(ApiTask task); //todo: kick nancy
-        //void UpdateTask(ApiTask task);
+        long CreateTask(DtoTask task, DtoOperation[] bindedOpers);
+        void UpdateTask(DtoTask task, DtoOperation[] bindedOpers);
         void DeleteTask(long taskId);
         Task<string> GetTasksList_HtmlPageAsync();
         Task<string> GetTasksInWorkList_HtmlPageAsync();
-        string GetWorkingTasksByIdJson(int id);
-        Task<string> GetCurrentViewByTaskIdAsync(int id);
+        string GetWorkingTaskInstancesJson(long taskId);
+        Task<string> GetCurrentViewAsync(long taskId);
 
-        void DeleteTaskInstanceById(long id);
-        string GetAllTaskInstancesByTaskIdJson(int taskId);
+        void DeleteTaskInstanceById(long taskInstanceid);
+        string GetAllTaskInstancesJson(long taskId);
         Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 
         void DeleteOperInstanceById(long operInstanceId);
@@ -67,7 +67,7 @@ namespace ReportService.Interfaces.Core
         string GetAllRegisteredExportersJson();
 
         string GetAllB2BExportersJson(string keyParameter);
-        //int CreateTaskByTemplate(ApiTask newTask); //todo: kick nancy
-        Task<bool> StopTaskByInstanceIdAsync(long taskInstanceId);
+        //int CreateTaskByTemplate(ApiTask newTask); 
+        Task<bool> StopTaskInstanceAsync(long taskInstanceId);
     }
 }

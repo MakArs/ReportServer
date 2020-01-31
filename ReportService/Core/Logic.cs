@@ -276,7 +276,7 @@ namespace ReportService.Core
             return $"Task {taskId} default dataset sent to {mailAddress}!";
         }
 
-        public string ForceExecute(int taskId)
+        public string ForceExecute(long taskId)
         {
             List<IReportTask> currentTasks;
 
@@ -352,16 +352,14 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(currentOperations);
         }
 
-        //public string GetAllTasksJson()
-        //{
-        //    List<IReportTask> currentTasks;
-        //    lock (this)
-        //        currentTasks = tasks
-        //            .ToList();
-        //    var tr = JsonConvert.SerializeObject(currentTasks
-        //        .Select(t => mapper.Map<ApiTask>(t)));
-        //    return tr;
-        //}
+        public List<IReportTask> GetAllTasksJson()
+        {
+            List<IReportTask> currentTasks;
+            lock (tasks)
+                currentTasks = tasks
+                    .ToList();
+            return currentTasks;
+        }
 
         public string GetEntitiesCountJson()
         {
@@ -493,23 +491,25 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted schedule {id}");
         }
 
-        //public long CreateTask(ApiTask task)
-        //{
-        //    var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task),
-        //        task.BindedOpers);
-        //    UpdateDtoEntitiesList(operations);
-        //    UpdateTaskList();
-        //    SendServiceInfo($"Created task {newTaskId}");
-        //    return newTaskId;
-        //}
+        public long CreateTask(DtoTask task, DtoOperation[] bindedOpers)
+        {
+            var newTaskId = repository.CreateTask(task,
+                bindedOpers);
 
-        //public void UpdateTask(ApiTask task)
-        //{
-        //    repository.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
-        //    UpdateDtoEntitiesList(operations);
-        //    UpdateTaskList();
-        //    SendServiceInfo($"Changed task {task.Id}");
-        //}
+            UpdateDtoEntitiesList(operations);
+            UpdateTaskList();
+            SendServiceInfo($"Created task {newTaskId}");
+            return newTaskId;
+        }
+
+        public void UpdateTask(DtoTask task, DtoOperation[] bindedOpers)
+        {
+            repository.UpdateTask(task, bindedOpers);
+
+            UpdateDtoEntitiesList(operations);
+            UpdateTaskList();
+            SendServiceInfo($"Changed task {task.Id}");
+        }
 
         public void DeleteTask(long taskId)
         {
@@ -539,10 +539,10 @@ namespace ReportService.Core
                 tableView.ExecuteHtml("Current tasks list", pack));
         }
 
-        public string GetWorkingTasksByIdJson(int id)
+        public string GetWorkingTaskInstancesJson(long taskId)
         {
             return JsonConvert.SerializeObject(contextsInWork.Select(cont => cont.Value)
-                .Where(rtask => rtask.TaskId == id)
+                .Where(rtask => rtask.TaskId == taskId)
                 .Select(rtask => rtask.TaskInstance.Id).ToList());
         }
 
@@ -567,7 +567,7 @@ namespace ReportService.Core
                 tableView.ExecuteHtml("Current tasks list", pack));
         }
 
-        public async Task<string> GetCurrentViewByTaskIdAsync(int taskId)
+        public async Task<string> GetCurrentViewAsync(long taskId)
         {
             List<IReportTask> currentTasks;
             lock (tasks)
@@ -595,15 +595,15 @@ namespace ReportService.Core
                 : view;
         }
 
-        public void DeleteTaskInstanceById(long id)
+        public void DeleteTaskInstanceById(long taskInstanceid)
         {
-            repository.DeleteEntity<DtoTaskInstance, long>(id);
+            repository.DeleteEntity<DtoTaskInstance, long>(taskInstanceid);
             UpdateTaskList();
-            SendServiceInfo($"Deleted task instance {id}");
+            SendServiceInfo($"Deleted task instance {taskInstanceid}");
         }
 
 
-        public string GetAllTaskInstancesByTaskIdJson(int taskId)
+        public string GetAllTaskInstancesJson(long taskId)
         {
             return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
         }
@@ -620,10 +620,14 @@ namespace ReportService.Core
                     State = ((InstanceState)instance.State).ToString()
                 });
 
+            if (!instances.Any())
+                return $"There are no executions of task {taskId} in the database";
+
             var pack = packageBuilder.GetPackage(instances);
 
+
             return await Task.Factory.StartNew(() =>
-                tableView.ExecuteHtml("Task executions history", pack));
+                tableView.ExecuteHtml($"Task {taskId} executions history", pack));
         }
 
         public void DeleteOperInstanceById(long operInstanceId)
@@ -693,7 +697,7 @@ namespace ReportService.Core
         //    throw new NotImplementedException();
         //}
 
-        public async Task<bool> StopTaskByInstanceIdAsync(long taskInstanceId)
+        public async Task<bool> StopTaskInstanceAsync(long taskInstanceId)
         {
             if (!contextsInWork.ContainsKey(taskInstanceId))
                 return false;

@@ -51,7 +51,7 @@ namespace ReportService.Api.Controllers
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
         [HttpPost]
-        public ContentResult CreateRecipientGroup([FromBody] DtoSchedule newSchedule)
+        public ContentResult CreateSchedule([FromBody] DtoSchedule newSchedule)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace ReportService.Api.Controllers
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
         [HttpPut(PutScheduleRoute)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ContentResult UpdateRecipientGroup(int id, [FromBody] DtoSchedule schedule)
+        public ContentResult UpdateSchedule(int id, [FromBody] DtoSchedule schedule)
         {
             try
             {
