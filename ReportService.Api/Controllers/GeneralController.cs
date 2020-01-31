@@ -9,8 +9,6 @@ namespace ReportService.Api.Controllers
 {
     [Route("api/v2")]
     [ApiController]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public class GeneralController : BaseController
     {
         private const string GetUserRoleRoute = "roles";
@@ -46,24 +44,13 @@ namespace ReportService.Api.Controllers
                     else if (claims.Contains("reporting.stoprun"))
                         role = ApiUserRole.StopRunner;
                     else if (claims.Contains("reporting.view"))
-                        role = ApiUserRole.Viewer;
+                        role = ApiUserRole.Viewer;              
 
-                var response = new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(role),
-                    StatusCode = StatusCodes.Status200OK,
-                    ContentType = "text/html"
-                };
-
-                return response;
+                return GetSuccessfulResult(JsonConvert.SerializeObject(role));
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
         }
     }

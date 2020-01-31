@@ -7,9 +7,7 @@ namespace ReportService.Api.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public class SiteController : ControllerBase
+    public class SiteController : BaseController
     {
         private const string GetAllTasksHtmlRoute = "tasks.html";
         private const string GetAllTaskInstancesHtmlRoute = "tasks-{id}.html";
@@ -38,12 +36,9 @@ namespace ReportService.Api.Controllers
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
+        
         }
 
         [HttpGet(GetAllTaskInstancesHtmlRoute)]
@@ -62,11 +57,7 @@ namespace ReportService.Api.Controllers
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
         }
 
@@ -86,11 +77,7 @@ namespace ReportService.Api.Controllers
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
         }
 
@@ -110,11 +97,7 @@ namespace ReportService.Api.Controllers
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
         }
     }

@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ReportService.Api.Models;
-using ReportService.Entities;
-using ReportService.Entities.Dto;
 using ReportService.Interfaces.Core;
 using System.Linq;
 
@@ -15,8 +13,6 @@ namespace ReportService.Api.Controllers
     [Authorize(Domain0Auth.Policy, Roles = "reporting.view, reporting.stoprun, reporting.edit")]
     [Route("api/v2/[controller]")]
     [ApiController]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public class InstancesController : BaseController
     {
         private readonly ILogic logic;
@@ -43,20 +39,12 @@ namespace ReportService.Api.Controllers
 
                 var apiInstances = instances.Select(inst =>
                     mapper.Map<ApiOperInstance>(inst)).ToList();
-
-                return new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(apiInstances),
-                    StatusCode = StatusCodes.Status200OK
-                };
+                
+                return GetSuccessfulResult(JsonConvert.SerializeObject(apiInstances));
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
         }
 
@@ -71,19 +59,11 @@ namespace ReportService.Api.Controllers
                 var apiInstance = mapper.Map<ApiOperInstance>(instance);
                 apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);
 
-                return new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(apiInstance),
-                    StatusCode = StatusCodes.Status200OK
-                };
+                return GetSuccessfulResult(JsonConvert.SerializeObject(apiInstance));
             }
             catch
             {
-                return new ContentResult
-                {
-                    Content = "Internal error during request execution",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return GetInternalErrorResult();
             }
         }
 

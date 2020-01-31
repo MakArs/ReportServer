@@ -26,7 +26,6 @@ namespace ReportService.Core
         private readonly ILifetimeScope autofac;
         private readonly IMapper mapper;
         private readonly IMonik monik;
-        private readonly IArchiver archiver;
         private readonly ITelegramBotClient bot;
 
         private readonly IRepository repository;
@@ -47,12 +46,11 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
-            IMapper mapper, IArchiver archiver, ITelegramBotClient bot, IPackageBuilder builder)
+            IMapper mapper, ITelegramBotClient bot, IPackageBuilder builder)
         {
             this.autofac = autofac;
             this.mapper = mapper;
             this.monik = monik;
-            this.archiver = archiver;
             this.bot = bot;
             bot.StartReceiving();
             this.repository = repository;
