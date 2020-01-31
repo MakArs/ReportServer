@@ -13,11 +13,11 @@ namespace ReportService.Api.Controllers
     public class OperTemplatesController : BaseController
     {
         private readonly ILogic logic;
-        public const string GetRegisteredImportersRoute = "registeredimporters";
-        public const string GetRegisteredExportersRoute = "registeredexporters";
-        public const string GetTaskOperationsRoute = "taskopers";
-        public const string DeleteOperationTemplateRoute = "{templateid}";
-        public const string PutOperationTemplateRoute = "{id}";
+        private const string GetRegisteredImportersRoute = "registeredimporters";
+        private const string GetRegisteredExportersRoute = "registeredexporters";
+        private const string GetTaskOperationsRoute = "taskopers";
+        private const string DeleteOperationTemplateRoute = "{templateid}";
+        private const string PutOperationTemplateRoute = "{id}";
 
         public OperTemplatesController(ILogic logic)
         {

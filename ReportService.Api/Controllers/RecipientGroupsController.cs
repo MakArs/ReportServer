@@ -13,8 +13,8 @@ namespace ReportService.Api.Controllers
     public class RecipientGroupsController : BaseController
     {
         private readonly ILogic logic;
-        public const string DeleteRecepientGroupRoute = "{id}";
-        public const string PutRecepientGroupRoute = "{id}";
+        private const string DeleteRecepientGroupRoute = "{id}";
+        private const string PutRecepientGroupRoute = "{id}";
 
         public RecipientGroupsController(ILogic logic)
         {

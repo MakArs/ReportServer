@@ -10,23 +10,22 @@ namespace ReportService.Api.Controllers
     [Authorize(Domain0Auth.Policy, Roles = "reporting.view, reporting.stoprun, reporting.edit")]
     [Route("api/v2/[controller]")]
     [ApiController]
-    public class SchedulesController : BaseController
+    public class TelegramChannelsController : BaseController
     {
         private readonly ILogic logic;
-        private const string DeleteScheduleRoute = "{id}";
-        private const string PutScheduleRoute = "{id}";
+        private const string PutTelegramChannelRoute = "{id}";
 
-        public SchedulesController(ILogic logic)
+        public TelegramChannelsController(ILogic logic)
         {
             this.logic = logic;
         }
 
         [HttpGet]
-        public ContentResult GetAllSchedules()
+        public ContentResult GetAllTelegramChannels()
         {
             try
             {
-                return GetSuccessfulResult(logic.GetAllSchedulesJson());
+                return GetSuccessfulResult(logic.GetAllTelegramChannelsJson());
             }
             catch
             {
@@ -35,27 +34,12 @@ namespace ReportService.Api.Controllers
         }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
-        [HttpDelete(DeleteScheduleRoute)]
-        public IActionResult DeleteSchedule(int id)
-        {
-            try
-            {
-                logic.DeleteSchedule(id);
-                return StatusCode(200);
-            }
-            catch
-            {
-                return StatusCode(500);
-            }
-        }
-
-        [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
         [HttpPost]
-        public ContentResult CreateRecipientGroup([FromBody] DtoSchedule newSchedule)
+        public ContentResult CreateTelegramChannel([FromBody] DtoTelegramChannel newChannel)
         {
             try
             {
-                var id = logic.CreateSchedule(newSchedule);
+                var id = logic.CreateTelegramChannel(newChannel);
 
                 return GetSuccessfulResult(id.ToString());
             }
@@ -66,22 +50,22 @@ namespace ReportService.Api.Controllers
         }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
-        [HttpPut(PutScheduleRoute)]
+        [HttpPut(PutTelegramChannelRoute)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ContentResult UpdateRecipientGroup(int id, [FromBody] DtoSchedule schedule)
+        public ContentResult UpdateTelegramChannel(int id, [FromBody] DtoTelegramChannel channel)
         {
             try
             {
-                if (id != schedule.Id)
+                if (id != channel.Id)
                     return new ContentResult
                     {
-                        Content = "Request id does not match schedule id",
+                        Content = "Request id does not match channel id",
                         StatusCode = StatusCodes.Status400BadRequest
                     };
 
-                logic.UpdateSchedule(schedule);
+                logic.UpdateTelegramChannel(channel);
 
-                return new ContentResult {StatusCode = StatusCodes.Status200OK};
+                return new ContentResult { StatusCode = StatusCodes.Status200OK };
             }
             catch
             {
