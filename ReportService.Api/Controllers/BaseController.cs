@@ -10,6 +10,7 @@ namespace ReportService.Api.Controllers
     {
         protected readonly string PermissionsType = "permissions";
         private readonly string InternalErrorMessage = "Internal error during request execution";
+
         protected ContentResult GetInternalErrorResult()
         {
             return new ContentResult

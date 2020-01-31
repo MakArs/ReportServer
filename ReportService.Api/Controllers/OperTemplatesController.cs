@@ -124,7 +124,7 @@ namespace ReportService.Api.Controllers
 
                 logic.UpdateOperationTemplate(oper);
 
-                return new ContentResult { StatusCode = StatusCodes.Status200OK };
+                return new ContentResult {StatusCode = StatusCodes.Status200OK};
             }
             catch
             {

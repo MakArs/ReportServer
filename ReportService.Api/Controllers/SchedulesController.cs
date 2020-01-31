@@ -10,23 +10,23 @@ namespace ReportService.Api.Controllers
     [Authorize(Domain0Auth.Policy, Roles = "reporting.view, reporting.stoprun, reporting.edit")]
     [Route("api/v2/[controller]")]
     [ApiController]
-    public class RecipientGroupsController : BaseController
+    public class SchedulesController : BaseController
     {
         private readonly ILogic logic;
-        public const string DeleteRecepientGroupRoute = "{id}";
-        public const string PutRecepientGroupRoute = "{id}";
+        public const string DeleteScheduleRoute = "{id}";
+        public const string PutScheduleRoute = "{id}";
 
-        public RecipientGroupsController(ILogic logic)
+        public SchedulesController(ILogic logic)
         {
             this.logic = logic;
         }
 
         [HttpGet]
-        public ContentResult GetAllRecipientGroups()
+        public ContentResult GetAllSchedules()
         {
             try
             {
-                return GetSuccessfulResult(logic.GetAllRecepientGroupsJson());
+                return GetSuccessfulResult(logic.GetAllSchedulesJson());
             }
             catch
             {
@@ -35,12 +35,12 @@ namespace ReportService.Api.Controllers
         }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
-        [HttpDelete(DeleteRecepientGroupRoute)]
-        public IActionResult DeleteRecipientGroup(int id)
+        [HttpDelete(DeleteScheduleRoute)]
+        public IActionResult DeleteSchedule(int id)
         {
             try
             {
-                logic.DeleteRecepientGroup(id);
+                logic.DeleteSchedule(id);
                 return StatusCode(200);
             }
             catch
@@ -51,11 +51,11 @@ namespace ReportService.Api.Controllers
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
         [HttpPost]
-        public ContentResult CreateRecipientGroup([FromBody] DtoRecepientGroup newGroup)
+        public ContentResult CreateRecipientGroup([FromBody] DtoSchedule newSchedule)
         {
             try
             {
-                var id = logic.CreateRecepientGroup(newGroup);
+                var id = logic.CreateSchedule(newSchedule);
 
                 return GetSuccessfulResult(id.ToString());
             }
@@ -66,20 +66,20 @@ namespace ReportService.Api.Controllers
         }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.edit")]
-        [HttpPut(PutRecepientGroupRoute)]
+        [HttpPut(PutScheduleRoute)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ContentResult UpdateRecipientGroup(int id, [FromBody] DtoRecepientGroup group)
+        public ContentResult UpdateRecipientGroup(int id, [FromBody] DtoSchedule schedule)
         {
             try
             {
-                if (id != group.Id)
+                if (id != schedule.Id)
                     return new ContentResult
                     {
-                        Content = "Request id does not match group id",
+                        Content = "Request id does not match schedule id",
                         StatusCode = StatusCodes.Status400BadRequest
                     };
 
-                logic.UpdateRecepientGroup(group);
+                logic.UpdateSchedule(schedule);
 
                 return new ContentResult {StatusCode = StatusCodes.Status200OK};
             }

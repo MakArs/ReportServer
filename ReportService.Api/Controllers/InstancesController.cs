@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Domain0.Tokens;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ReportService.Api.Models;
@@ -35,11 +34,11 @@ namespace ReportService.Api.Controllers
             try
             {
                 var instances = logic
-                      .GetOperInstancesByTaskInstanceId(taskInstanceid);
+                    .GetOperInstancesByTaskInstanceId(taskInstanceid);
 
                 var apiInstances = instances.Select(inst =>
                     mapper.Map<ApiOperInstance>(inst)).ToList();
-                
+
                 return GetSuccessfulResult(JsonConvert.SerializeObject(apiInstances));
             }
             catch
@@ -54,7 +53,7 @@ namespace ReportService.Api.Controllers
             try
             {
                 var instance = logic
-                       .GetFullOperInstanceById(operInstanceid);
+                    .GetFullOperInstanceById(operInstanceid);
 
                 var apiInstance = mapper.Map<ApiOperInstance>(instance);
                 apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);

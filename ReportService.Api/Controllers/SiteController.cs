@@ -15,6 +15,7 @@ namespace ReportService.Api.Controllers
         private const string GetAllEntitiesCountJsonRoute = "entities.json";
 
         private readonly ILogic logic;
+
         public SiteController(ILogic logic)
         {
             this.logic = logic;
@@ -38,7 +39,6 @@ namespace ReportService.Api.Controllers
             {
                 return GetInternalErrorResult();
             }
-        
         }
 
         [HttpGet(GetAllTaskInstancesHtmlRoute)]
