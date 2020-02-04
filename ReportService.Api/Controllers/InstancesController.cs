@@ -10,7 +10,7 @@ using System.Linq;
 namespace ReportService.Api.Controllers
 {
     [Authorize(Domain0Auth.Policy, Roles = "reporting.view, reporting.stoprun, reporting.edit")]
-    [Route("api/v2/[controller]")]
+    [Route("api/v3/[controller]")]
     [ApiController]
     public class InstancesController : BaseController
     {

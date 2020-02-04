@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace ReportService.Api.Controllers
 {
-    [Route("api/v2")]
+    [Route("api/v3")]
     [ApiController]
     public class GeneralController : BaseController
     {
