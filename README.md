@@ -3,7 +3,7 @@
 # ReportServer
 ETL solution(windows service) for scheduled reports compilation and sending
 
-**Technology stack**: [Autofac](https://autofac.org), [FastSql](https://github.com/gerakul/FastSql), [Monik](https://github.com/Totopolis/monik), [NCrontab](https://github.com/atifaziz/NCrontab), [protobuf-net] (https://github.com/protobuf-net/protobuf-net)
+**Technology stack**: [Autofac](https://autofac.org), [FastSql](https://github.com/gerakul/FastSql), [Monik](https://github.com/Totopolis/monik), [NCrontab](https://github.com/atifaziz/NCrontab), [protobuf-net](https://github.com/protobuf-net/protobuf-net)
 
 **Input data formats**
 * SQL Database
