@@ -8,54 +8,27 @@ namespace ReportService.Protobuf
 {
     public class ProtoPackageParser : IPackageParser
     {
-
         private object GetFromVariantValue(ColumnInfo info, VariantValue value)
         {
             if (info.Nullable && value.IsNull)
                 return null;
 
-            switch (info.Type)
+            return info.Type switch
             {
-                case ScalarType.Int32:
-                    return value.Int32Value;
-
-                case ScalarType.Int16:
-                    return value.Int16Value;
-
-                case ScalarType.Int8:
-                    return value.Int8Value;
-
-                case ScalarType.Double:
-                    return value.DoubleValue;
-
-                case ScalarType.Decimal:
-                    return value.DecimalValue;
-
-                case ScalarType.Int64:
-                    return value.Int64Value;
-
-                case ScalarType.Bool:
-                    return value.BoolValue;
-
-                case ScalarType.String:
-                    return value.StringValue;
-
-                case ScalarType.Bytes:
-                    return value.BytesValue.ToByteArray();
-
-                case ScalarType.DateTime:
-                    return DateTimeOffset
-                        .FromUnixTimeSeconds(value.DateTimeValue).UtcDateTime;
-
-                case ScalarType.DateTimeOffset:
-                    return DateTimeOffset
-                        .FromUnixTimeMilliseconds(value.DateTimeOffsetValue);
-
-                case ScalarType.TimeSpan:
-                    return new TimeSpan(value.TimeSpanValue);
-            }
-
-            return null;
+                ScalarType.Int32 => (object) value.Int32Value,
+                ScalarType.Int16 => value.Int16Value,
+                ScalarType.Int8 => value.Int8Value,
+                ScalarType.Double => value.DoubleValue,
+                ScalarType.Decimal => value.DecimalValue,
+                ScalarType.Int64 => value.Int64Value,
+                ScalarType.Bool => value.BoolValue,
+                ScalarType.String => value.StringValue,
+                ScalarType.Bytes => value.BytesValue.ToByteArray(),
+                ScalarType.DateTime => DateTimeOffset.FromUnixTimeSeconds(value.DateTimeValue).UtcDateTime,
+                ScalarType.DateTimeOffset => DateTimeOffset.FromUnixTimeMilliseconds(value.DateTimeOffsetValue),
+                ScalarType.TimeSpan => new TimeSpan(value.TimeSpanValue),
+                _ => null
+            };
         }
 
         public List<DataSetContent> GetPackageValues(OperationPackage package)

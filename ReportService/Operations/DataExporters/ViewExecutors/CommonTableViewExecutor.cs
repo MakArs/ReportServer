@@ -6,7 +6,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
     {
         public override string ExecuteHtml(string tableName, OperationPackage package)
         {
-        string tableTemplate = @"<!DOCTYPE html>
+            string tableTemplate = @"<!DOCTYPE html>
 <html>
 <head>
 <META http-equiv=""Content-Type"" content=""text/html; charset=utf-8"">
@@ -25,10 +25,10 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
     </style>
 </head>
 <body>"
-+
-    $@"<h3 align=""center"">{tableName}</h3>"
-+
-    @"<table class=""table table-bordered table-hover "">
+                                   +
+                                   $@"<h3 align=""center"">{tableName}</h3>"
+                                   +
+                                   @"<table class=""table table-bordered table-hover "">
 <tr>
 @foreach(var header in @Model.Headers)
 {

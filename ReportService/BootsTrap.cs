@@ -1,34 +1,21 @@
 ﻿using System;
-using System.Configuration;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Reflection;
+using System.Text;
 using Autofac;
 using AutoMapper;
-using Domain0.Auth.Nancy;
-using Domain0.Tokens;
 using ExternalConfiguration;
+using Microsoft.Extensions.Configuration;
 using Monik.Client;
 using Monik.Common;
-using Nancy;
-using Nancy.Bootstrapper;
-using Nancy.Bootstrappers.Autofac;
-using Nancy.Conventions;
-using Nancy.Swagger.Annotations;
-using Nancy.Swagger.Services;
-using Newtonsoft.Json;
 using ReportService.Core;
 using ReportService.Entities;
-using ReportService.Entities.Dto;
-using ReportService.Entities.ServiceSettings;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
-using ReportService.Nancy;
-using ReportService.Nancy.Models;
 using ReportService.Operations.DataExporters;
 using ReportService.Operations.DataExporters.Configurations;
 using ReportService.Operations.DataExporters.ViewExecutors;
@@ -36,390 +23,240 @@ using ReportService.Operations.DataImporters;
 using ReportService.Operations.DataImporters.Configurations;
 using ReportService.Protobuf;
 using ReportService.ReportTask;
-using Swagger.ObjectModel;
 using Telegram.Bot;
-using TokenValidationSettings = Domain0.Tokens.TokenValidationSettings;
 
 namespace ReportService
 {
     public interface IPrivateBootstrapper
     {
-        void PrivateConfigureApplicationContainer(ILifetimeScope existingContainer);
+        void PrivateConfigureApplicationContainer(ContainerBuilder builder);
     }
 
-    public partial class Bootstrapper : AutofacNancyBootstrapper
+    public partial class Bootstrapper
     {
-        public static ILifetimeScope Global; //mech of work?
-
-        public ILifetimeScope Container => ApplicationContainer;
-
-        protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
+        private IConfigurationRoot GetConfiguration()
         {
-            SwaggerMetadataProvider.SetInfo("Reporting service", "v2", "Reporting service docs", new Contact()
+            var configBuilder = new ConfigurationBuilder()
+                .AddJsonFile("ConsulSettings.json");
+
+            var config = configBuilder.Build();
+            try
             {
-                Name = "Reportserver"
-            });
-
-            container.Update(builder => builder
-                .RegisterType<SwaggerAnnotationsProvider>()
-                .As<ISwaggerMetadataProvider>());
-
-            Global = Container;
-            ILogic log = Container.Resolve<ILogic>();
-            log.Start();
-
-            SwaggerAnnotationsConfig.ShowOnlyAnnotatedRoutes = true;
-        }
-
-        protected override void ConfigureConventions(NancyConventions nancyConventions)
-        {
-            base.ConfigureConventions(nancyConventions);
-
-            nancyConventions.StaticContentsConventions
-                .AddEmbeddedDirectory<Bootstrapper>("/swagger-ui", "Nancy/SwaggerDist");
-        }
-
-        private ServiceConfiguration GetConfiguration()
-        {
-            ServiceConfiguration serviceConfiguration = null;
-
-            var settingsPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
-                , "ConsulSettings.json");
-
-            ConsulSettings consulSettings;
-
-            using (StreamReader reader = new StreamReader(settingsPath))
-                consulSettings = JsonConvert.DeserializeObject<ConsulSettings>(reader.ReadToEnd());
-
-            try //todo: not try..catch?
-            {
-                var store = new ConsulConfigurationStore(consulSettings.Url, consulSettings.Token);
+                var store = new ConsulConfigurationStore(config["Url"], config["Token"]);
 
                 IExternalConfigurationProvider prov =
-                    new ExternalConfigurationProvider(store, consulSettings.Environment);
+                    new ExternalConfigurationProvider(store, config["Environment"]);
 
-                var serviceSettings = prov.GetServiceSettingsAsync(consulSettings.ServiceName).Result;
+                var serviceSettings = prov.GetServiceSettingsAsync(config["ServiceName"]).Result;
 
-                if (serviceSettings != null)
+                if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
                 {
-                    var appset = serviceSettings["AppService"];
+                    configBuilder.Sources.Clear();
 
-                    serviceConfiguration = JsonConvert.DeserializeObject<ServiceConfiguration>(appset);
+                    using var jsonStream = new MemoryStream(Encoding.UTF8
+                        .GetBytes(serviceSettings["AppService"]));
+
+                    configBuilder.AddJsonStream(jsonStream);
+
+                    config = configBuilder.Build();
                 }
+
+                else
+                    throw new Exception("Consul doesn't contain needed settings");
             }
 
-            catch 
+            catch
             {
-                serviceConfiguration = new ServiceConfiguration
-                {
-                    AdministrativeAddresses = ConfigurationManager.AppSettings["AdministrativeAddresses"],
-                    ArchiveFormat = ConfigurationManager.AppSettings["ArchiveFormat"],
-                    B2BConnStr = ConfigurationManager.AppSettings["B2BConnStr"],
-                    BotToken = ConfigurationManager.AppSettings["BotToken"],
-                    DBConnStr = ConfigurationManager.AppSettings["DBConnStr"],
-                    EmailSenderSettings = new EmailSenderSettings
-                    {
-                        From = ConfigurationManager.AppSettings["From"],
-                        SMTPServer = ConfigurationManager.AppSettings["SMTPServer"]
-                    },
-                    MonikSettings = new MonikSettings
-                    {
-                        EndPoint = ConfigurationManager.AppSettings["EndPoint"],
-                        InstanceName = ConfigurationManager.AppSettings["InstanceName"]
-                    },
-                    PermissionsSettings = new PermissionsSettings
-                    {
-                        Permissions_Edit = ConfigurationManager.AppSettings["Permissions_Edit"],
-                        Permissions_StopRun = ConfigurationManager.AppSettings["Permissions_StopRun"],
-                        Permissions_View = ConfigurationManager.AppSettings["Permissions_View"]
-                    },
-                    ProxySettings = new ProxySettings
-                    {
-                        ProxyLogin = ConfigurationManager.AppSettings["ProxyLogin"],
-                        ProxyPassword = ConfigurationManager.AppSettings["ProxyPassword"],
-                        ProxyUriAddr = ConfigurationManager.AppSettings["ProxyUriAddr"]
-                    },
-                    TokenValidationSettings = new Entities.ServiceSettings.TokenValidationSettings
-                    {
-                        Token_Alg = ConfigurationManager.AppSettings["Token_Alg"],
-                        Token_Audience = ConfigurationManager.AppSettings["Token_Audience"],
-                        Token_Issuer = ConfigurationManager.AppSettings["Token_Issuer"],
-                        Token_Secret = ConfigurationManager.AppSettings["Token_Secret"]
-                    }
-                };
+                configBuilder.Sources.Clear();
+                configBuilder.AddJsonFile("appsettings.json");
+
+                config = configBuilder.Build();
             }
 
-            return serviceConfiguration;
+            return config;
         }
 
-        protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
+        public void ConfigureContainer(ContainerBuilder builder)
         {
-            var serviceConfiguration = GetConfiguration();
+            var config = GetConfiguration();
 
-            existingContainer.RegisterSingleInstance<ServiceConfiguration, ServiceConfiguration>
-                (serviceConfiguration);
+            builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
+                (config);
 
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
-                (existingContainer, "CommonDbImporter");
+                (builder, "CommonDbImporter");
 
             RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
-                (existingContainer, "CommonExcelImporter");
+                (builder, "CommonExcelImporter");
 
             RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>
-                (existingContainer, "CommonCsvImporter");
+                (builder, "CommonCsvImporter");
 
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>
-                (existingContainer, "CommonSshImporter");
+                (builder, "CommonSshImporter");
 
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
-                (existingContainer, "CommonEmailSender");
+                (builder, "CommonEmailSender");
 
             RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>
-                (existingContainer, "CommonTelegramSender");
+                (builder, "CommonTelegramSender");
 
             RegisterNamedDataExporter<DbExporter, DbExporterConfig>
-                (existingContainer, "CommonDbExporter");
+                (builder, "CommonDbExporter");
 
             RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
-                (existingContainer, "CommonB2BExporter");
+                (builder, "CommonB2BExporter");
 
             RegisterNamedDataExporter<SshExporter, SshExporterConfig>
-                (existingContainer, "CommonSshExporter");
+                (builder, "CommonSshExporter");
 
             RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>
-                (existingContainer, "CommonFtpExporter");
+                (builder, "CommonFtpExporter");
 
             RegisterNamedViewExecutor<CommonViewExecutor>
-                (existingContainer, "commonviewex");
+                (builder, "commonviewex");
 
             RegisterNamedViewExecutor<GroupedViewExecutor>
-                (existingContainer, "GroupedViewex");
+                (builder, "GroupedViewex");
 
             RegisterNamedViewExecutor<CommonTableViewExecutor>
-                (existingContainer, "CommonTableViewEx");
+                (builder, "CommonTableViewEx");
 
-            existingContainer
+            builder
                 .RegisterImplementationSingleton<ILogic, Logic>();
-            existingContainer
+            builder
                 .RegisterImplementation<IReportTask, ReportTask.ReportTask>();
 
             // Partial bootstrapper for private named implementations registration
             (this as IPrivateBootstrapper)?
-                .PrivateConfigureApplicationContainer(existingContainer);
+                .PrivateConfigureApplicationContainer(builder);
 
-            #region ConfigureMonik
+            ConfigureMonik(builder, config);
 
+            builder
+                .Register(c => new Repository(config["DBConnStr"], c.Resolve<IMonik>()))
+                .As<IRepository>()
+                .SingleInstance();
+
+            ConfigureMapper(builder);
+
+            var rnd = new ThreadSafeRandom();
+            builder.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
+
+            builder.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
+
+
+            builder.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
+            builder.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
+
+            switch (config["ArchiveFormat"])
+            {
+                case "Zip":
+                    builder.RegisterImplementation<IArchiver, ArchiverZip>();
+                    break;
+                case "7Zip":
+                    builder.RegisterImplementation<IArchiver, Archiver7Zip>();
+                    break;
+            }
+
+            builder.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
+
+            builder.RegisterImplementation<ITaskWorker, TaskWorker>();
+
+            builder.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
+            builder.RegisterImplementation<IPackageParser, ProtoPackageParser>();
+
+            builder.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
+
+            ConfigureTelegramBot(builder, config);
+        }
+
+        private void ConfigureMapper(ContainerBuilder builder)
+        {
+            builder.RegisterType<MapperProfile>().As<Profile>().SingleInstance();
+
+            builder.Register(c =>
+                {
+                    var profiles = c.Resolve<IEnumerable<Profile>>();
+
+                    var mapperConfig =
+                        new MapperConfiguration(cfg =>
+                        {
+                            foreach (var prof in profiles)
+                                cfg.AddProfile(prof);
+                        });
+
+                    return mapperConfig.CreateMapper();
+                })
+                .As<IMapper>()
+                .SingleInstance();
+        }
+
+        private void ConfigureTelegramBot(ContainerBuilder builder, IConfigurationRoot config)
+        {
+            Uri proxyUri = new Uri(config["ProxySettings:ProxyUriAddr"]);
+            ICredentials credentials = new NetworkCredential(
+                config["ProxySettings:ProxyLogin"],
+                config["ProxySettings:ProxyPassword"]);
+            WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
+            TelegramBotClient bot =
+                new TelegramBotClient(config["BotToken"], proxy);
+            builder
+                .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
+        }
+
+        private void ConfigureMonik(ContainerBuilder builder, IConfigurationRoot config)
+        {
             var logSender = new RabbitMqSender(
-                serviceConfiguration.MonikSettings.EndPoint,
+                config["MonikSettings:EndPoint"],
                 "MonikQueue");
 
-            existingContainer
+            builder
                 .RegisterInstance<IMonikSender, RabbitMqSender>(logSender);
 
             var monikSettings = new ClientSettings
             {
                 SourceName = "ReportServer",
-                InstanceName = serviceConfiguration.MonikSettings.InstanceName,
+                InstanceName = config["MonikSettings:InstanceName"],
                 AutoKeepAliveEnable = true
             };
 
-            existingContainer
+            builder
                 .RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
 
-            existingContainer
+            builder
                 .RegisterImplementationSingleton<IMonik, MonikClient>();
-
-            #endregion
-
-            var repository = new Repository(serviceConfiguration.DBConnStr,
-                existingContainer.Resolve<IMonik>());
-
-            existingContainer
-                .RegisterInstance<IRepository, Repository>(repository);
-
-            #region ConfigureMapper
-
-            var mapperConfig =
-                new MapperConfiguration(cfg => cfg.AddProfile(typeof(MapperProfile)));
-
-            // Hint: add to ctor if many profiles needed: cfg.AddProfile(typeof(AutoMapperProfile));
-            existingContainer.RegisterSingleInstance<MapperConfiguration, MapperConfiguration>(
-                mapperConfig);
-            var mapper = existingContainer.Resolve<MapperConfiguration>().CreateMapper();
-            existingContainer.RegisterSingleInstance<IMapper, IMapper>(mapper);
-
-            #endregion
-
-            var rnd = new ThreadSafeRandom();
-            existingContainer.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
-
-            existingContainer.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
-
-
-            existingContainer.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
-            existingContainer.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
-
-            switch (serviceConfiguration.ArchiveFormat)
-            {
-                case "Zip":
-                    existingContainer.RegisterImplementation<IArchiver, ArchiverZip>();
-                    break;
-                case "7Zip":
-                    existingContainer.RegisterImplementation<IArchiver, Archiver7Zip>();
-                    break;
-            }
-
-
-            existingContainer.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
-
-            existingContainer.RegisterImplementation<ITaskWorker, TaskWorker>();
-
-            existingContainer.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
-            existingContainer.RegisterImplementation<IPackageParser, ProtoPackageParser>();
-
-            existingContainer.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
-
-            #region ConfigureBot
-
-            Uri proxyUri = new Uri(serviceConfiguration.ProxySettings.ProxyUriAddr);
-            ICredentials credentials = new NetworkCredential(
-                serviceConfiguration.ProxySettings.ProxyLogin,
-                serviceConfiguration.ProxySettings.ProxyPassword);
-            WebProxy proxy = new WebProxy(proxyUri, true, null, credentials);
-            TelegramBotClient bot =
-                new TelegramBotClient(serviceConfiguration.BotToken, proxy);
-            existingContainer
-                .RegisterSingleInstance<ITelegramBotClient, TelegramBotClient>(bot);
-
-            #endregion
-
-            existingContainer //why?
-                .RegisterInstance<ILifetimeScope, ILifetimeScope>(existingContainer);
-
-            existingContainer.RegisterInstance<TokenValidationSettings, TokenValidationSettings>(
-                new TokenValidationSettings
-                {
-                    Audience = serviceConfiguration.TokenValidationSettings.Token_Audience,
-                    Issuer = serviceConfiguration.TokenValidationSettings.Token_Issuer,
-                    Keys = new[]
-                    {
-                        new KeyInfo
-                        {
-                            Key = serviceConfiguration.TokenValidationSettings.Token_Secret,
-                            Alg = serviceConfiguration.TokenValidationSettings.Token_Alg
-                        }
-                    }
-                });
         }
 
 
-        protected override void ConfigureRequestContainer(ILifetimeScope container,
-            NancyContext context)
-        {
-            // Perform registrations that should have a request lifetime
-        }
-
-        protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines,
-            NancyContext context)
-        {
-            base.RequestStartup(container, pipelines, context);
-            
-            pipelines.AddDomain0Auth(container
-                .Resolve<TokenValidationSettings>());
-        }
-
-        private void RegisterNamedViewExecutor<TImplementation>
-            (ILifetimeScope container, string name) where TImplementation : IViewExecutor
-        {
-            container.Update(builder => builder
-                .RegisterType<TImplementation>()
-                .Named<IViewExecutor>(name));
-        }
-
-        private void RegisterNamedDataExporter<TImplementation, TConfigType>
-            (ILifetimeScope container, string name)
+        private static void RegisterNamedDataExporter<TImplementation, TConfigType>
+            (ContainerBuilder builder, string name)
             where TImplementation : IOperation
             where TConfigType : IExporterConfig
         {
-            container.Update(builder => builder
+            builder
                 .RegisterType<TImplementation>()
                 .Named<IOperation>(name)
-                .Keyed<IOperation>(typeof(TConfigType)));
+                .Keyed<IOperation>(typeof(TConfigType));
         }
 
-        private void RegisterNamedDataImporter<TImplementation, TConfigType>
-            (ILifetimeScope container, string name)
+        private static void RegisterNamedDataImporter<TImplementation, TConfigType>
+            (ContainerBuilder builder, string name)
             where TImplementation : IOperation
             where TConfigType : IImporterConfig
         {
-            container.Update(builder => builder
+            builder
                 .RegisterType<TImplementation>()
                 .Named<IOperation>(name)
-                .Keyed<IOperation>(typeof(TConfigType)));
+                .Keyed<IOperation>(typeof(TConfigType));
         }
-    }
 
-    public class MapperProfile : Profile
-    {
-        public MapperProfile()
+        private static void RegisterNamedViewExecutor<TImplementation>
+            (ContainerBuilder builder, string name) where TImplementation : IViewExecutor
         {
-            CreateMap<DtoRecepientGroup, RecipientGroup>();
-
-            CreateMap<ReportTask.ReportTask, DtoTask>()
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("Parameters", opt =>
-                    opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)))
-                .ForMember("DependsOn", opt =>
-                    opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
-
-            CreateMap<ReportTask.ReportTask, ApiTask>()
-                .ForMember("ScheduleId", opt => opt.MapFrom(s => s.Schedule.Id))
-                .ForMember("Parameters", opt =>
-                    opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)));
-
-            CreateMap<ApiTask, DtoTask>()
-                .ForMember("DependsOn", opt =>
-                    opt.MapFrom(s =>
-                        s.DependsOn == null
-                            ? null
-                            : JsonConvert.SerializeObject(s.DependsOn)));
-
-            CreateMap<DtoOperInstance, ApiOperInstance>()
-                .ForMember("DataSet", opt => opt.Ignore());
-
-            CreateMap<DtoOperInstance, DtoTaskInstance>();
-
-            CreateMap<DtoOperation, CommonOperationProperties>();
-
-            CreateMap<DbExporterConfig, DbExporter>();
-            CreateMap<DbExporterConfig, CommonOperationProperties>();
-            CreateMap<EmailExporterConfig, EmailDataSender>();
-            CreateMap<EmailExporterConfig, CommonOperationProperties>();
-            CreateMap<TelegramExporterConfig, TelegramDataSender>();
-            CreateMap<TelegramExporterConfig, CommonOperationProperties>();
-            CreateMap<B2BExporterConfig, B2BExporter>();
-            CreateMap<B2BExporterConfig, CommonOperationProperties>();
-            CreateMap<DbImporterConfig, DbImporter>()
-                .ForMember("DataSetNames", opt =>
-                    opt.MapFrom(s => s.DataSetNames.Split(new[] {';'},
-                            StringSplitOptions.RemoveEmptyEntries)
-                        .Where(name => !string.IsNullOrWhiteSpace(name))
-                        .ToList()));
-            CreateMap<DbImporterConfig, CommonOperationProperties>();
-            CreateMap<ExcelImporterConfig, ExcelImporter>();
-            CreateMap<ExcelImporterConfig, CommonOperationProperties>();
-            CreateMap<ExcelImporterConfig, ExcelReadingParameters>();
-            CreateMap<ExcelImporterConfig, CommonOperationProperties>();
-            CreateMap<CsvImporterConfig, CsvImporter>();
-            CreateMap<CsvImporterConfig, CommonOperationProperties>();
-            CreateMap<SshImporterConfig, SshImporter>();
-            CreateMap<SshImporterConfig, CommonOperationProperties>();
-            CreateMap<SshExporterConfig, SshExporter>();
-            CreateMap<SshExporterConfig, CommonOperationProperties>();
-            CreateMap<FtpExporterConfig, FtpExporter>();
-            CreateMap<FtpExporterConfig, CommonOperationProperties>();
-            CreateMap<HistoryImporterConfig, HistoryImporter>();
-            CreateMap<HistoryImporterConfig, CommonOperationProperties>();
+            builder
+                .RegisterType<TImplementation>()
+                .Named<IViewExecutor>(name);
         }
     }
 }

@@ -17,7 +17,6 @@ using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
-using ReportService.Nancy.Models;
 using ReportService.Operations.DataExporters.Configurations;
 
 namespace ReportService.Core
@@ -27,10 +26,11 @@ namespace ReportService.Core
         private readonly ILifetimeScope autofac;
         private readonly IMapper mapper;
         private readonly IMonik monik;
-        private readonly IArchiver archiver;
         private readonly ITelegramBotClient bot;
+
         private readonly IRepository repository;
-        private readonly Scheduler checkScheduleAndExecuteScheduler;
+
+        //private readonly Scheduler checkScheduleAndExecuteScheduler;
         private readonly IViewExecutor tableView;
         private readonly IPackageBuilder packageBuilder;
 
@@ -46,20 +46,16 @@ namespace ReportService.Core
         public Dictionary<string, Type> RegisteredImporters { get; set; }
 
         public Logic(ILifetimeScope autofac, IRepository repository, IMonik monik,
-            IMapper mapper, IArchiver archiver, ITelegramBotClient bot, IPackageBuilder builder)
+            IMapper mapper, ITelegramBotClient bot, IPackageBuilder builder)
         {
             this.autofac = autofac;
             this.mapper = mapper;
             this.monik = monik;
-            this.archiver = archiver;
             this.bot = bot;
             bot.StartReceiving();
             this.repository = repository;
             packageBuilder = builder;
             contextsInWork = new Dictionary<long, IReportTaskRunContext>();
-
-            checkScheduleAndExecuteScheduler =
-                new Scheduler {Period = 60, TaskMethod = CheckScheduleAndExecute};
 
             tableView = this.autofac.ResolveNamed<IViewExecutor>("CommonTableViewEx");
 
@@ -77,7 +73,7 @@ namespace ReportService.Core
         {
             var repositoryList = repository.GetListEntitiesByDtoType<T>();
             if (repositoryList == null) return;
-            lock (this)
+            lock (list)
             {
                 list.Clear();
                 foreach (var entity in repositoryList)
@@ -91,7 +87,7 @@ namespace ReportService.Core
             {
                 var taskList = repository.GetListEntitiesByDtoType<DtoTask>();
                 if (taskList == null) return;
-                lock (this)
+                lock (tasks)
                 {
                     tasks.Clear();
 
@@ -114,6 +110,7 @@ namespace ReportService.Core
                     }
                 } //lock
             }
+
             catch (Exception e)
             {
                 var msg = $"Error while updating tasks: {e.Message}";
@@ -122,10 +119,12 @@ namespace ReportService.Core
             }
         } //taskresolver
 
-        private void CheckScheduleAndExecute()
+        public void CheckScheduleAndExecute()
         {
+            monik.ApplicationInfo($"{DateTime.Now}");
+
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
@@ -175,6 +174,7 @@ namespace ReportService.Core
         {
             if (!contextsInWork.ContainsKey(taskInstanceId))
                 return;
+
             var context = contextsInWork[taskInstanceId];
 
             context.CancelSource.Dispose();
@@ -217,8 +217,8 @@ namespace ReportService.Core
 
         public void Start()
         {
-            //var serviceConfig = autofac.Resolve<ServiceConfiguration>();
-            //CreateBase(serviceConfig.DBConnStr);
+            //var serviceConfig = autofac.Resolve<IConfigurationRoot>();
+            //CreateBase(serviceConfig["DBConnStr"]);
 
             RegisteredImporters = GetRegistrationsByTypeAndKeyType<IOperation, IImporterConfig>();
             RegisteredExporters = GetRegistrationsByTypeAndKeyType<IOperation, IExporterConfig>();
@@ -230,8 +230,6 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(operations);
 
             UpdateTaskList();
-
-            checkScheduleAndExecuteScheduler.OnStart();
 
             UpdateInstances();
         } //start
@@ -249,16 +247,11 @@ namespace ReportService.Core
                 SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", taskids)}");
         }
 
-        public void Stop()
-        {
-            checkScheduleAndExecuteScheduler.OnStop();
-        }
-
         public string SendDefault(int taskId, string mailAddress)
         {
             List<IReportTask> currentTasks;
 
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
@@ -271,7 +264,7 @@ namespace ReportService.Core
             var context = task.GetCurrentContext(true);
 
             if (context == null)
-                return $"Task {taskId} stopped";
+                return $"Service is unable to create default context of task {taskId}";
 
             var instanceId = context.TaskInstance.Id;
 
@@ -283,11 +276,11 @@ namespace ReportService.Core
             return $"Task {taskId} default dataset sent to {mailAddress}!";
         }
 
-        public string ForceExecute(int taskId)
+        public string ForceExecute(long taskId)
         {
             List<IReportTask> currentTasks;
 
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
@@ -299,7 +292,7 @@ namespace ReportService.Core
             var context = task.GetCurrentContext(false);
 
             if (context == null)
-                return $"Task {taskId} stopped";
+                return $"Service is unable to create context of task {taskId}";
 
             var instanceId = context.TaskInstance.Id;
 
@@ -317,7 +310,7 @@ namespace ReportService.Core
         public string GetAllOperTemplatesJson()
         {
             List<DtoOperTemplate> currentTemplates;
-            lock (this)
+            lock (operTemplates)
                 currentTemplates = operTemplates.ToList();
 
             return JsonConvert.SerializeObject(currentTemplates);
@@ -326,7 +319,7 @@ namespace ReportService.Core
         public string GetAllRecepientGroupsJson()
         {
             List<DtoRecepientGroup> currentRecepients;
-            lock (this)
+            lock (recepientGroups)
                 currentRecepients = recepientGroups.ToList();
 
             return JsonConvert.SerializeObject(currentRecepients);
@@ -335,7 +328,7 @@ namespace ReportService.Core
         public string GetAllTelegramChannelsJson()
         {
             List<DtoTelegramChannel> currentChannels;
-            lock (this)
+            lock (telegramChannels)
                 currentChannels = telegramChannels.ToList();
 
             return JsonConvert.SerializeObject(currentChannels);
@@ -344,7 +337,7 @@ namespace ReportService.Core
         public string GetAllSchedulesJson()
         {
             List<DtoSchedule> currentSchedules;
-            lock (this)
+            lock (schedules)
                 currentSchedules = schedules.ToList();
 
             return JsonConvert.SerializeObject(currentSchedules);
@@ -353,26 +346,24 @@ namespace ReportService.Core
         public string GetAllOperationsJson()
         {
             List<DtoOperation> currentOperations;
-            lock (this)
+            lock (operations)
                 currentOperations = operations.Where(oper => !oper.IsDeleted).ToList();
 
             return JsonConvert.SerializeObject(currentOperations);
         }
 
-        public string GetAllTasksJson()
+        public List<IReportTask> GetAllTasksJson()
         {
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks
                     .ToList();
-            var tr = JsonConvert.SerializeObject(currentTasks
-                .Select(t => mapper.Map<ApiTask>(t)));
-            return tr;
+            return currentTasks;
         }
 
         public string GetEntitiesCountJson()
         {
-            var entities = new Dictionary<string, int>
+            var entities = new Dictionary<string, int>()
             {
                 {"operTemplates", operTemplates.Count},
                 {"recepientGroups", recepientGroups.Count},
@@ -500,19 +491,21 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted schedule {id}");
         }
 
-        public long CreateTask(ApiTask task)
+        public long CreateTask(DtoTask task, DtoOperation[] bindedOpers)
         {
-            var newTaskId = repository.CreateTask(mapper.Map<DtoTask>(task),
-                task.BindedOpers);
+            var newTaskId = repository.CreateTask(task,
+                bindedOpers);
+
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
             SendServiceInfo($"Created task {newTaskId}");
             return newTaskId;
         }
 
-        public void UpdateTask(ApiTask task)
+        public void UpdateTask(DtoTask task, DtoOperation[] bindedOpers)
         {
-            repository.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
+            repository.UpdateTask(task, bindedOpers);
+
             UpdateDtoEntitiesList(operations);
             UpdateTaskList();
             SendServiceInfo($"Changed task {task.Id}");
@@ -529,7 +522,7 @@ namespace ReportService.Core
         public async Task<string> GetTasksList_HtmlPageAsync()
         {
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var tasksData = currentTasks.Select(task => new
@@ -546,17 +539,17 @@ namespace ReportService.Core
                 tableView.ExecuteHtml("Current tasks list", pack));
         }
 
-        public string GetWorkingTasksByIdJson(int id)
+        public string GetWorkingTaskInstancesJson(long taskId)
         {
             return JsonConvert.SerializeObject(contextsInWork.Select(cont => cont.Value)
-                .Where(rtask => rtask.TaskId == id)
+                .Where(rtask => rtask.TaskId == taskId)
                 .Select(rtask => rtask.TaskInstance.Id).ToList());
         }
 
         public async Task<string> GetTasksInWorkList_HtmlPageAsync()
         {
             List<IReportTaskRunContext> tasksInWork;
-            lock (this)
+            lock (contextsInWork)
                 tasksInWork = contextsInWork.Select(pair => pair.Value).ToList();
 
             var inWorkData = tasksInWork.Select(context => new
@@ -574,10 +567,10 @@ namespace ReportService.Core
                 tableView.ExecuteHtml("Current tasks list", pack));
         }
 
-        public async Task<string> GetCurrentViewByTaskIdAsync(int taskId)
+        public async Task<string> GetCurrentViewAsync(long taskId)
         {
             List<IReportTask> currentTasks;
-            lock (this)
+            lock (tasks)
                 currentTasks = tasks.ToList();
 
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
@@ -602,26 +595,21 @@ namespace ReportService.Core
                 : view;
         }
 
-        public void DeleteTaskInstanceById(long id)
+        public void DeleteTaskInstanceById(long taskInstanceid)
         {
-            repository.DeleteEntity<DtoTaskInstance, long>(id);
+            repository.DeleteEntity<DtoTaskInstance, long>(taskInstanceid);
             UpdateTaskList();
-            SendServiceInfo($"Deleted task instance {id}");
+            SendServiceInfo($"Deleted task instance {taskInstanceid}");
         }
 
-        public string GetAllTaskInstancesJson()
-        {
-            return JsonConvert.SerializeObject(
-                repository.GetListEntitiesByDtoType<DtoTaskInstance>());
-        }
 
-        public string GetAllTaskInstancesByTaskIdJson(int taskId)
+        public string GetAllTaskInstancesJson(long taskId)
         {
             return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
         }
 
         public async Task<string> GetFullInstanceList_HtmlPageAsync(
-            int taskId)
+            long taskId)
         {
             var instances = repository.GetInstancesByTaskId(taskId)
                 .Select(instance => new
@@ -632,10 +620,14 @@ namespace ReportService.Core
                     State = ((InstanceState) instance.State).ToString()
                 });
 
+            if (!instances.Any())
+                return $"There are no executions of task {taskId} in the database";
+
             var pack = packageBuilder.GetPackage(instances);
 
+
             return await Task.Factory.StartNew(() =>
-                tableView.ExecuteHtml("Task executions history", pack));
+                tableView.ExecuteHtml($"Task {taskId} executions history", pack));
         }
 
         public void DeleteOperInstanceById(long operInstanceId)
@@ -643,31 +635,15 @@ namespace ReportService.Core
             repository.DeleteEntity<DtoOperInstance, long>(operInstanceId);
         }
 
-        public string GetOperInstancesByTaskInstanceIdJson(int id)
+        public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id)
         {
-            var instances = repository
+            return repository
                 .GetOperInstancesByTaskInstanceId(id);
-
-            var apiInstances = instances.Select(inst =>
-                mapper.Map<ApiOperInstance>(inst)).ToList();
-
-            apiInstances.ForEach(apiinst => apiinst.OperName = operations
-                .FirstOrDefault(op => op.Id == apiinst.OperationId)?.Name);
-
-            return JsonConvert.SerializeObject(apiInstances);
         }
 
-        public string GetFullOperInstanceByIdJson(int id)
+        public DtoOperInstance GetFullOperInstanceById(long id)
         {
-            var instance = repository.GetFullOperInstanceById(id);
-            var apiInstance = mapper.Map<ApiOperInstance>(instance);
-
-            apiInstance.DataSet = archiver.ExtractFromByteArchive(instance.DataSet);
-
-            apiInstance.OperName = operations.FirstOrDefault(op =>
-                op.Id == apiInstance.OperationId)?.Name;
-
-            return JsonConvert.SerializeObject(apiInstance);
+            return repository.GetFullOperInstanceById(id);
         }
 
         public string GetAllRegisteredImportersJson()
@@ -716,12 +692,12 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(exporters);
         }
 
-        public int CreateTaskByTemplate(ApiTask newTask)
-        {
-            throw new NotImplementedException();
-        }
+        //public int CreateTaskByTemplate(ApiTask newTask) //todo: work with syncserver
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public async Task<bool> StopTaskByInstanceIdAsync(long taskInstanceId)
+        public async Task<bool> StopTaskInstanceAsync(long taskInstanceId)
         {
             if (!contextsInWork.ContainsKey(taskInstanceId))
                 return false;
@@ -764,7 +740,9 @@ namespace ReportService.Core
                     break;
             }
 
-            if (chatId != 0 && !telegramChannels.Select(channel => channel.ChatId).Contains(chatId))
+            if (chatId == 0 || telegramChannels
+                    .Select(channel => channel.ChatId).Contains(chatId))
+                return;
             {
                 DtoTelegramChannel channel =
                     new DtoTelegramChannel

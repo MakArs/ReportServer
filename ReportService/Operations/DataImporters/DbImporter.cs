@@ -23,7 +23,7 @@ namespace ReportService.Operations.DataImporters
 
         private readonly IPackageBuilder packageBuilder;
         private readonly ThreadSafeRandom rnd;
-        private const int triesCount = 3;
+        private const int TriesCount = 3;
 
         public string ConnectionString;
         public string Query;
@@ -46,7 +46,7 @@ namespace ReportService.Operations.DataImporters
             var parValues = new List<object>();
             var actualQuery = taskContext.SetQueryParameters(parValues, Query);
 
-            for (int i = 0; i < triesCount; i++)
+            for (int i = 0; i < TriesCount; i++)
             {
                 var sqlContext = SqlContextProvider.DefaultInstance
                     .CreateContext(ConnectionString);
@@ -74,7 +74,7 @@ namespace ReportService.Operations.DataImporters
                     if (!(e is SqlException se))
                         throw e;
 
-                    if (i >= triesCount)
+                    if (i >= TriesCount)
                         throw se;
 
                     Task.Delay(rnd.Next(1000, 60000)).Wait(taskContext.CancelSource.Token);
@@ -87,7 +87,7 @@ namespace ReportService.Operations.DataImporters
             var parValues = new List<object>();
             var actualQuery = taskContext.SetQueryParameters(parValues, Query);
 
-            for (int i = 0; i < triesCount; i++)
+            for (int i = 0; i < TriesCount; i++)
             {
                 try
                 {
@@ -120,9 +120,9 @@ namespace ReportService.Operations.DataImporters
                 catch (Exception e)
                 {
                     if (!(e is SqlException se))
-                        throw e;
+                        throw e; //todo:check
 
-                    if (i >= triesCount - 1)
+                    if (i >= TriesCount - 1)
                         throw se;
 
                     await Task.Delay(rnd.Next(1000, 60000), taskContext.CancelSource.Token);

@@ -1,27 +1,27 @@
-﻿using ReportService.Nancy;
-using Topshelf;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ReportService
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            HostFactory.Run(hostConfigurator =>
-            {
-                hostConfigurator.Service<HostHolder>(serviceConfigurator =>
-                {
-                    serviceConfigurator.ConstructUsing(name => new HostHolder());
-                    serviceConfigurator.WhenStarted(hostHolder => hostHolder.Start());
-                    serviceConfigurator.WhenStopped(hostHolder => hostHolder.Stop());
-                });
-                
-                hostConfigurator.RunAsLocalSystem();
-                //System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
-                hostConfigurator.SetDescription("ReportServer service");
-                hostConfigurator.SetDisplayName("ReportServer");
-                hostConfigurator.SetServiceName("ReportServer");
-            });
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
+                .ConfigureServices((hostContext, services) => { services.AddHostedService<Worker>(); });
+
+        private static void ConfigureContainer(ContainerBuilder builder)
+        {
+            var boots = new Bootstrapper();
+            boots.ConfigureContainer(builder);
         }
     }
 }

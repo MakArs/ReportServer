@@ -28,41 +28,31 @@ namespace ReportService.Core
 
         public byte[] CompressByteArray(byte[] data)
         {
-            using (var compressedStream = new MemoryStream())
-            {
-                using (var viewStream = new MemoryStream(data))
-                {
-                    compressor.CompressStream(viewStream, compressedStream);
+            using var compressedStream = new MemoryStream();
+            using var viewStream = new MemoryStream(data);
+            compressor.CompressStream(viewStream, compressedStream);
 
-                    return compressedStream.ToArray();
-                }
-            }
+            return compressedStream.ToArray();
         }
 
         public byte[] ExtractFromByteArchive(byte[] byteData)
         {
             if (byteData == null || byteData.Length == 0) return null;
 
-            using (var compressedStream = new MemoryStream(byteData))
-            {
-                var extractor = new SevenZipExtractor(compressedStream);
+            using var compressedStream = new MemoryStream(byteData);
+            var extractor = new SevenZipExtractor(compressedStream);
 
-                using (var extractedStream = new MemoryStream())
-                {
-                    extractor.ExtractFile(0, extractedStream);
-                    return extractedStream.ToArray();
-                }
-            }
+            using var extractedStream = new MemoryStream();
+            extractor.ExtractFile(0, extractedStream);
+            return extractedStream.ToArray();
         }
 
         public byte[] CompressStream(Stream data)
         {
-            using (var compressedStream = new MemoryStream())
-            {
-                compressor.CompressStream(data, compressedStream);
+            using var compressedStream = new MemoryStream();
+            compressor.CompressStream(data, compressedStream);
 
-                return compressedStream.ToArray();
-            }
+            return compressedStream.ToArray();
         }
     }
 }

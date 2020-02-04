@@ -1,8 +1,5 @@
 ﻿using CsvHelper;
 using OfficeOpenXml;
-using RazorEngine;
-using RazorEngine.Configuration;
-using RazorEngine.Templating;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Protobuf;
@@ -10,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using RazorLight;
 using ReportService.Entities;
 
 namespace ReportService.Operations.DataExporters.ViewExecutors
@@ -27,18 +25,6 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
         {
             string date = $"{DateTime.Now:dd.MM.yy HH:mm:ss}";
 
-            TemplateServiceConfiguration templateConfig =
-                new TemplateServiceConfiguration
-                {
-                    DisableTempFileLocking = true,
-                    CachingProvider = new DefaultCachingProvider(t => { })
-                };
-
-            var serv = RazorEngineService.Create(templateConfig);
-
-            Engine.Razor = serv;
-            Engine.Razor.Compile(viewTemplate, "somekey");
-
             if (!package.DataSets.Any()) return "No information obtained by query";
 
             var packageValues = PackageParser.GetPackageValues(package);
@@ -52,7 +38,14 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 Date = date
             };
 
-            return Engine.Razor.Run("somekey", null, model);
+            var engine = new RazorLightEngineBuilder()
+                .UseEmbeddedResourcesProject(typeof(Program))
+                .UseMemoryCachingProvider()
+                .Build();
+
+            var result = engine.CompileRenderStringAsync("templateKey", viewTemplate, model).Result;
+
+            return result;
         }
 
         private string AddDataSetToTelegView(string tmRep, DataSetContent content)
@@ -133,8 +126,6 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             {
                 ws.Column(j).Style.WrapText = true;
             }
-
-            // return inPackage;
         }
 
         public virtual ExcelPackage ExecuteXlsx(OperationPackage package, string reportName, bool useAllSets = false)
@@ -145,20 +136,38 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
 
             if (useAllSets)
             {
-                for (int i = 0; i < packageContent.Count; i++)
+                var i = 1;
+                foreach (var ds in packageContent)
                 {
-                    AddDataSetToExcel(pack, packageContent[i]);
+                    AddDataSetToExcel(pack, ds);
 
-                    if (pack.Workbook.Worksheets[i + 1].Name == "NoNamedList")
-                        pack.Workbook.Worksheets[i + 1].Name = $"Dataset{i + 1}";
+                    if (pack.Workbook.Worksheets.Last().Name == "NoNamedList")
+                        pack.Workbook.Worksheets.Last().Name = $"Dataset{i}";
+                    i++;
                 }
-
-                // foreach (var set in packageContent)
             }
 
             else AddDataSetToExcel(pack, packageContent.First());
 
             return pack;
+        }
+
+        private void AddDataSetToCsv(DataSetContent set, CsvWriter csvWriter)
+        {
+            foreach (var head in set.Headers)
+            {
+                csvWriter.WriteField(head);
+            }
+
+            csvWriter.NextRecord();
+
+            foreach (var row in set.Rows)
+            {
+                foreach (var value in row)
+                    csvWriter.WriteField(value);
+
+                csvWriter.NextRecord();
+            }
         }
 
         public byte[] ExecuteCsv(OperationPackage package,
@@ -170,53 +179,23 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             {
                 using (var writerStream = new StreamWriter(csvStream))
                 {
-                    using (var csvWriter = new CsvWriter(writerStream))
+                    using var csvWriter = new CsvWriter(writerStream);
+                    csvWriter.Configuration.Delimiter = delimiter;
+
+                    if (!useAllSets)
                     {
-                        csvWriter.Configuration.Delimiter = delimiter;
-
-                        if (!useAllSets)
-                        {
-                            var firstSet = PackageParser.GetPackageValues(package).First();
-                            foreach (var head in firstSet.Headers)
-                            {
-                                csvWriter.WriteField(head);
-                            }
-
-                            csvWriter.NextRecord();
-
-                            foreach (var row in firstSet.Rows)
-                            {
-                                foreach (var value in row)
-                                    csvWriter.WriteField(value);
-
-                                csvWriter.NextRecord();
-                            }
-                        }
-
-                        else
-                        {
-                            foreach (var dataSet in PackageParser.GetPackageValues(package))
-                            {
-                                foreach (var head in dataSet.Headers)
-                                {
-                                    csvWriter.WriteField(head);
-                                }
-
-                                csvWriter.NextRecord();
-
-                                foreach (var row in dataSet.Rows)
-                                {
-                                    foreach (var value in row)
-                                        csvWriter.WriteField(value);
-
-                                    csvWriter.NextRecord();
-                                }
-                            }
-                        }
-
-                        writerStream.Flush();
-                        csvStream.Position = 0;
+                        var firstSet = PackageParser.GetPackageValues(package).First();
+                        AddDataSetToCsv(firstSet, csvWriter);
                     }
+
+                    else
+                    {
+                        foreach (var dataSet in PackageParser.GetPackageValues(package))
+                            AddDataSetToCsv(dataSet, csvWriter);
+                    }
+
+                    writerStream.Flush();
+                    csvStream.Position = 0;
                 }
 
                 return csvStream.ToArray();

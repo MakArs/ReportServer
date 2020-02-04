@@ -37,24 +37,20 @@ namespace ReportService.Operations.DataImporters
             var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
                 FileName);
 
-            using (var textReader =
-                File.OpenText(fullPath))
-            {
-                using (var csvReader = new CsvReader(textReader))
-                {
-                    csvReader.Configuration.Delimiter = Delimiter;
+            using var textReader = File.OpenText(fullPath);
+            using var csvReader = new CsvReader(textReader);
 
-                    var pack = packageBuilder.GetPackage(csvReader, GroupNumbers);
+            csvReader.Configuration.Delimiter = Delimiter;
 
-                    if (SendVoidPackageError && !pack.DataSets.Any())
-                        throw new InvalidDataException("No datasets obtaned during import");
+            var pack = packageBuilder.GetPackage(csvReader, GroupNumbers);
 
-                    if (!string.IsNullOrEmpty(DataSetName))
-                        pack.DataSets.First().Name = DataSetName;
+            if (SendVoidPackageError && !pack.DataSets.Any())
+                throw new InvalidDataException("No datasets obtaned during import");
 
-                    taskContext.Packages[Properties.PackageName] = pack;
-                }
-            }
+            if (!string.IsNullOrEmpty(DataSetName))
+                pack.DataSets.First().Name = DataSetName;
+
+            taskContext.Packages[Properties.PackageName] = pack;
         }
 
         public Task ExecuteAsync(IReportTaskRunContext taskContext)

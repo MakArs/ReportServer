@@ -1,9 +1,7 @@
-﻿using Nancy.Swagger.Annotations.Attributes;
-using ReportService.Interfaces.Core;
+﻿using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
-    [Model("Recipient group")]
     public class DtoRecepientGroup : IDtoEntity
     {
         public int Id { get; set; }

@@ -14,7 +14,7 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class ReportTask : IReportTask //todo:mapping for operation props&context
+    public class ReportTask : IReportTask
     {
         public int Id { get; }
         public string Name { get; }
@@ -112,7 +112,7 @@ namespace ReportService.ReportTask
 
             context.Parameters = Parameters
                 .ToDictionary(pair => pair.Key,
-                    pair => repository.GetBaseQueryResult("select " + pair.Value.ToString()));
+                    pair => repository.GetBaseQueryResult("select " + pair.Value));
 
             context.CancelSource = new CancellationTokenSource();
 

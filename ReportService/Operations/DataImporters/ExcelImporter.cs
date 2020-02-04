@@ -40,15 +40,14 @@ namespace ReportService.Operations.DataImporters
 
             var fi = new FileInfo(fullPath);
 
-            using (var pack = new ExcelPackage(fi))
-            {
-                var package = packageBuilder.GetPackage(pack, ExcelParameters, GroupNumbers);
+            using var pack = new ExcelPackage(fi);
 
-                if (SendVoidPackageError && !package.DataSets.Any())
-                    throw new InvalidDataException("No datasets obtaned during import");
+            var package = packageBuilder.GetPackage(pack, ExcelParameters, GroupNumbers);
 
-                taskContext.Packages[Properties.PackageName] = package;
-            }
+            if (SendVoidPackageError && !package.DataSets.Any())
+                throw new InvalidDataException("No datasets obtaned during import");
+
+            taskContext.Packages[Properties.PackageName] = package;
         }
 
         public Task ExecuteAsync(IReportTaskRunContext taskContext) // todo: cancellation if needed

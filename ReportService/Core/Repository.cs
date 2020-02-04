@@ -13,16 +13,19 @@ namespace ReportService.Core
     public class Repository : IRepository
     {
         private readonly IMonik monik;
-        private readonly ConnectionStringContext context;
+        private readonly string connectionString;
 
         public Repository(string connStr, IMonik monik)
         {
-            context = SqlContextProvider.DefaultInstance.CreateContext(connStr);
+            connectionString = connStr;
+
             this.monik = monik;
-        } //ctor
+        } 
 
         public object GetBaseQueryResult(string query)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             object result = context
                 .CreateSimple(new QueryOptions(30), query)
                 .ExecuteQueryFirstColumn<object>().ToList().First();
@@ -32,11 +35,14 @@ namespace ReportService.Core
 
         public List<DtoTaskInstance> GetInstancesByTaskId(long taskId)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             try
             {
                 return context.CreateSimple($"select * from TaskInstance with(nolock) where TaskId={taskId}")
                     .ExecuteQuery<DtoTaskInstance>().ToList();
             }
+
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting task instances: " +
@@ -47,6 +53,8 @@ namespace ReportService.Core
 
         public DependencyState GetDependencyStateByTaskId(long taskId)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             try
             {
                 return context.CreateSimple(
@@ -55,6 +63,7 @@ namespace ReportService.Core
                                             FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}")
                     .ExecuteQuery<DependencyState>().ToList().First();
             }
+
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting task last time: " +
@@ -65,6 +74,8 @@ namespace ReportService.Core
 
         public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             try
             {
                 return context.CreateSimple
@@ -72,6 +83,7 @@ namespace ReportService.Core
                      $"null as ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}")
                     .ExecuteQuery<DtoOperInstance>().ToList();
             }
+
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting operation instances: " +
@@ -82,6 +94,8 @@ namespace ReportService.Core
 
         public DtoOperInstance GetFullOperInstanceById(long operInstanceId)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             try
             {
                 return context.CreateSimple
@@ -93,6 +107,7 @@ namespace ReportService.Core
                     .ExecuteQuery<DtoOperInstance>()
                     .ToList().First();
             }
+
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting operation instance data: " +
@@ -103,13 +118,17 @@ namespace ReportService.Core
 
         public List<T> GetListEntitiesByDtoType<T>() where T : IDtoEntity, new()
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             var tableName = typeof(T).Name.Remove(0, 3);
+
             try
             {
                 return context.CreateSimple($"select * from {tableName} with(nolock)")
                     .ExecuteQuery<T>()
                     .ToList();
             }
+
             catch (Exception e)
             {
                 SendAppWarning("Error occured while getting " +
@@ -120,6 +139,8 @@ namespace ReportService.Core
 
         public TKey CreateEntity<T, TKey>(T entity) where T : IDtoEntity
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             var tableName = typeof(T).Name.Remove(0, 3);
 
             try
@@ -139,7 +160,10 @@ namespace ReportService.Core
 
         public long CreateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             long newTaskId = 0;
+
             context.UsingTransaction(transContext =>
             {
                 try
@@ -172,6 +196,8 @@ namespace ReportService.Core
 
         public void UpdateEntity<T>(T entity) where T : IDtoEntity
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             var tableName = typeof(T).Name.Remove(0, 3);
 
             try
@@ -188,6 +214,8 @@ namespace ReportService.Core
 
         public void UpdateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             context.UsingTransaction(transContext =>
             {
                 try
@@ -219,7 +247,6 @@ namespace ReportService.Core
                     ) //no chances of so many  opers will be updated so no losses
                         transContext.Update("Operation", oper, "Id");
 
-
                     opersToWrite.WriteToServer(transContext, "Operation");
                 }
 
@@ -234,12 +261,14 @@ namespace ReportService.Core
 
         public void DeleteEntity<T, TKey>(TKey id) where T : IDtoEntity
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             var type = typeof(T);
             var tableName = type.Name.Remove(0, 3);
 
             switch (true)
             {
-                case bool _ when type == typeof(DtoTaskInstance):
+                case { } when type == typeof(DtoTaskInstance):
                     context.UsingTransaction(transContext =>
                     {
                         try
@@ -260,7 +289,7 @@ namespace ReportService.Core
                     });
                     break;
 
-                case bool _ when type == typeof(DtoTask):
+                case { } when type == typeof(DtoTask):
                     context.UsingTransaction(transContext =>
                     {
                         try
@@ -318,6 +347,8 @@ namespace ReportService.Core
 
         public List<long> UpdateOperInstancesAndGetIds()
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             var ids = context.CreateSimple(@"UPDATE OperInstance
             SET state=3,ErrorMessage='Unknown error.The service was probably stopped during the task execution.'
             OUTPUT INSERTED.id
@@ -328,6 +359,8 @@ namespace ReportService.Core
 
         public List<long> UpdateTaskInstancesAndGetIds()
         {
+            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
             var ids = context.CreateSimple(@"UPDATE TaskInstance
             SET state=3
             OUTPUT INSERTED.id
@@ -498,5 +531,5 @@ namespace ReportService.Core
                 END")
                 .ExecuteNonQuery();
         } //database structure creating
-    } //class
+    }
 }

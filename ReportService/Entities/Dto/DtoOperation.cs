@@ -4,13 +4,13 @@ namespace ReportService.Entities.Dto
 {
     public class DtoOperation : IDtoEntity
     {
-        public long Id;
-        public long TaskId;
-        public int Number;
-        public string Name;
-        public string ImplementationType;
-        public bool IsDefault;
-        public string Config;
-        public bool IsDeleted;
+        public long Id { get; set; }
+        public long TaskId { get; set; }
+        public int Number { get; set; }
+        public string Name { get; set; }
+        public string ImplementationType { get; set; }
+        public bool IsDefault { get; set; }
+        public string Config { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

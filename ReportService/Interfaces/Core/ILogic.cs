@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
-using ReportService.Extensions;
-using ReportService.Nancy.Models;
+using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.Interfaces.Core
 {
@@ -13,17 +12,17 @@ namespace ReportService.Interfaces.Core
         Dictionary<string, Type> RegisteredExporters { get; set; }
         Dictionary<string, Type> RegisteredImporters { get; set; }
 
+        void CheckScheduleAndExecute();
         void Start();
-        void Stop();
         string SendDefault(int taskId, string mail);
-        string ForceExecute(int taskId);
+        string ForceExecute(long taskId);
 
         string GetAllOperTemplatesJson();
         string GetAllRecepientGroupsJson();
         string GetAllTelegramChannelsJson();
         string GetAllSchedulesJson();
         string GetAllOperationsJson();
-        string GetAllTasksJson();
+        List<IReportTask> GetAllTasksJson();
         string GetEntitiesCountJson();
 
         int CreateOperationTemplate(DtoOperTemplate operTemplate);
@@ -43,22 +42,21 @@ namespace ReportService.Interfaces.Core
         void UpdateSchedule(DtoSchedule schedule);
         void DeleteSchedule(int id);
 
-        long CreateTask(ApiTask task);
-        void UpdateTask(ApiTask task);
+        long CreateTask(DtoTask task, DtoOperation[] bindedOpers);
+        void UpdateTask(DtoTask task, DtoOperation[] bindedOpers);
         void DeleteTask(long taskId);
         Task<string> GetTasksList_HtmlPageAsync();
         Task<string> GetTasksInWorkList_HtmlPageAsync();
-        string GetWorkingTasksByIdJson(int id);
-        Task<string> GetCurrentViewByTaskIdAsync(int id);
+        string GetWorkingTaskInstancesJson(long taskId);
+        Task<string> GetCurrentViewAsync(long taskId);
 
-        void DeleteTaskInstanceById(long id);
-        string GetAllTaskInstancesJson();
-        string GetAllTaskInstancesByTaskIdJson(int taskId);
-        Task<string> GetFullInstanceList_HtmlPageAsync(int taskId);
+        void DeleteTaskInstanceById(long taskInstanceid);
+        string GetAllTaskInstancesJson(long taskId);
+        Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 
         void DeleteOperInstanceById(long operInstanceId);
-        string GetOperInstancesByTaskInstanceIdJson(int id);
-        string GetFullOperInstanceByIdJson(int id);
+        List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id);
+        DtoOperInstance GetFullOperInstanceById(long id);
 
         //todo: int CreateEntity<T>(T entity) where T : IDtoEntity;
         //todo: void UpdateEntity<T>(T entity) where T : IDtoEntity;
@@ -69,7 +67,8 @@ namespace ReportService.Interfaces.Core
         string GetAllRegisteredExportersJson();
 
         string GetAllB2BExportersJson(string keyParameter);
-        int CreateTaskByTemplate(ApiTask newTask);
-        Task<bool> StopTaskByInstanceIdAsync(long taskInstanceId);
+
+        //int CreateTaskByTemplate(ApiTask newTask); 
+        Task<bool> StopTaskInstanceAsync(long taskInstanceId);
     }
 }

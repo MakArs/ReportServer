@@ -3,7 +3,7 @@
 # ReportServer
 ETL solution(windows service) for scheduled reports compilation and sending
 
-**Technology stack**: [Topshelf](https://github.com/Topshelf/Topshelf), [NancyFX](http://nancyfx.org), [Autofac](https://autofac.org), [FastSql](https://github.com/gerakul/FastSql), [Monik](https://github.com/Totopolis/monik), [NCrontab](https://github.com/atifaziz/NCrontab)
+**Technology stack**: [Autofac](https://autofac.org), [FastSql](https://github.com/gerakul/FastSql), [Monik](https://github.com/Totopolis/monik), [NCrontab](https://github.com/atifaziz/NCrontab), [protobuf-net](https://github.com/protobuf-net/protobuf-net)
 
 **Input data formats**
 * SQL Database
@@ -18,9 +18,9 @@ ETL solution(windows service) for scheduled reports compilation and sending
 * FTP/SFTP server(file transfer, CSV,Excel,Json)
 
 # Configuration options
-* Via [Consul](https://github.com/MakArs/ReportServer/blob/master/ReportService/ConsulSettings.json) (needs to have working Consul instance with [AppService](https://github.com/MakArs/ReportServer/blob/master/ReportService/AppService.json) file configured)
+* Via [Consul](https://github.com/MakArs/ReportServer/blob/master/ReportService/ReportService.Api/ConsulSettings.json) (needs to have working Consul instance with [AppService](https://github.com/MakArs/ReportServer/blob/master/ReportService/ReportService.Api/appsettings.json) file configured)
 or
-* Via [App.Config](https://github.com/MakArs/ReportServer/blob/master/ReportService/App.config) 
+* Via [appsettings](https://github.com/MakArs/ReportServer/blob/master/ReportService/ReportService.Api/appsettings.json) 
 
 # Desktop client
 * [ReportServer.Desktop](https://github.com/MakArs/ReportServer.Desktop)

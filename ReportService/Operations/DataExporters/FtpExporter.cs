@@ -65,6 +65,7 @@ namespace ReportService.Operations.DataExporters
                                       : null);
 
             var uri = new Uri(Host);
+
             SessionOptions sessionOptions = new SessionOptions
             {
                 Protocol = Protocol.Ftp,
@@ -151,8 +152,10 @@ namespace ReportService.Operations.DataExporters
 
                 var byteds = Encoding.UTF8
                     .GetBytes(dataToSave);
-                using (Stream requestStream = request.GetRequestStream())
-                    requestStream.Write(byteds, 0, byteds.Length);
+
+                using Stream requestStream = request.GetRequestStream();
+
+                requestStream.Write(byteds, 0, byteds.Length);
             }
         }
 
@@ -168,11 +171,11 @@ namespace ReportService.Operations.DataExporters
             {
                 request.Method = WebRequestMethods.Ftp.UploadFile;
                 request.Credentials = credentials;
-                using (var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName, UseAllSets))
-                {
-                    using (Stream requestStream = request.GetRequestStream())
-                        excel.SaveAs(requestStream);
-                }
+
+                using var excel = viewExecutor.ExecuteXlsx(package, Properties.PackageName, UseAllSets);
+                using Stream requestStream = request.GetRequestStream();
+
+                excel.SaveAs(requestStream);
             }
         }
 
@@ -190,8 +193,9 @@ namespace ReportService.Operations.DataExporters
                 request.Method = WebRequestMethods.Ftp.UploadFile;
                 request.Credentials = credentials;
 
-                using (Stream requestStream = request.GetRequestStream())
-                    requestStream.Write(csvBytes, 0, csvBytes.Length);
+                using Stream requestStream = request.GetRequestStream();
+
+                requestStream.Write(csvBytes, 0, csvBytes.Length);
             }
         }
 

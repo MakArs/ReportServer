@@ -1,62 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net462</TargetFramework>
-    <LangVersion>7.1</LangVersion>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>dotnet-ReportService-763BC812-F793-4887-9C87-71365673C8F9</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.0</FileVersion>
+    <PreserveCompilationContext>true</PreserveCompilationContext><!--for razorengine work-->
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\ReportPlugins\ServicePlugins\*.cs">
       <Link>Reports\%(FileName)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
-    <None Include="ConsulSettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <EmbeddedResource Include="Nancy\SwaggerDist\*.*" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="3.0.0" />
-    <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="AutoMapper" Version="9.0.0" />
-    <PackageReference Include="CsvHelper" Version="12.1.2" />
-    <PackageReference Include="Domain0.Auth.Nancy.Clinteastwood" Version="1.0.10" />
+    <PackageReference Include="CsvHelper" Version="12.2.2" />
     <PackageReference Include="EPPlus" Version="4.5.3.2" />
     <PackageReference Include="ExternalConfigurationProvider" Version="0.4.0" />
-    <PackageReference Include="Gerakul.FastSql.SqlServer" Version="1.0.0" />
-    <PackageReference Include="Gerakul.ProtoBufSerializer" Version="1.2.1" />
-    <PackageReference Include="Google.Protobuf" Version="3.10.1" />
-    <PackageReference Include="Google.Protobuf.Tools" Version="3.10.1" />
-    <PackageReference Include="jose-jwt" Version="2.4.0" />
-    <PackageReference Include="Microsoft.AspNet.Razor" Version="3.2.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.3.1" />
-    <PackageReference Include="Microsoft.DotNet.InternalAbstractions" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.5.0" />
+    <PackageReference Include="Gerakul.FastSql.SqlServer" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="Monik.Client.RabbitMQ" Version="1.0.6" />
-    <PackageReference Include="Nancy.Authentication.Stateless" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Hosting.Self" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Metadata.Modules" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Swagger.Annotations" Version="2.2.53-alpha" />
-    <PackageReference Include="Nancy.Validation.DataAnnotations" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="NCrontab" Version="3.3.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="ncrontab" Version="3.3.1" />
     <PackageReference Include="protobuf-net" Version="2.4.4" />
-    <PackageReference Include="RazorEngine" Version="3.10.0" />
+    <PackageReference Include="RazorLight" Version="2.0.0-beta4" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
     <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.231" />
     <PackageReference Include="SSH.NET" Version="2016.1.0" />
-    <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
-    <PackageReference Include="System.Memory" Version="4.5.3" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-    <PackageReference Include="Telegram.Bot" Version="15.0.0" />
-    <PackageReference Include="Topshelf" Version="4.2.1" />
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="5.2.0" />
-    <PackageReference Include="WinSCP" Version="5.15.7" />
+    <PackageReference Include="Telegram.Bot" Version="15.1.0" />
+    <PackageReference Include="WinSCP" Version="5.15.9" />
   </ItemGroup>
 </Project>

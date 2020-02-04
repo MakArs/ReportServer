@@ -66,11 +66,10 @@ namespace ReportService.ReportTask
 
         public byte[] GetCompressedPackage(string packageName)
         {
-            using (var stream = new MemoryStream())
-            {
-                Packages[packageName].WriteTo(stream);
-                return archiver.CompressStream(stream);
-            }
+            using var stream = new MemoryStream();
+
+            Packages[packageName].WriteTo(stream);
+            return archiver.CompressStream(stream);
         }
 
         public string SetQueryParameters(List<object> parametersList, string innerString)
@@ -108,8 +107,9 @@ namespace ReportService.ReportTask
                 if (Parameters[repl.Value] is DateTime dateTimeValue &&
                     dateTimeValue.TimeOfDay == TimeSpan.Zero)
                     return $"{dateTimeValue:dd.MM.yy}";
+
                 else
-                return Parameters[repl.Value].ToString();
+                    return Parameters[repl.Value].ToString();
             });
 
             return outerString;
