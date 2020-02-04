@@ -18,9 +18,9 @@ ETL solution(windows service) for scheduled reports compilation and sending
 * FTP/SFTP server(file transfer, CSV,Excel,Json)
 
 # Configuration options
-* Via [Consul](https://github.com/MakArs/ReportServer/blob/master/ReportService/ReportService.Api/ConsulSettings.json) (needs to have working Consul instance with [AppService](https://github.com/MakArs/ReportServer/blob/master/ReportService/ReportService.Api/appsettings.json) file configured)
+* Via [Consul](https://github.com/MakArs/ReportServer/blob/master/ReportService.Api/ConsulSettings.json) (needs to have working Consul instance with [AppService](https://github.com/MakArs/ReportServer/blob/master/ReportService.Api/appsettings.json) file configured)
 or
-* Via [appsettings](https://github.com/MakArs/ReportServer/blob/master/ReportService/ReportService.Api/appsettings.json) 
+* Via [appsettings](https://github.com/MakArs/ReportServer/blob/master/ReportService.Api/appsettings.json) 
 
 # Desktop client
 * [ReportServer.Desktop](https://github.com/MakArs/ReportServer.Desktop)
