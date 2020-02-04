@@ -16,18 +16,18 @@ namespace ReportService.Api
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-                    .ConfigureContainer<ContainerBuilder>(builder =>
-                    {
-                        builder.RegisterType<ModelsMapperProfile>().As<Profile>().SingleInstance();
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureContainer<ContainerBuilder>(builder =>
+                {
+                    builder.RegisterType<ModelsMapperProfile>().As<Profile>().SingleInstance();
 
-                        var boots = new Bootstrapper();
-                        boots.ConfigureContainer(builder);
-                    })
+                    var boots = new Bootstrapper();
+                    boots.ConfigureContainer(builder);
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder
-                    .UseStartup<Startup>();
+                        .UseStartup<Startup>();
                 });
     }
 }
