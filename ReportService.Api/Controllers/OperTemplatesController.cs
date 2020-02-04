@@ -68,7 +68,9 @@ namespace ReportService.Api.Controllers
         {
             try
             {
-                return GetSuccessfulResult(logic.GetAllOperationsJson()); //todo: check if always needed all the data including configs,possibly do two methods
+                return
+                    GetSuccessfulResult(logic
+                        .GetAllOperationsJson()); //todo: check if always needed all the data including configs,possibly do two methods
             }
             catch
             {

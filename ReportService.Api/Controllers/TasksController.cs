@@ -172,7 +172,7 @@ namespace ReportService.Api.Controllers
 
                 logic.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
 
-                return new ContentResult { StatusCode = StatusCodes.Status200OK };
+                return new ContentResult {StatusCode = StatusCodes.Status200OK};
             }
             catch
             {

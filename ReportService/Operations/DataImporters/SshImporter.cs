@@ -14,9 +14,9 @@ namespace ReportService.Operations.DataImporters
     {
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public string Host;
-        public string Login; 
-        public string Password; 
-        public string FilePath; 
+        public string Login;
+        public string Password;
+        public string FilePath;
 
         public SshImporter(IMapper mapper, SshImporterConfig config)
         {
@@ -27,12 +27,13 @@ namespace ReportService.Operations.DataImporters
         public void Execute(IReportTaskRunContext taskContext)
         {
             using var client = new SftpClient(Host, Login, Password);
-            
+
             client.Connect();
             using FileStream fstr =
-                File.Create(Path.Combine(taskContext.DataFolderPath, 
-                    Path.GetFileName(FilePath) ?? throw new SftpPathNotFoundException("Incorrect file name in file path!")));
-            
+                File.Create(Path.Combine(taskContext.DataFolderPath,
+                    Path.GetFileName(FilePath) ??
+                    throw new SftpPathNotFoundException("Incorrect file name in file path!")));
+
             client.DownloadFile(FilePath, fstr);
         }
 

@@ -3,7 +3,6 @@ using ReportService.Entities.Dto;
 
 namespace ReportService.Api.Models
 {
-    //[Model("Task")]
     public class ApiTask
     {
         public long Id { get; set; }

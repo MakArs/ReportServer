@@ -91,7 +91,7 @@ namespace ReportService.Operations.DataExporters
 
             var context = SqlContextProvider.DefaultInstance
                 .CreateContext(ConnectionString);
-            
+
             if (await context.CreateSimple($@"IF OBJECT_ID('{ExportTableName}') IS NOT NULL
                 IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = {taskContext.TaskId})
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL

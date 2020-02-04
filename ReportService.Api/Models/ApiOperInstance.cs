@@ -2,7 +2,6 @@
 
 namespace ReportService.Api.Models
 {
-    //[Model("Operation instance")]
     public class ApiOperInstance
     {
         public long Id { get; set; }

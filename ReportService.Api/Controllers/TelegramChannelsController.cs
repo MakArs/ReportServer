@@ -65,7 +65,7 @@ namespace ReportService.Api.Controllers
 
                 logic.UpdateTelegramChannel(channel);
 
-                return new ContentResult { StatusCode = StatusCodes.Status200OK };
+                return new ContentResult {StatusCode = StatusCodes.Status200OK};
             }
             catch
             {

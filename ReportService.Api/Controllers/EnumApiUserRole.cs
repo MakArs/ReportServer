@@ -4,7 +4,7 @@
     {
         Viewer,
         Editor,
-        StopRunner, 
+        StopRunner,
         NoRole
     }
 }

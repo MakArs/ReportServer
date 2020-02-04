@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System;
+
 namespace ReportService.Extensions
 {
     public static class ExcelRangeExtension
@@ -25,11 +26,11 @@ namespace ReportService.Extensions
             }
         }
 
-        public static void SetObjValue(this ExcelRange rng, object value,string dateFormat)
+        public static void SetObjValue(this ExcelRange rng, object value, string dateFormat)
         {
             switch (value)
             {
-              case int intValue:
+                case int intValue:
                     rng.Value = intValue;
                     break;
 
@@ -59,11 +60,12 @@ namespace ReportService.Extensions
 
                 case DateTime dateTimeValue:
                     rng.Value = dateTimeValue;
-                    rng.Style.Numberformat.Format = dateTimeValue.TimeOfDay==TimeSpan.Zero //todo: change logic in some way
-                        ? "dd.mm.yyyy"
-                        : "dd.mm.yyyy HH:mm:ss";
+                    rng.Style.Numberformat.Format =
+                        dateTimeValue.TimeOfDay == TimeSpan.Zero //todo: change logic in some way
+                            ? "dd.mm.yyyy"
+                            : "dd.mm.yyyy HH:mm:ss";
                     break;
-                       
+
                 default:
                     rng.Value = value?.ToString();
                     break;

@@ -20,7 +20,7 @@ namespace ReportService
 
         private static void ConfigureContainer(ContainerBuilder builder)
         {
-            var boots=new Bootstrapper();
+            var boots = new Bootstrapper();
             boots.ConfigureContainer(builder);
         }
     }

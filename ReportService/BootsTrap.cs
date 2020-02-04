@@ -176,20 +176,20 @@ namespace ReportService
             builder.RegisterType<MapperProfile>().As<Profile>().SingleInstance();
 
             builder.Register(c =>
-            {
-                var profiles = c.Resolve<IEnumerable<Profile>>();
+                {
+                    var profiles = c.Resolve<IEnumerable<Profile>>();
 
-                var mapperConfig =
-                 new MapperConfiguration(cfg =>
-                 {
-                     foreach (var prof in profiles)
-                         cfg.AddProfile(prof);
-                 });
+                    var mapperConfig =
+                        new MapperConfiguration(cfg =>
+                        {
+                            foreach (var prof in profiles)
+                                cfg.AddProfile(prof);
+                        });
 
-                return mapperConfig.CreateMapper();
-            })
-            .As<IMapper>()
-            .SingleInstance();
+                    return mapperConfig.CreateMapper();
+                })
+                .As<IMapper>()
+                .SingleInstance();
         }
 
         private void ConfigureTelegramBot(ContainerBuilder builder, IConfigurationRoot config)
@@ -208,8 +208,8 @@ namespace ReportService
         private void ConfigureMonik(ContainerBuilder builder, IConfigurationRoot config)
         {
             var logSender = new RabbitMqSender(
-                  config["MonikSettings:EndPoint"],
-                  "MonikQueue");
+                config["MonikSettings:EndPoint"],
+                "MonikQueue");
 
             builder
                 .RegisterInstance<IMonikSender, RabbitMqSender>(logSender);

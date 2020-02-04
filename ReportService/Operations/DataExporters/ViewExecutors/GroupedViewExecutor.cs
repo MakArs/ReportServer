@@ -253,7 +253,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 }
 
                 ws.Cells[startRow, column, startRow, column].AutoFitColumns(5, 50);
-                
+
                 var newSize = ws.Column(column).Width;
                 if (columnSizes.ContainsKey(column))
                 {

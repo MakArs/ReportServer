@@ -14,7 +14,7 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class ReportTask : IReportTask 
+    public class ReportTask : IReportTask
     {
         public int Id { get; }
         public string Name { get; }

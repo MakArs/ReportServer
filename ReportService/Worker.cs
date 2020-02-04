@@ -9,12 +9,13 @@ using ReportService.Interfaces.Core;
 namespace ReportService
 {
     public class Worker : BackgroundService
-    { 
+    {
         public int Period { get; set; } = 60;
         private Action Method { get; set; }
         private readonly IMonik monik;
         private readonly string stringVersion;
-        public Worker(IMonik monik,ILogic logic)
+
+        public Worker(IMonik monik, ILogic logic)
         {
 
             stringVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using Monik.Common;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
@@ -30,7 +29,7 @@ namespace ReportService.ReportTask
 
         private string GetOperationStateFromInstance(string operName, DtoOperInstance instance)
         {
-            var state = (InstanceState)instance.State;
+            var state = (InstanceState) instance.State;
 
             return operName +
                    $" (State: {state.ToString()}," +
@@ -58,7 +57,7 @@ namespace ReportService.ReportTask
             taskContext.TaskInstance.Duration = 0;
 
             taskContext.TaskInstance.State =
-                (int)InstanceState.Failed;
+                (int) InstanceState.Failed;
 
             var dtoOperInstance = new DtoOperInstance
             {
@@ -67,7 +66,7 @@ namespace ReportService.ReportTask
                 StartTime = DateTime.Now,
                 Duration = 0,
                 ErrorMessage = e.Message,
-                State = (int)InstanceState.Failed
+                State = (int) InstanceState.Failed
             };
 
             dtoOperInstance.Id =
@@ -104,7 +103,8 @@ namespace ReportService.ReportTask
                     if (dependsOnStates.Any(state => state.InProcessCount > 0))
                     {
                         var waitInterval = Math.Min(dependenciesWaitingSeconds,
-                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) * 1000;
+                                               taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) *
+                                           1000;
 
                         Task.Delay(waitInterval > 0
                             ? waitInterval
@@ -116,10 +116,8 @@ namespace ReportService.ReportTask
                             .Select(state => state.TaskId));
 
                     dependenciesWaitingCount--;
-                }
-
-                while (!string.IsNullOrEmpty(unCompletedDependencies)
-                    && dependenciesWaitingCount > 0);
+                } while (!string.IsNullOrEmpty(unCompletedDependencies)
+                         && dependenciesWaitingCount > 0);
 
                 if (!string.IsNullOrEmpty(unCompletedDependencies))
                 {
@@ -177,9 +175,9 @@ namespace ReportService.ReportTask
                     RunOperation(taskContext, oper, dtoTaskInstance, exceptions);
                 }
 
-                if (exceptions.Count == 0 || dtoTaskInstance.State == (int)InstanceState.Canceled)
+                if (exceptions.Count == 0 || dtoTaskInstance.State == (int) InstanceState.Canceled)
                 {
-                    var msg = dtoTaskInstance.State == (int)InstanceState.Canceled
+                    var msg = dtoTaskInstance.State == (int) InstanceState.Canceled
                         ? $"Task {taskContext.TaskId} stopped"
                         : $"Task {taskContext.TaskId} completed successfully";
                     SendServiceInfo(msg);
@@ -213,9 +211,9 @@ namespace ReportService.ReportTask
             dtoTaskInstance.Duration = Convert.ToInt32(duration.ElapsedMilliseconds);
 
             dtoTaskInstance.State =
-                success ? (int)InstanceState.Success
-                : dtoTaskInstance.State == (int)InstanceState.Canceled ? (int)InstanceState.Canceled
-                : (int)InstanceState.Failed;
+                success ? (int) InstanceState.Success
+                : dtoTaskInstance.State == (int) InstanceState.Canceled ? (int) InstanceState.Canceled
+                : (int) InstanceState.Failed;
 
             repository.UpdateEntity(dtoTaskInstance);
         }
@@ -230,7 +228,7 @@ namespace ReportService.ReportTask
                     OperationId = oper.Properties.Id,
                     StartTime = DateTime.Now,
                     Duration = 0,
-                    State = (int)InstanceState.InProcess
+                    State = (int) InstanceState.InProcess
                 };
 
                 dtoOperInstance.Id =
@@ -251,7 +249,7 @@ namespace ReportService.ReportTask
                         dtoOperInstance.DataSet =
                             taskContext.GetCompressedPackage(oper.Properties.PackageName);
 
-                    dtoOperInstance.State = (int)InstanceState.Success;
+                    dtoOperInstance.State = (int) InstanceState.Success;
                     operDuration.Stop();
                     dtoOperInstance.Duration =
                         Convert.ToInt32(operDuration.ElapsedMilliseconds);
@@ -261,7 +259,7 @@ namespace ReportService.ReportTask
                 catch (Exception e)
                 {
                     if (e is OperationCanceledException)
-                        dtoOperInstance.State = (int)InstanceState.Canceled;
+                        dtoOperInstance.State = (int) InstanceState.Canceled;
 
                     else
                     {
@@ -282,7 +280,7 @@ namespace ReportService.ReportTask
                                 string.Join("\n", allExceptions.Select(exx => exx.Message));
                         }
 
-                        dtoOperInstance.State = (int)InstanceState.Failed;
+                        dtoOperInstance.State = (int) InstanceState.Failed;
                     }
 
                     operDuration.Stop();

@@ -186,7 +186,7 @@ namespace ReportService.Core
             var context = contextsInWork[taskInstanceId];
             context.CancelSource.Cancel();
 
-            context.TaskInstance.State = (int)InstanceState.Canceled;
+            context.TaskInstance.State = (int) InstanceState.Canceled;
             repository.UpdateEntity(context.TaskInstance);
             contextsInWork.Remove(taskInstanceId);
         }
@@ -205,8 +205,8 @@ namespace ReportService.Core
                     .IsAssignableFrom(r.Activator.LimitType))
                 .Where(r =>
                 {
-                    var serviceKey = ((KeyedService)r.Services.ToList().Last())?.ServiceKey;
-                    return serviceKey != null && ((Type)serviceKey).GetInterfaces().Contains(typeof(TU));
+                    var serviceKey = ((KeyedService) r.Services.ToList().Last())?.ServiceKey;
+                    return serviceKey != null && ((Type) serviceKey).GetInterfaces().Contains(typeof(TU));
                 })
                 .Select(r =>
                     new KeyValuePair<string, Type>(
@@ -617,7 +617,7 @@ namespace ReportService.Core
                     instance.Id,
                     instance.StartTime,
                     instance.Duration,
-                    State = ((InstanceState)instance.State).ToString()
+                    State = ((InstanceState) instance.State).ToString()
                 });
 
             if (!instances.Any())
@@ -749,7 +749,7 @@ namespace ReportService.Core
                     {
                         ChatId = chatId,
                         Name = string.IsNullOrEmpty(chatName) ? "NoName" : chatName,
-                        Type = (int)chatType
+                        Type = (int) chatType
                     };
 
                 channel.Id = repository.CreateEntity<DtoTelegramChannel, int>(channel);

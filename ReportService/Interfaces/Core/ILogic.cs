@@ -67,6 +67,7 @@ namespace ReportService.Interfaces.Core
         string GetAllRegisteredExportersJson();
 
         string GetAllB2BExportersJson(string keyParameter);
+
         //int CreateTaskByTemplate(ApiTask newTask); 
         Task<bool> StopTaskInstanceAsync(long taskInstanceId);
     }

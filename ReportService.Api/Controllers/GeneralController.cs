@@ -12,7 +12,7 @@ namespace ReportService.Api.Controllers
     public class GeneralController : BaseController
     {
         private const string GetUserRoleRoute = "roles";
-        
+
         [HttpGet]
         public IActionResult IsAlive()
         {
@@ -44,7 +44,7 @@ namespace ReportService.Api.Controllers
                     else if (claims.Contains("reporting.stoprun"))
                         role = ApiUserRole.StopRunner;
                     else if (claims.Contains("reporting.view"))
-                        role = ApiUserRole.Viewer;              
+                        role = ApiUserRole.Viewer;
 
                 return GetSuccessfulResult(JsonConvert.SerializeObject(role));
             }

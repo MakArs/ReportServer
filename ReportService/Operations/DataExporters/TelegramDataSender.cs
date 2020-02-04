@@ -36,7 +36,7 @@ namespace ReportService.Operations.DataExporters
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
             bot = botClient;
         }
-        
+
         public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[PackageName];
@@ -44,7 +44,7 @@ namespace ReportService.Operations.DataExporters
                 return;
 
             await bot.SendTextMessageAsync(channel.ChatId,
-                viewExecutor.ExecuteTelegramView(package, ReportName,UseAllSets),
+                viewExecutor.ExecuteTelegramView(package, ReportName, UseAllSets),
                 ParseMode.Markdown, cancellationToken: taskContext.CancelSource.Token);
         }
 

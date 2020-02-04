@@ -37,7 +37,7 @@ namespace ReportService.ReportTask
                 EnableSsl = true,
                 DeliveryMethod = SmtpDeliveryMethod.Network
             };
-            
+
             return client;
         }
 
@@ -48,7 +48,7 @@ namespace ReportService.ReportTask
                 From = new MailAddress(fromAddress),
                 IsBodyHtml = true
             };
-            
+
             return msg;
         }
 

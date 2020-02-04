@@ -20,7 +20,7 @@ namespace ReportService.Core
             connectionString = connStr;
 
             this.monik = monik;
-        } //ctor
+        } 
 
         public object GetBaseQueryResult(string query)
         {
@@ -531,5 +531,5 @@ namespace ReportService.Core
                 END")
                 .ExecuteNonQuery();
         } //database structure creating
-    } //class
+    }
 }

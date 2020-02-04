@@ -22,7 +22,7 @@ namespace ReportService.Core
                 .ForMember("Parameters", opt =>
                     opt.MapFrom(s => JsonConvert.SerializeObject(s.Parameters)))
                 .ForMember("DependsOn", opt =>
-                    opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));          
+                    opt.MapFrom(s => JsonConvert.SerializeObject(s.DependsOn)));
 
             CreateMap<DtoOperInstance, DtoTaskInstance>();
 
@@ -38,7 +38,7 @@ namespace ReportService.Core
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
             CreateMap<DbImporterConfig, DbImporter>()
                 .ForMember("DataSetNames", opt =>
-                    opt.MapFrom(s => s.DataSetNames.Split(new[] { ';' },
+                    opt.MapFrom(s => s.DataSetNames.Split(new[] {';'},
                             StringSplitOptions.RemoveEmptyEntries)
                         .Where(name => !string.IsNullOrWhiteSpace(name))
                         .ToList()));
