@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using Gerakul.FastSql.Common;
-using Gerakul.FastSql.SqlServer;
+using Dapper;
 using Google.Protobuf.Collections;
 using ReportService.Entities;
 using ReportService.Interfaces.Operations;
@@ -53,7 +53,7 @@ namespace ReportService.Operations.DataExporters
                 };
         }
 
-        private string CreateTableByColumnInfo(RepeatedField<ColumnInfo> columns)
+        private string BuildCreateTableQuery(RepeatedField<ColumnInfo> columns)
         {
             StringBuilder createQueryBuilder = new StringBuilder($@"
                 IF OBJECT_ID('{TableName}') IS NULL
@@ -73,60 +73,69 @@ namespace ReportService.Operations.DataExporters
             return createQueryBuilder.ToString();
         }
 
+        private string BuildInsertQuery(RepeatedField<ColumnInfo> columns)
+        {
+            StringBuilder query = new StringBuilder($@"INSERT INTO {TableName} (");
+            for (int i = 0; i < columns.Count - 1; i++)
+            {
+                query.Append($@"[{columns[i].Name}],");
+            }
+
+            query.Append($@"[{columns.Last().Name}]) VALUES (");
+
+            int j;
+            for (j = 0; j < columns.Count - 1; j++)
+            {
+                query.Append($"@p{j},");
+            }
+
+            query.Append($"@p{j})");
+
+            return query.ToString();
+        }
+
         public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
-            var sqlContext = SqlContextProvider.DefaultInstance
-                .CreateContext(ConnectionString);
-
             var token = taskContext.CancelSource.Token;
 
-            await sqlContext.UsingConnectionAsync(async connectionContext =>
+            await using var connection = new SqlConnection(ConnectionString);
+
+            var package = taskContext.Packages[Properties.PackageName];
+
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
+                return;
+
+            var firstSet = packageParser.GetPackageValues(package).First();
+
+            var columns = package.DataSets.First().Columns;
+
+            if (CreateTable)
+                await connection.ExecuteAsync(new CommandDefinition(BuildCreateTableQuery(columns),
+                    commandTimeout: DbTimeOut,
+                    cancellationToken: token)); //todo:logic for auto-creating table by user-defined list of columns?
+
+            if (DropBefore)
+                await connection.ExecuteAsync(new CommandDefinition(
+                    $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}",
+                    commandTimeout: DbTimeOut, cancellationToken: token));
+
+            var query = BuildInsertQuery(columns);
+
+            var dynamicRows = firstSet.Rows.Select(row =>
             {
-                var package = taskContext.Packages[Properties.PackageName];
+                var p = new DynamicParameters();
 
-                if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                    return;
-
-                var firstSet = packageParser.GetPackageValues(package).First();
-
-                var columns = package.DataSets.First().Columns;
-
-                if (CreateTable)
-                    await connectionContext.CreateSimple(new QueryOptions(DbTimeOut), CreateTableByColumnInfo(columns))
-                        .ExecuteNonQueryAsync(token);
-
-                //todo:logic for auto-creating table by user-defined list of columns?
-                if (DropBefore)
-                    await connectionContext.CreateSimple(new QueryOptions(DbTimeOut),
-                            $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
-                        .ExecuteNonQueryAsync(token);
-
-                StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
-                for (int i = 0; i < columns.Count - 1; i++)
+                for (int i = 0; i < row.Count; i++)
                 {
-                    comm.Append($@"[{columns[i].Name}],");
+                    p.Add($"@p{i}", row[i]);
                 }
 
-                comm.Append($@"[{columns.Last().Name}]) VALUES (");
-
-                foreach (var row in firstSet.Rows)
-                {
-
-                    var fullRowData = new StringBuilder(comm.ToString());
-                    int i;
-
-                    for (i = 0; i < columns.Count - 1; i++)
-                    {
-                        fullRowData.Append($"@p{i},");
-                    }
-
-                    fullRowData.Append($"@p{i})");
-
-                    await connectionContext
-                        .CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
-                        .ExecuteNonQueryAsync(token);
-                }
+                return p;
             });
+
+            await connection.ExecuteAsync(new CommandDefinition(
+                query, dynamicRows,
+                commandTimeout: DbTimeOut, cancellationToken: token));
         }
     }
 }

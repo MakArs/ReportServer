@@ -5,8 +5,8 @@
     <UserSecretsId>dotnet-ReportService-763BC812-F793-4887-9C87-71365673C8F9</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
-    <AssemblyVersion>3.0.0.1</AssemblyVersion>
-    <FileVersion>3.0.0.0</FileVersion>
+    <AssemblyVersion>3.0.0.2</AssemblyVersion>
+    <FileVersion>3.0.0.2</FileVersion>
     <PreserveCompilationContext>true</PreserveCompilationContext><!--for razorengine work-->
   </PropertyGroup>
 
