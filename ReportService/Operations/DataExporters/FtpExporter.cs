@@ -50,7 +50,7 @@ namespace ReportService.Operations.DataExporters
             viewExecutor = autofac.ResolveNamed<IViewExecutor>("commonviewex");
         }
 
-        public void Execute(IReportTaskRunContext taskContext)
+        private void Execute(IReportTaskRunContext taskContext)
         {
             var package = taskContext.Packages[Properties.PackageName];
 

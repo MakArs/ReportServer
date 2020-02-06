@@ -41,47 +41,6 @@ namespace ReportService.Operations.DataImporters
             this.rnd = rnd;
         }
 
-        public void Execute(IReportTaskRunContext taskContext)
-        {
-            var parValues = new List<object>();
-            var actualQuery = taskContext.SetQueryParameters(parValues, Query);
-
-            for (int i = 0; i < TriesCount; i++)
-            {
-                var sqlContext = SqlContextProvider.DefaultInstance
-                    .CreateContext(ConnectionString);
-
-                try
-                {
-                    sqlContext.UsingConnection(connectionContext =>
-                    {
-                        if (parValues.Count > 0)
-                            connectionContext
-                                .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}",
-                                    parValues.ToArray())
-                                .UseReader(reader => { FillPackage(reader, taskContext); });
-
-                        else
-                            connectionContext
-                                .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}")
-                                .UseReader(reader => { FillPackage(reader, taskContext); });
-                    });
-                    break;
-                }
-
-                catch (Exception e)
-                {
-                    if (!(e is SqlException se))
-                        throw e;
-
-                    if (i >= TriesCount)
-                        throw se;
-
-                    Task.Delay(rnd.Next(1000, 60000)).Wait(taskContext.CancelSource.Token);
-                }
-            }
-        }
-
         public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var parValues = new List<object>();

@@ -25,7 +25,7 @@ namespace ReportService.Operations.DataImporters
             this.archiver = archiver;
         }
 
-        public void Execute(IReportTaskRunContext taskContext)
+        private void Execute(IReportTaskRunContext taskContext)
         {
             var query = $"select DataSet from [OperInstance] with(nolock) where id={OperInstanceId}";
             var instance = repos.GetBaseQueryResult(query);

@@ -32,7 +32,7 @@ namespace ReportService.Operations.DataImporters
             packageBuilder = builder;
         }
 
-        public void Execute(IReportTaskRunContext taskContext)
+        private void Execute(IReportTaskRunContext taskContext)
         {
             var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
                 FileName);

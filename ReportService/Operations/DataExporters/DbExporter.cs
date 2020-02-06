@@ -73,55 +73,6 @@ namespace ReportService.Operations.DataExporters
             return createQueryBuilder.ToString();
         }
 
-        public void Execute(IReportTaskRunContext taskContext)
-        {
-            var sqlContext = SqlContextProvider.DefaultInstance
-                .CreateContext(ConnectionString);
-
-            var package = taskContext.Packages[Properties.PackageName];
-
-            if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                return;
-
-            var firstSet = packageParser.GetPackageValues(package).First();
-
-            var columns = package.DataSets.First().Columns;
-
-            if (CreateTable)
-                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), CreateTableByColumnInfo(columns))
-                    .ExecuteNonQuery();
-
-            if (DropBefore)
-                sqlContext.CreateSimple(new QueryOptions(DbTimeOut),
-                        $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}")
-                    .ExecuteNonQuery();
-
-            StringBuilder comm = new StringBuilder($@"INSERT INTO {TableName} (");
-            for (int i = 0; i < columns.Count - 1; i++)
-            {
-                comm.Append($@"[{columns[i].Name}],");
-            }
-
-            comm.Append($@"[{columns.Last().Name}]) VALUES (");
-
-            foreach (var row in firstSet.Rows)
-            {
-
-                var fullRowData = new StringBuilder(comm.ToString());
-                int i;
-
-                for (i = 0; i < columns.Count - 1; i++)
-                {
-                    fullRowData.Append($"@p{i},");
-                }
-
-                fullRowData.Append($"@p{i})");
-
-                sqlContext.CreateSimple(new QueryOptions(DbTimeOut), fullRowData.ToString(), row.ToArray())
-                    .ExecuteNonQuery();
-            }
-        }
-
         public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var sqlContext = SqlContextProvider.DefaultInstance

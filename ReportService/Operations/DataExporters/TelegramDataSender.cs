@@ -47,17 +47,5 @@ namespace ReportService.Operations.DataExporters
                 viewExecutor.ExecuteTelegramView(package, ReportName, UseAllSets),
                 ParseMode.Markdown, cancellationToken: taskContext.CancelSource.Token);
         }
-
-        public void Execute(IReportTaskRunContext taskContext)
-        {
-            var package = taskContext.Packages[PackageName];
-            if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                return;
-
-            bot.SendTextMessageAsync(channel.ChatId,
-                    viewExecutor.ExecuteTelegramView(package, ReportName),
-                    ParseMode.Markdown)
-                .Wait();
-        }
     }
 }

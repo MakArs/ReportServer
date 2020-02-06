@@ -24,7 +24,7 @@ namespace ReportService.Operations.DataImporters
             mapper.Map(config, Properties);
         }
 
-        public void Execute(IReportTaskRunContext taskContext)
+        private void Execute(IReportTaskRunContext taskContext)
         {
             using var client = new SftpClient(Host, Login, Password);
 
