@@ -6,8 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Gerakul.FastSql.Common;
-using Gerakul.FastSql.SqlServer;
+using Dapper;
 using ReportService.Entities;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
@@ -43,48 +42,39 @@ namespace ReportService.Operations.DataImporters
 
         public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
-            var parValues = new List<object>();
+            var parValues = new DynamicParameters();
+
             var actualQuery = taskContext.SetQueryParameters(parValues, Query);
+
+            var token = taskContext.CancelSource.Token;
 
             for (int i = 0; i < TriesCount; i++)
             {
                 try
                 {
-                    var sqlContext = SqlContextProvider.DefaultInstance
-                        .CreateContext(ConnectionString);
+                    await using var connection = new SqlConnection(ConnectionString);
 
-                    if (parValues.Count > 0)
-                        await sqlContext
-                            .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}",
-                                parValues.ToArray())
-                            .UseReaderAsync(taskContext.CancelSource.Token, reader =>
-                            {
-                                FillPackage(reader, taskContext);
+                    
+                        await using var reader =
+                        await connection.ExecuteReaderAsync(new CommandDefinition(
+                             $"{actualQuery}", parValues,
+                        commandTimeout: TimeOut, cancellationToken: token));
 
-                                return Task.CompletedTask;
-                            });
 
-                    else
-                        await sqlContext
-                            .CreateSimple(new QueryOptions(TimeOut), $"{actualQuery}")
-                            .UseReaderAsync(taskContext.CancelSource.Token, reader =>
-                            {
-                                FillPackage(reader, taskContext);
+                        FillPackage(reader, taskContext);
 
-                                return Task.CompletedTask;
-                            });
-                    break;
+                        break;
                 }
 
                 catch (Exception e)
                 {
                     if (!(e is SqlException se))
-                        throw e; //todo:check
+                        throw e; 
 
                     if (i >= TriesCount - 1)
                         throw se;
 
-                    await Task.Delay(rnd.Next(1000, 60000), taskContext.CancelSource.Token);
+                    await Task.Delay(rnd.Next(1000, 60000), token);
                 }
             }
         }

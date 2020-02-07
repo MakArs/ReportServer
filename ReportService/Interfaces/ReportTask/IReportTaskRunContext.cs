@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using Dapper;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
 using ReportService.Interfaces.Operations;
@@ -23,7 +24,7 @@ namespace ReportService.Interfaces.ReportTask
         byte[] GetCompressedPackage(string packageName);
         void CreateDataFolder();
         void RemoveDataFolder();
-        string SetQueryParameters(List<object> parametersList, string innerString);
+        string SetQueryParameters(DynamicParameters parametersList, string innerString);
         string SetStringParameters(string innerString);
     }
 }

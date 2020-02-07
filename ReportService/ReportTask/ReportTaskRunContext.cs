@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Dapper;
 using Google.Protobuf;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
@@ -72,13 +73,13 @@ namespace ReportService.ReportTask
             return archiver.CompressStream(stream);
         }
 
-        public string SetQueryParameters(List<object> parametersList, string innerString)
+        public string SetQueryParameters(DynamicParameters parametersList, string baseQuery)
         {
-            var selections = paramName.Matches(innerString);
+            var selections = paramName.Matches(baseQuery);
 
             int i = 0;
 
-            var outerString = paramName.Replace(innerString, repl =>
+            var outerString = paramName.Replace(baseQuery, repl =>
             {
                 var sel = selections[i].Value;
 
@@ -86,11 +87,13 @@ namespace ReportService.ReportTask
                     throw new DataException($"There is no parameter {sel} in the task");
 
                 var paramValue = Parameters[sel];
-                parametersList.Add(paramValue);
 
                 i++;
+                var paramName = $"@p{i - 1}";
 
-                return $"@p{i - 1}";
+                parametersList.Add(paramName, paramValue);
+                
+                return paramName;
             });
 
             return outerString;
