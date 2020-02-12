@@ -69,10 +69,11 @@ namespace ReportService.Core
             this.bot.OnUpdate += OnBotUpd;
         } //ctor
 
-        private void UpdateDtoEntitiesList<T>(List<T> list) where T : IDtoEntity, new()
+        private void UpdateDtoEntitiesList<T>(List<T> list) where T : class, IDtoEntity
         {
             var repositoryList = repository.GetListEntitiesByDtoType<T>();
             if (repositoryList == null) return;
+
             lock (list)
             {
                 list.Clear();
@@ -218,6 +219,7 @@ namespace ReportService.Core
         public void Start()
         {
             //var serviceConfig = autofac.Resolve<IConfigurationRoot>();
+            
             //CreateBase(serviceConfig["DBConnStr"]);
 
             RegisteredImporters = GetRegistrationsByTypeAndKeyType<IOperation, IImporterConfig>();
@@ -244,7 +246,7 @@ namespace ReportService.Core
             var taskids = repository.UpdateTaskInstancesAndGetIds();
 
             if (taskids.Count > 0)
-                SendServiceInfo($"Updated unfinished operation instances: {string.Join(",", taskids)}");
+                SendServiceInfo($"Updated unfinished task instances: {string.Join(",", taskids)}");
         }
 
         public string SendDefault(int taskId, string mailAddress)
@@ -389,7 +391,7 @@ namespace ReportService.Core
 
         public int CreateOperationTemplate(DtoOperTemplate operTemplate)
         {
-            int newOperId = repository.CreateEntity<DtoOperTemplate, int>(operTemplate);
+            int newOperId = (int)repository.CreateEntity(operTemplate);
             UpdateDtoEntitiesList(operTemplates);
 
             SendServiceInfo($"Created operation template {newOperId}");
@@ -416,7 +418,7 @@ namespace ReportService.Core
 
         public int CreateRecepientGroup(DtoRecepientGroup group)
         {
-            var newGroupId = repository.CreateEntity<DtoRecepientGroup, int>(group);
+            var newGroupId = (int)repository.CreateEntity(group);
             UpdateDtoEntitiesList(recepientGroups);
 
             SendServiceInfo($"Created recepient group {newGroupId}");
@@ -448,7 +450,7 @@ namespace ReportService.Core
 
         public int CreateTelegramChannel(DtoTelegramChannel channel)
         {
-            var newChannelId = repository.CreateEntity<DtoTelegramChannel, int>(channel);
+            var newChannelId = (int)repository.CreateEntity(channel);
             UpdateDtoEntitiesList(recepientGroups);
             SendServiceInfo($"Created telegram channel {newChannelId}");
             return newChannelId;
@@ -470,7 +472,7 @@ namespace ReportService.Core
 
         public int CreateSchedule(DtoSchedule schedule)
         {
-            var newScheduleId = repository.CreateEntity<DtoSchedule, int>(schedule);
+            var newScheduleId = (int)repository.CreateEntity(schedule);
             UpdateDtoEntitiesList(schedules);
             SendServiceInfo($"Created schedule {newScheduleId}");
             return newScheduleId;
@@ -603,15 +605,15 @@ namespace ReportService.Core
         }
 
 
-        public string GetAllTaskInstancesJson(long taskId)
+        public async Task<string> GetAllTaskInstancesJson(long taskId)
         {
-            return JsonConvert.SerializeObject(repository.GetInstancesByTaskId(taskId));
+            return JsonConvert.SerializeObject(await repository.GetAllTaskInstances(taskId));
         }
 
         public async Task<string> GetFullInstanceList_HtmlPageAsync(
             long taskId)
         {
-            var instances = repository.GetInstancesByTaskId(taskId)
+            var instances = (await repository.GetAllTaskInstances(taskId))
                 .Select(instance => new
                 {
                     instance.Id,
@@ -630,15 +632,10 @@ namespace ReportService.Core
                 tableView.ExecuteHtml($"Task {taskId} executions history", pack));
         }
 
-        public void DeleteOperInstanceById(long operInstanceId)
-        {
-            repository.DeleteEntity<DtoOperInstance, long>(operInstanceId);
-        }
-
         public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id)
         {
             return repository
-                .GetOperInstancesByTaskInstanceId(id);
+                .GetTaskOperInstances(id);
         }
 
         public DtoOperInstance GetFullOperInstanceById(long id)
@@ -752,7 +749,7 @@ namespace ReportService.Core
                         Type = (int) chatType
                     };
 
-                channel.Id = repository.CreateEntity<DtoTelegramChannel, int>(channel);
+                channel.Id = (int)repository.CreateEntity(channel);
                 UpdateDtoEntitiesList(telegramChannels);
             }
         }

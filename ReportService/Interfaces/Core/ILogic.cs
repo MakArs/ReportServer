@@ -51,10 +51,9 @@ namespace ReportService.Interfaces.Core
         Task<string> GetCurrentViewAsync(long taskId);
 
         void DeleteTaskInstanceById(long taskInstanceid);
-        string GetAllTaskInstancesJson(long taskId);
+        Task<string> GetAllTaskInstancesJson(long taskId);
         Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 
-        void DeleteOperInstanceById(long operInstanceId);
         List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id);
         DtoOperInstance GetFullOperInstanceById(long id);
 

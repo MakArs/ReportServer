@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
-using Gerakul.FastSql.Common;
-using Gerakul.FastSql.SqlServer;
+using System.Threading;
+using System.Threading.Tasks;
+using Dapper;
+using Dapper.Contrib.Extensions;
 using Monik.Common;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
@@ -20,27 +23,30 @@ namespace ReportService.Core
             connectionString = connStr;
 
             this.monik = monik;
-        } 
-
-        public object GetBaseQueryResult(string query)
-        {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
-
-            object result = context
-                .CreateSimple(new QueryOptions(30), query)
-                .ExecuteQueryFirstColumn<object>().ToList().First();
-
-            return result;
         }
 
-        public List<DtoTaskInstance> GetInstancesByTaskId(long taskId)
+        public async Task<object> GetBaseQueryResultAsync(string query, CancellationToken token)
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+
+            await using var connection = new SqlConnection(connectionString);
+
+            dynamic result =
+                await connection.QueryFirstAsync<dynamic>(new CommandDefinition(query,
+                    commandTimeout: 30, cancellationToken: token));
+
+            var value = (result as IDictionary<string, object>)[""];
+            return value;
+        }
+
+        public async Task<List<DtoTaskInstance>> GetAllTaskInstances(long taskId)
+        {
+            await using var connection = new SqlConnection(connectionString);
 
             try
             {
-                return context.CreateSimple($"select * from TaskInstance with(nolock) where TaskId={taskId}")
-                    .ExecuteQuery<DtoTaskInstance>().ToList();
+                return (await connection.QueryAsync<DtoTaskInstance>(
+                        $"select * from TaskInstance with(nolock) where TaskId={taskId}"))
+                    .ToList();
             }
 
             catch (Exception e)
@@ -53,15 +59,15 @@ namespace ReportService.Core
 
         public DependencyState GetDependencyStateByTaskId(long taskId)
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             try
             {
-                return context.CreateSimple(
-                        $@"SELECT max(case when State=2 then dateadd(ms,Duration,[StartTime]) else null end) LastSuccessfulFinish,
+                return connection.QueryFirst<DependencyState>(
+                    $@"SELECT max(case when State=2 then dateadd(ms,Duration,[StartTime]) else null end) LastSuccessfulFinish,
 	                                        count(case when State=1 then 1 else null end) InProcessCount
-                                            FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}")
-                    .ExecuteQuery<DependencyState>().ToList().First();
+                                            FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}",
+                    commandTimeout: 30);
             }
 
             catch (Exception e)
@@ -72,16 +78,17 @@ namespace ReportService.Core
             }
         }
 
-        public List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId)
+        public List<DtoOperInstance> GetTaskOperInstances(long taskInstanceId)
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             try
             {
-                return context.CreateSimple
+                return connection.Query<DtoOperInstance>
                     ("select Id,TaskInstanceId,OperationId,StartTime,Duration,State,null as DataSet," +
-                     $"null as ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}")
-                    .ExecuteQuery<DtoOperInstance>().ToList();
+                     $"null as ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}",
+                        commandTimeout: 60)
+                    .ToList();
             }
 
             catch (Exception e)
@@ -94,18 +101,17 @@ namespace ReportService.Core
 
         public DtoOperInstance GetFullOperInstanceById(long operInstanceId)
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             try
             {
-                return context.CreateSimple
-                    ("select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName " +
-                     "from OperInstance oi with(nolock) " +
-                     "join operation op with(nolock) " +
-                     "on oi.OperationId=op.Id " +
-                     $"where oi.id={operInstanceId}")
-                    .ExecuteQuery<DtoOperInstance>()
-                    .ToList().First();
+                return connection.QueryFirst<DtoOperInstance>
+                ("select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName " +
+                 "from OperInstance oi with(nolock) " +
+                 "join operation op with(nolock) " +
+                 "on oi.OperationId=op.Id " +
+                 $"where oi.id={operInstanceId}",
+                    commandTimeout: 60);
             }
 
             catch (Exception e)
@@ -116,17 +122,15 @@ namespace ReportService.Core
             }
         }
 
-        public List<T> GetListEntitiesByDtoType<T>() where T : IDtoEntity, new()
+        public List<T> GetListEntitiesByDtoType<T>() where T : class, IDtoEntity
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             var tableName = typeof(T).Name.Remove(0, 3);
 
             try
             {
-                return context.CreateSimple($"select * from {tableName} with(nolock)")
-                    .ExecuteQuery<T>()
-                    .ToList();
+                return connection.GetAll<T>().ToList();
             }
 
             catch (Exception e)
@@ -137,17 +141,16 @@ namespace ReportService.Core
             }
         }
 
-        public TKey CreateEntity<T, TKey>(T entity) where T : IDtoEntity
+        public long CreateEntity<T>(T entity) where T : class, IDtoEntity
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             var tableName = typeof(T).Name.Remove(0, 3);
 
             try
             {
-                return context.CreateInsertWithOutput($"{tableName}", entity,
-                        new List<string> {"Id"}, "Id")
-                    .ExecuteQueryFirstColumn<TKey>().First();
+                return connection.Insert(entity,
+                    commandTimeout: 60);
             }
 
             catch (Exception e)
@@ -160,49 +163,54 @@ namespace ReportService.Core
 
         public long CreateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
-            long newTaskId = 0;
+            long newTaskId;
 
-            context.UsingTransaction(transContext =>
+            connection.Open();
+
+            using (var transaction = connection.BeginTransaction())
             {
                 try
                 {
-                    newTaskId = transContext.CreateInsertWithOutput("Task", task,
-                            new List<string> {"Id"}, "Id")
-                        .ExecuteQueryFirstColumn<long>().First();
+                    newTaskId = connection.Insert(task,
+                        commandTimeout: 60, transaction: transaction);
 
-                    if (bindedOpers == null)
-                        return;
+                    if (bindedOpers != null)
 
-                    foreach (var oper in bindedOpers)
-                    {
-                        oper.TaskId = newTaskId;
-                    }
+                        foreach (var oper in bindedOpers)
+                        {
+                            oper.TaskId = newTaskId;
+                        }
 
-                    bindedOpers.WriteToServer(transContext, "Operation");
+                    connection.Insert(bindedOpers,
+                        commandTimeout: 60, transaction: transaction);
+
+                    transaction.Commit();
                 }
 
                 catch (Exception e)
                 {
+                    transaction.Rollback();
+
                     SendAppWarning("Error occured while creating new Task" +
                                    $" record: {e.Message}");
                     throw;
                 }
-            });
+            }
 
             return newTaskId;
         }
 
-        public void UpdateEntity<T>(T entity) where T : IDtoEntity
+        public void UpdateEntity<T>(T entity) where T : class, IDtoEntity
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             var tableName = typeof(T).Name.Remove(0, 3);
 
             try
             {
-                context.Update($"{tableName}", entity, "Id");
+                connection.Update(entity, commandTimeout: 60);
             }
 
             catch (Exception e)
@@ -214,111 +222,127 @@ namespace ReportService.Core
 
         public void UpdateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
-            context.UsingTransaction(transContext =>
+            var currentOperIds = connection.Query<long>
+            ($"select id from operation with(nolock) where taskid={task.Id}" +
+             "and isDeleted=0",
+                commandTimeout: 60);
+
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+            try
             {
-                try
-                {
-                    var currentOperIds = context.CreateSimple
-                            ($"select id from operation with(nolock) where taskid={task.Id}")
-                        .ExecuteQueryFirstColumn<long>().ToList();
+                var newOperIds = bindedOpers.Select(oper => oper.Id);
 
-                    var newOperIds = bindedOpers.Select(oper => oper.Id).ToList();
+                var operIdsToDelete = currentOperIds.Except(newOperIds);
 
-                    var operIdsToDelete = currentOperIds.Except(newOperIds)
-                        .ToList();
+                var opersToUpdate = bindedOpers.Where(oper =>
+                    newOperIds.Intersect(currentOperIds).Contains(oper.Id));
 
-                    var opersToUpdate = bindedOpers.Where(oper =>
-                        newOperIds.Intersect(currentOperIds).Contains(oper.Id)).ToList();
+                var opersToWrite = bindedOpers.Where(oper =>
+                    newOperIds.Except(currentOperIds).Contains(oper.Id));
 
-                    var opersToWrite = bindedOpers.Where(oper =>
-                        newOperIds.Except(currentOperIds).Contains(oper.Id));
+                connection.Update(task, commandTimeout: 60, transaction: transaction);
 
-                    transContext.Update("Task", task, "Id");
+                if (operIdsToDelete.Any())
+                    connection.Execute(
+                        $"Update Operation set isDeleted=1 where TaskId={task.Id} and " +
+                        $"id in ({string.Join(",", operIdsToDelete)})",
+                        commandTimeout: 60, transaction: transaction);
 
-                    if (operIdsToDelete.Any())
-                        transContext.CreateSimple(
-                                $"Update Operation set isDeleted=1 where TaskId={task.Id} and " +
-                                $"id in ({string.Join(",", operIdsToDelete)})")
-                            .ExecuteNonQuery();
+                connection.Update(opersToUpdate, commandTimeout: 60, transaction: transaction);
 
-                    foreach (var oper in opersToUpdate
-                    ) //no chances of so many  opers will be updated so no losses
-                        transContext.Update("Operation", oper, "Id");
+                connection.Insert(opersToWrite, commandTimeout: 60, transaction: transaction);
 
-                    opersToWrite.WriteToServer(transContext, "Operation");
-                }
+                transaction.Commit();
+            }
 
-                catch (Exception e)
-                {
-                    SendAppWarning("Error occured while updating Task" +
-                                   $" record: {e.Message}");
-                    throw;
-                }
-            });
+            catch (Exception e)
+            {
+                transaction.Rollback();
+
+                SendAppWarning("Error occured while updating Task" +
+                               $" record: {e.Message}");
+                throw;
+            }
         }
 
         public void DeleteEntity<T, TKey>(TKey id) where T : IDtoEntity
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
             var type = typeof(T);
             var tableName = type.Name.Remove(0, 3);
 
+            connection.Open();
+
             switch (true)
             {
                 case { } when type == typeof(DtoTaskInstance):
-                    context.UsingTransaction(transContext =>
+                    using (var transaction = connection.BeginTransaction())
                     {
                         try
                         {
-                            transContext
-                                .CreateCommand($"delete OperInstance where TaskInstanceId={id}")
-                                .ExecuteNonQuery();
-                            transContext.CreateCommand($"delete TaskInstance where id={id}")
-                                .ExecuteNonQuery();
+                            connection.Execute($"delete OperInstance where TaskInstanceId={id}",
+                                commandTimeout: 60, transaction: transaction);
+
+                            connection.Execute($"delete TaskInstance where id={id}",
+                                commandTimeout: 60, transaction: transaction);
+
+                            transaction.Commit();
                         }
 
                         catch (Exception e)
                         {
                             SendAppWarning("Error occured while deleting Task instance" +
                                            $" record: {e.Message}");
+                            transaction.Rollback();
                             throw;
                         }
-                    });
+                    }
+
                     break;
 
                 case { } when type == typeof(DtoTask):
-                    context.UsingTransaction(transContext =>
+                    using (var transaction = connection.BeginTransaction())
                     {
                         try
                         {
 
-                            transContext.CreateCommand(
-                                    $@"delete OperInstance where TaskInstanceId in
-                                            (select id from TaskInstance with(nolock) where TaskId={id})")
-                                .ExecuteNonQuery();
-                            transContext.CreateCommand($"delete TaskInstance where TaskID={id}")
-                                .ExecuteNonQuery();
-                            transContext.CreateCommand($"delete Operation where TaskID={id}")
-                                .ExecuteNonQuery();
-                            transContext.CreateCommand($"delete Task where id={id}")
-                                .ExecuteNonQuery();
+                            connection.Execute($@"delete OperInstance where TaskInstanceId in
+                                            (select id from TaskInstance with(nolock) where TaskId={id})",
+                                commandTimeout: 60, transaction: transaction);
+
+                            connection.Execute($"delete TaskInstance where TaskID={id}",
+                                commandTimeout: 60, transaction: transaction);
+
+                            connection.Execute($"delete Operation where TaskID={id}",
+                                commandTimeout: 60, transaction: transaction);
+
+                            connection.Execute($"delete Task where id={id}",
+                                commandTimeout: 60, transaction: transaction);
+
+                            transaction.Commit();
                         }
                         catch (Exception e)
                         {
+                            transaction.Rollback();
+
                             SendAppWarning("Error occured while deleting Task" +
                                            $" record: {e.Message}");
                             throw;
                         }
-                    });
+                    }
+
                     break;
 
                 default:
                     try
                     {
-                        context.CreateSimple($"delete {tableName} where Id={id}").ExecuteNonQuery();
+                        connection.Execute($"delete {tableName} where Id={id}",
+                            commandTimeout: 60);
                     }
 
                     catch (Exception e)
@@ -347,24 +371,24 @@ namespace ReportService.Core
 
         public List<long> UpdateOperInstancesAndGetIds()
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
-            var ids = context.CreateSimple(@"UPDATE OperInstance
+            var ids = connection.Query<long>(@"UPDATE OperInstance
             SET state=3,ErrorMessage='Unknown error.The service was probably stopped during the task execution.'
             OUTPUT INSERTED.id
-            WHERE state=1").ExecuteQueryFirstColumn<long>().ToList();
+            WHERE state=1").ToList();
 
             return ids;
         }
 
         public List<long> UpdateTaskInstancesAndGetIds()
         {
-            var context = SqlContextProvider.DefaultInstance.CreateContext(connectionString);
+            using var connection = new SqlConnection(connectionString);
 
-            var ids = context.CreateSimple(@"UPDATE TaskInstance
+            var ids = connection.Query<long>(@"UPDATE TaskInstance
             SET state=3
             OUTPUT INSERTED.id
-            WHERE state=1").ExecuteQueryFirstColumn<long>().ToList();
+            WHERE state=1").ToList();
 
             return ids;
         }
@@ -377,10 +401,10 @@ namespace ReportService.Core
 
         public void CreateBase(string baseConnStr)
         {
-            var createBaseContext = SqlContextProvider.DefaultInstance
-                .CreateContext(baseConnStr);
+            using var connection = new SqlConnection(baseConnStr);
+
             // TODO: check db exists ~find way to cut redundant code 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF OBJECT_ID('OperTemplate') IS NULL
                 BEGIN
                 CREATE TABLE OperTemplate
@@ -391,10 +415,9 @@ namespace ReportService.Core
                 CONSTRAINT [PK__OperTemplate__Id] PRIMARY KEY CLUSTERED 
                 ([Id] ASC)
                 )
-                END;")
-                .ExecuteNonQuery();
+                END;");
 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF OBJECT_ID('RecepientGroup') IS NULL
                 BEGIN
                 CREATE TABLE RecepientGroup
@@ -405,10 +428,9 @@ namespace ReportService.Core
                 CONSTRAINT [PK__RecepientGroup__Id] PRIMARY KEY CLUSTERED 
                 ([Id] ASC)
                 )
-                END")
-                .ExecuteNonQuery();
+                END");
 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF OBJECT_ID('TelegramChannel') IS NULL
                 BEGIN
                 CREATE TABLE TelegramChannel
@@ -420,36 +442,18 @@ namespace ReportService.Core
                 CONSTRAINT [PK__TelegramChannel__Id] PRIMARY KEY CLUSTERED 
                 ([Id] ASC)
                 );
-                END")
-                .ExecuteNonQuery();
+                END");
 
-            var existScheduleTable = Convert.ToInt64(createBaseContext
-                .CreateSimple(@"
-               SELECT ISNULL(OBJECT_ID('Schedule'),0)")
-                .ExecuteQueryFirstColumn<object>()
-                .First());
-
-            if (existScheduleTable == 0)
-            {
-                var schedules = new[]
-                {
-                    new DtoSchedule {Name = "workDaysEvening", Schedule = "30 22 * * 1-5"},
-                    new DtoSchedule {Name = "sundayEvening", Schedule = "30 22 * * 0"}
-                };
-
-                createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 CREATE TABLE Schedule
                 (Id INT IDENTITY(1,1),
                 Name NVARCHAR(127) NOT NULL,
                 Schedule NVARCHAR(255) NOT NULL,
                 CONSTRAINT [PK__Schedule__Id] PRIMARY KEY CLUSTERED 
                 ([Id] ASC)
-                )")
-                    .ExecuteNonQuery();
-                schedules.WriteToServer(createBaseContext, "Schedule");
-            }
+                )");
 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF OBJECT_ID('Task') IS NULL
                 BEGIN
                 CREATE TABLE Task
@@ -463,10 +467,9 @@ namespace ReportService.Core
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
                 REFERENCES Schedule(Id)
                 )
-                END")
-                .ExecuteNonQuery();
+                END");
 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF OBJECT_ID('Operation') IS NULL
                 BEGIN
                 CREATE TABLE Operation
@@ -484,10 +487,9 @@ namespace ReportService.Core
                 REFERENCES Task(Id))
                 CREATE NONCLUSTERED INDEX [idx_Operation_TaskId] ON [dbo].[Operation]
                 ([TaskId] ASC)
-                END")
-                .ExecuteNonQuery();
+                END");
 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF OBJECT_ID('TaskInstance') IS NULL
                 BEGIN
                 CREATE TABLE TaskInstance
@@ -502,10 +504,9 @@ namespace ReportService.Core
                 REFERENCES Task(Id))
                 CREATE NONCLUSTERED INDEX [idx_TaskInstance_TaskId] ON [dbo].[TaskInstance]
                 ([TaskID] ASC)
-                END")
-                .ExecuteNonQuery();
+                END");
 
-            createBaseContext.CreateSimple(@"
+            connection.Execute(@"
                 IF object_id('OperInstance') IS NULL
                 BEGIN
                 CREATE TABLE OperInstance(
@@ -528,8 +529,7 @@ namespace ReportService.Core
                 ([OperationId] ASC)
                 CREATE NONCLUSTERED INDEX [idx_OperInstance_TaskInstanceId] ON [dbo].[OperInstance]
                 ([TaskInstanceId] ASC)
-                END")
-                .ExecuteNonQuery();
+                END");
         } //database structure creating
     }
 }

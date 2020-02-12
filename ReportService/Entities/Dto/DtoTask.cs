@@ -1,13 +1,16 @@
-﻿using ReportService.Interfaces.Core;
+﻿using Dapper.Contrib.Extensions;
+using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
+    [Table("Task")]
     public class DtoTask : IDtoEntity
     {
-        public long Id;
-        public string Name;
-        public string Parameters;
-        public string DependsOn;
-        public int? ScheduleId;
+        [Key]
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Parameters { get; set; }
+        public string DependsOn { get; set; }
+        public int? ScheduleId { get; set; }
     }
 }

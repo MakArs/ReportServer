@@ -66,11 +66,11 @@ namespace ReportService.Api.Controllers
         }
 
         [HttpGet(GetTaskInstancesRoute)]
-        public ContentResult GetTaskInstances(long id)
+        public async Task<ContentResult> GetTaskInstances(long id)
         {
             try
             {
-                return GetSuccessfulResult(logic.GetAllTaskInstancesJson(id));
+                return GetSuccessfulResult(await logic.GetAllTaskInstancesJson(id));
             }
             catch
             {

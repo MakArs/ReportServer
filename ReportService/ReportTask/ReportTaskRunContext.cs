@@ -34,13 +34,13 @@ namespace ReportService.ReportTask
         public string DataFolderPath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                         $@"\ReportServer\{TaskInstance.Id}";
 
-        private readonly Regex paramName;
+        private readonly Regex paramNameRegex;
         private readonly IArchiver archiver;
 
         public ReportTaskRunContext(IArchiver archiver)
         {
             this.archiver = archiver;
-            paramName = new Regex(@"\B\@RepPar\w*\b");
+            paramNameRegex = new Regex(@"\B\@RepPar\w*\b");
         }
 
         public void CreateDataFolder()
@@ -75,11 +75,11 @@ namespace ReportService.ReportTask
 
         public string SetQueryParameters(DynamicParameters parametersList, string baseQuery)
         {
-            var selections = paramName.Matches(baseQuery);
+            var selections = paramNameRegex.Matches(baseQuery);
 
             int i = 0;
 
-            var outerString = paramName.Replace(baseQuery, repl =>
+            var outerString = paramNameRegex.Replace(baseQuery, repl =>
             {
                 var sel = selections[i].Value;
 
@@ -101,7 +101,7 @@ namespace ReportService.ReportTask
 
         public string SetStringParameters(string innerString)
         {
-            var outerString = paramName.Replace(innerString, repl =>
+            var outerString = paramNameRegex.Replace(innerString, repl =>
             {
                 if (!Parameters.ContainsKey(repl.Value))
                     throw new DataException($"There is no parameter {repl.Value} in the task");

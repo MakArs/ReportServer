@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
 
@@ -6,24 +8,24 @@ namespace ReportService.Interfaces.Core
 {
     public interface IRepository
     {
-        object GetBaseQueryResult(string query);
+        Task<object> GetBaseQueryResultAsync(string query, CancellationToken token);
         DependencyState GetDependencyStateByTaskId(long taskId);
-        List<DtoTaskInstance> GetInstancesByTaskId(long taskId);
-        List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long taskInstanceId);
+        Task<List<DtoTaskInstance>> GetAllTaskInstances(long taskId);
+        List<DtoOperInstance> GetTaskOperInstances(long taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(long operInstanceId);
 
         /// <summary>
         /// Obtains list of generic-type entities from repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
-        List<T> GetListEntitiesByDtoType<T>() where T : IDtoEntity, new();
+        List<T> GetListEntitiesByDtoType<T>() where T : class, IDtoEntity;
 
         /// <summary>
         /// Creates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix.
         /// WARNING: key type must be same with table primary key
         /// </summary>
-        TKey CreateEntity<T, TKey>(T entity) where T : IDtoEntity;
+        long CreateEntity<T>(T entity) where T : class, IDtoEntity;
 
         long CreateTask(DtoTask task, params DtoOperation[] bindedOpers);
 
@@ -31,7 +33,7 @@ namespace ReportService.Interfaces.Core
         /// Updates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
         /// </summary>
-        void UpdateEntity<T>(T entity) where T : IDtoEntity;
+        void UpdateEntity<T>(T entity) where T : class, IDtoEntity;
 
         void UpdateTask(DtoTask task, params DtoOperation[] bindedOpers);
 

@@ -54,22 +54,18 @@ namespace ReportService.Operations.DataImporters
                 {
                     await using var connection = new SqlConnection(ConnectionString);
 
-                    
-                        await using var reader =
+                    await using var reader =
                         await connection.ExecuteReaderAsync(new CommandDefinition(
-                             $"{actualQuery}", parValues,
-                        commandTimeout: TimeOut, cancellationToken: token));
+                            $"{actualQuery}", parValues));
+                    FillPackage(reader, taskContext);
 
-
-                        FillPackage(reader, taskContext);
-
-                        break;
+                    break;
                 }
 
                 catch (Exception e)
                 {
                     if (!(e is SqlException se))
-                        throw e; 
+                        throw e;
 
                     if (i >= TriesCount - 1)
                         throw se;

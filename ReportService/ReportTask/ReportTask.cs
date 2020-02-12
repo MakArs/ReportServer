@@ -110,11 +110,18 @@ namespace ReportService.ReportTask
             context.TaskName = Name;
             context.DependsOn = DependsOn;
 
-            context.Parameters = Parameters
-                .ToDictionary(pair => pair.Key,
-                    pair => repository.GetBaseQueryResult("select " + pair.Value));
-
             context.CancelSource = new CancellationTokenSource();
+
+
+            var pairsTask =Task.Run(async()=>await Task.WhenAll(Parameters.Select(async pair => 
+            new KeyValuePair<string,object>(pair.Key, 
+            await repository.GetBaseQueryResultAsync("select " + pair.Value,
+            context.CancelSource.Token)))));
+
+            var pairs = pairsTask.Result;
+
+            context.Parameters = pairs
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
 
             var dtoTaskInstance = new DtoTaskInstance
             {
@@ -125,7 +132,7 @@ namespace ReportService.ReportTask
             };
 
             dtoTaskInstance.Id =
-                repository.CreateEntity<DtoTaskInstance, long>(dtoTaskInstance);
+                repository.CreateEntity<DtoTaskInstance>(dtoTaskInstance);
 
             context.TaskInstance = dtoTaskInstance;
 

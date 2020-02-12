@@ -70,7 +70,7 @@ namespace ReportService.ReportTask
             };
 
             dtoOperInstance.Id =
-                repository.CreateEntity<DtoOperInstance, long>(dtoOperInstance);
+                repository.CreateEntity<DtoOperInstance>(dtoOperInstance);
 
             repository.UpdateEntity(taskContext.TaskInstance);
         }
@@ -232,7 +232,7 @@ namespace ReportService.ReportTask
                 };
 
                 dtoOperInstance.Id =
-                    repository.CreateEntity<DtoOperInstance, long>(dtoOperInstance);
+                    repository.CreateEntity<DtoOperInstance>(dtoOperInstance);
 
                 taskContext.PackageStates[oper.Properties.Number - 1] =
                     GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);

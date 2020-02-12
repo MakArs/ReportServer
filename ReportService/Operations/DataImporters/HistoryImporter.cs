@@ -25,19 +25,14 @@ namespace ReportService.Operations.DataImporters
             this.archiver = archiver;
         }
 
-        private void Execute(IReportTaskRunContext taskContext)
+        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var query = $"select DataSet from [OperInstance] with(nolock) where id={OperInstanceId}";
-            var instance = repos.GetBaseQueryResult(query);
+
+            var instance = await repos.GetBaseQueryResultAsync(query, taskContext.CancelSource.Token);
 
             var package = OperationPackage.Parser.ParseFrom(archiver.ExtractFromByteArchive(instance as byte[]));
             taskContext.Packages[Properties.PackageName] = package;
-        }
-
-        public Task ExecuteAsync(IReportTaskRunContext taskContext)
-        {
-            Execute(taskContext);
-            return Task.CompletedTask;
         }
     }
 }
