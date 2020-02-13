@@ -25,7 +25,7 @@ namespace ReportService.Core
             this.monik = monik;
         }
 
-        public async Task<object> GetBaseQueryResultAsync(string query, CancellationToken token)
+        public async Task<object> GetBaseQueryResult(string query, CancellationToken token)
         {
 
             await using var connection = new SqlConnection(connectionString);
@@ -34,7 +34,7 @@ namespace ReportService.Core
                 await connection.QueryFirstAsync<dynamic>(new CommandDefinition(query,
                     commandTimeout: 30, cancellationToken: token));
 
-            var value = (result as IDictionary<string, object>)[""];
+            var value = (result as IDictionary<string, object>).First().Value;
             return value;
         }
 

@@ -115,7 +115,7 @@ namespace ReportService.ReportTask
 
             var pairsTask =Task.Run(async()=>await Task.WhenAll(Parameters.Select(async pair => 
             new KeyValuePair<string,object>(pair.Key, 
-            await repository.GetBaseQueryResultAsync("select " + pair.Value,
+            await repository.GetBaseQueryResult("select " + pair.Value,
             context.CancelSource.Token)))));
 
             var pairs = pairsTask.Result;
@@ -132,7 +132,7 @@ namespace ReportService.ReportTask
             };
 
             dtoTaskInstance.Id =
-                repository.CreateEntity<DtoTaskInstance>(dtoTaskInstance);
+                repository.CreateEntity(dtoTaskInstance);
 
             context.TaskInstance = dtoTaskInstance;
 

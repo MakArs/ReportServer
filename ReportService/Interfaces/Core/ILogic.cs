@@ -25,20 +25,20 @@ namespace ReportService.Interfaces.Core
         List<IReportTask> GetAllTasksJson();
         string GetEntitiesCountJson();
 
-        int CreateOperationTemplate(DtoOperTemplate operTemplate);
+        long CreateOperationTemplate(DtoOperTemplate operTemplate);
         void UpdateOperationTemplate(DtoOperTemplate operTemplate);
         void DeleteOperationTemplate(int id);
 
-        int CreateRecepientGroup(DtoRecepientGroup group);
+        long CreateRecepientGroup(DtoRecepientGroup group);
         void UpdateRecepientGroup(DtoRecepientGroup group);
         void DeleteRecepientGroup(int id);
         RecipientAddresses GetRecepientAddressesByGroupId(int groupId);
 
-        int CreateTelegramChannel(DtoTelegramChannel channel);
+        long CreateTelegramChannel(DtoTelegramChannel channel);
         void UpdateTelegramChannel(DtoTelegramChannel channel);
         DtoTelegramChannel GetTelegramChatIdByChannelId(int id);
 
-        int CreateSchedule(DtoSchedule schedule);
+        long CreateSchedule(DtoSchedule schedule);
         void UpdateSchedule(DtoSchedule schedule);
         void DeleteSchedule(int id);
 

@@ -301,7 +301,7 @@ namespace ReportService.Core
             contextsInWork.Add(instanceId, context);
 
             Task.Factory.StartNew(() =>
-                    task.Execute(context), context.CancelSource.Token)
+                     task.Execute(context), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
 
             return $"Task {taskId} executed!";
@@ -377,21 +377,11 @@ namespace ReportService.Core
             return JsonConvert.SerializeObject(entities);
         }
 
-        //public string GetEntitiesListJsonByType<T>()
-        //{
-        //    var list = GetType().GetFields(
-        //            BindingFlags.NonPublic |
-        //            BindingFlags.Instance)
-        //        .FirstOrDefault(field => field.FieldType == typeof(List<T>))?
-        //        .GetValue(this);
-        //    return JsonConvert.SerializeObject(list);
-        //}
-
         #endregion
 
-        public int CreateOperationTemplate(DtoOperTemplate operTemplate)
+        public long CreateOperationTemplate(DtoOperTemplate operTemplate)
         {
-            int newOperId = (int)repository.CreateEntity(operTemplate);
+            long newOperId = repository.CreateEntity(operTemplate);
             UpdateDtoEntitiesList(operTemplates);
 
             SendServiceInfo($"Created operation template {newOperId}");
@@ -416,9 +406,9 @@ namespace ReportService.Core
             SendServiceInfo($"Deleted operation template {id}");
         }
 
-        public int CreateRecepientGroup(DtoRecepientGroup group)
+        public long CreateRecepientGroup(DtoRecepientGroup group)
         {
-            var newGroupId = (int)repository.CreateEntity(group);
+            var newGroupId = repository.CreateEntity(group);
             UpdateDtoEntitiesList(recepientGroups);
 
             SendServiceInfo($"Created recepient group {newGroupId}");
@@ -448,9 +438,9 @@ namespace ReportService.Core
                 .FirstOrDefault(group => group.Id == groupId)).GetAddresses();
         }
 
-        public int CreateTelegramChannel(DtoTelegramChannel channel)
+        public long CreateTelegramChannel(DtoTelegramChannel channel)
         {
-            var newChannelId = (int)repository.CreateEntity(channel);
+            var newChannelId = repository.CreateEntity(channel);
             UpdateDtoEntitiesList(recepientGroups);
             SendServiceInfo($"Created telegram channel {newChannelId}");
             return newChannelId;
@@ -470,9 +460,9 @@ namespace ReportService.Core
                 .FirstOrDefault(channel => channel.Id == id);
         }
 
-        public int CreateSchedule(DtoSchedule schedule)
+        public long CreateSchedule(DtoSchedule schedule)
         {
-            var newScheduleId = (int)repository.CreateEntity(schedule);
+            var newScheduleId = repository.CreateEntity(schedule);
             UpdateDtoEntitiesList(schedules);
             SendServiceInfo($"Created schedule {newScheduleId}");
             return newScheduleId;

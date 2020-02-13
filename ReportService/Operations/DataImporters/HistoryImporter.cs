@@ -29,7 +29,7 @@ namespace ReportService.Operations.DataImporters
         {
             var query = $"select DataSet from [OperInstance] with(nolock) where id={OperInstanceId}";
 
-            var instance = await repos.GetBaseQueryResultAsync(query, taskContext.CancelSource.Token);
+            var instance = await repos.GetBaseQueryResult(query, taskContext.CancelSource.Token);
 
             var package = OperationPackage.Parser.ParseFrom(archiver.ExtractFromByteArchive(instance as byte[]));
             taskContext.Packages[Properties.PackageName] = package;
