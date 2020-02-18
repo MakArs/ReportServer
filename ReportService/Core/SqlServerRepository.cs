@@ -13,12 +13,12 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Core
 {
-    public class Repository : IRepository
+    public class SqlServerRepository : IRepository
     {
         private readonly IMonik monik;
         private readonly string connectionString;
 
-        public Repository(string connStr, IMonik monik)
+        public SqlServerRepository(string connStr, IMonik monik)
         {
             connectionString = connStr;
 
@@ -445,13 +445,16 @@ namespace ReportService.Core
                 END");
 
             connection.Execute(@"
+                IF OBJECT_ID('Schedule') IS NULL
+                BEGIN
                 CREATE TABLE Schedule
                 (Id INT IDENTITY(1,1),
                 Name NVARCHAR(127) NOT NULL,
                 Schedule NVARCHAR(255) NOT NULL,
                 CONSTRAINT [PK__Schedule__Id] PRIMARY KEY CLUSTERED 
                 ([Id] ASC)
-                )");
+                );
+                END");
 
             connection.Execute(@"
                 IF OBJECT_ID('Task') IS NULL

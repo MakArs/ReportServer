@@ -133,10 +133,20 @@ namespace ReportService
 
             ConfigureMonik(builder, config);
 
-            builder
-                .Register(c => new Repository(config["DBConnStr"], c.Resolve<IMonik>()))
+            builder.RegisterNamedImplementation<IRepository, SqlServerRepository>("SQLServer");
+            builder.RegisterNamedImplementation<IRepository, PostgreSqlRepository>("PostgreSQL");
+
+            builder.Register(c =>
+                {
+                    var repos = c.ResolveNamed<IRepository>(config["DBMS"],
+                        new NamedParameter("connStr", config["DBConnStr"]),
+
+                        new NamedParameter("monik", c.Resolve<IMonik>()));
+                    return repos;
+                })
                 .As<IRepository>()
                 .SingleInstance();
+
 
             ConfigureMapper(builder);
 
@@ -195,6 +205,7 @@ namespace ReportService
         private void ConfigureTelegramBot(ContainerBuilder builder, IConfigurationRoot config)
         {
             Uri proxyUri = new Uri(config["ProxySettings:ProxyUriAddr"]);
+
             ICredentials credentials = new NetworkCredential(
                 config["ProxySettings:ProxyLogin"],
                 config["ProxySettings:ProxyPassword"]);
