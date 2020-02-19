@@ -85,8 +85,8 @@ namespace ReportService.Core
             try
             {
                 return connection.Query<DtoOperInstance>
-                    ("select Id,TaskInstanceId,OperationId,StartTime,Duration,State,null as DataSet," +
-                     $"null as ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}",
+                    ($@"select Id,TaskInstanceId,OperationId,StartTime,Duration,State,null as DataSet,
+                        null as ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}",
                         commandTimeout: 60)
                     .ToList();
             }
@@ -106,11 +106,11 @@ namespace ReportService.Core
             try
             {
                 return connection.QueryFirst<DtoOperInstance>
-                ("select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName " +
-                 "from OperInstance oi with(nolock) " +
-                 "join operation op with(nolock) " +
-                 "on oi.OperationId=op.Id " +
-                 $"where oi.id={operInstanceId}",
+                ($@"select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName
+                    from OperInstance oi with(nolock)
+                    join operation op with(nolock)
+                    n oi.OperationId=op.Id
+                    where oi.id={operInstanceId}",
                     commandTimeout: 60);
             }
 
@@ -225,8 +225,8 @@ namespace ReportService.Core
             using var connection = new SqlConnection(connectionString);
 
             var currentOperIds = connection.Query<long>
-            ($"select id from operation with(nolock) where taskid={task.Id}" +
-             "and isDeleted=0",
+            ($@"select id from operation with(nolock) where taskid={task.Id}
+                and isDeleted=0",
                 commandTimeout: 60);
 
             connection.Open();
@@ -248,8 +248,8 @@ namespace ReportService.Core
 
                 if (operIdsToDelete.Any())
                     connection.Execute(
-                        $"Update Operation set isDeleted=1 where TaskId={task.Id} and " +
-                        $"id in ({string.Join(",", operIdsToDelete)})",
+                        $@"Update Operation set isDeleted=1 where TaskId={task.Id} and
+                            id in ({string.Join(",", operIdsToDelete)})",
                         commandTimeout: 60, transaction: transaction);
 
                 connection.Update(opersToUpdate, commandTimeout: 60, transaction: transaction);

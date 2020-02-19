@@ -4,7 +4,7 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
-    [Table("OperInstance")]
+    [Table(@"""OperInstance""")]
     public class DtoOperInstance : IDtoEntity
     {
         [Key]

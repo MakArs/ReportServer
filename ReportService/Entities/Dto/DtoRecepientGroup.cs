@@ -3,7 +3,7 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
-    [Table("RecepientGroup")]
+    [Table(@"""RecepientGroup""")]
     public class DtoRecepientGroup : IDtoEntity
     {
         [Key]

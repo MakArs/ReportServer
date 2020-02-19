@@ -3,7 +3,7 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
-    [Table("Task")]
+    [Table(@"""Task""")]
     public class DtoTask : IDtoEntity
     {
         [Key]

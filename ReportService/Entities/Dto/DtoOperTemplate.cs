@@ -3,7 +3,7 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
-    [Table("OperTemplate")]
+    [Table(@"""OperTemplate""")]
     public class DtoOperTemplate : IDtoEntity
     {
         [Key]

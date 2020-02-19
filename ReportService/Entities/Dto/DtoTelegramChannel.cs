@@ -3,7 +3,7 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Entities.Dto
 {
-    [Table("TelegramChannel")]
+    [Table(@"""TelegramChannel""")]
     public class DtoTelegramChannel : IDtoEntity
     {
         [Key]
