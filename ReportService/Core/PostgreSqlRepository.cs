@@ -13,6 +13,7 @@ using ReportService.Interfaces.Core;
 
 namespace ReportService.Core
 {
+    //dapper needs full 
     public class PostgreSqlRepository : IRepository
     {
         private readonly IMonik monik;
@@ -59,7 +60,7 @@ namespace ReportService.Core
 
         public DependencyState GetDependencyStateByTaskId(long taskId)
         {
-            using var connection = new NpgsqlConnection(connectionString);
+            using var connection = new NpgsqlConnection(connectionString); //todo
 
             try
             {
@@ -87,7 +88,7 @@ namespace ReportService.Core
             try
             {
                 return connection.Query<DtoOperInstance>
-                    ($@"select Id,""TaskInstanceId"",""OperationId"",
+                    ($@"select ""Id"",""TaskInstanceId"",""OperationId"",
                             ""StartTime"",""Duration"",""State"",null as DataSet,
                             null as ErrorMessage
                         from ""OperInstance"" where ""TaskInstanceId""={taskInstanceId}",
@@ -110,13 +111,13 @@ namespace ReportService.Core
             try
             {
                 return connection.QueryFirst<DtoOperInstance>
-                ($@"select oi.Id,""TaskInstanceId"",""OperationId"",
+                ($@"select oi.""Id"",""TaskInstanceId"",""OperationId"",
                     ""StartTime"",""Duration"",""State"",""DataSet"",
                     ""ErrorMessage"",""Name"" as OperName
                 from ""OperInstance"" oi
                 join ""Operation"" op
-                    on oi.""OperationId"" = op.Id
-                where oi.Id ={operInstanceId}",
+                    on oi.""OperationId"" = op.""Id""
+                where oi.""Id"" ={operInstanceId}",
                     commandTimeout: 60);
             }
 
@@ -153,10 +154,44 @@ namespace ReportService.Core
 
             var tableName = typeof(T).Name.Remove(0, 3);
 
+            string insertString;
+
+            switch (tableName)
+            {
+                case "OperInstance":
+                    insertString = operInstanceInsertString;
+                    break;
+
+                case "OperTemplate":
+                    insertString = operTemplateInsertString;
+                    break;
+
+                case "RecepientGroup":
+                    insertString = recepientGroupInsertString;
+                    break;
+
+                case "Schedule":
+                    insertString = scheduleInsertString;
+                    break;
+
+                case "TaskInstance":
+                    insertString = taskInstanceInsertString;
+                    break;
+
+                case "TelegramChannel":
+                    insertString = telegramChannelInsertString;
+                    break;
+
+                default:
+                    throw new Exception("Type not recognized as part of service");
+            }
+
             try
             {
-                return connection.Insert(entity,
+                var newId = connection.QueryFirst<long>(insertString, entity,
                     commandTimeout: 60);
+
+                return newId;
             }
 
             catch (Exception e)
@@ -166,6 +201,36 @@ namespace ReportService.Core
                 return default;
             }
         }
+
+        private const string operInstanceInsertString = @"INSERT INTO ""OperInstance""
+            (""TaskInstanceId"",""OperationId"",""StartTime"",""Duration"",""State"", ""DataSet"", ""ErrorMessage"")
+            VALUES(@TaskInstanceId, @OperationId, @StartTime, @Duration, @State, @DataSet, @ErrorMessage)
+            RETURNING ""Id""; ";
+
+        private const string operTemplateInsertString = @"INSERT INTO ""OperTemplate""
+            (""ImplementationType"",""Name"",""ConfigTemplate"")
+            VALUES(@ImplementationType, @Name, @ConfigTemplate)
+            RETURNING ""Id""; ";
+
+        private const string recepientGroupInsertString = @"INSERT INTO ""RecepientGroup""
+            (""Name"",""Addresses"",""AddressesBcc"")
+            VALUES(@Name, @Addresses, @AddressesBcc)
+            RETURNING ""Id""; ";
+
+        private const string scheduleInsertString = @"INSERT INTO ""Schedule""
+            (""Name"",""Schedule"")
+            VALUES(@Name, @Schedule)
+            RETURNING ""Id""; ";
+
+        private const string taskInstanceInsertString = @"INSERT INTO ""TaskInstance""
+            (""TaskId"",""StartTime"",""Duration"",""State"")
+            VALUES(@TaskId, @StartTime, @Duration, @State)
+            RETURNING ""Id""; ";
+
+        private const string telegramChannelInsertString = @"INSERT INTO ""TelegramChannel""
+            (""TaskId"",""StartTime"",""Duration"",""State"")
+            VALUES(@TaskId, @StartTime, @Duration, @State)
+            RETURNING ""Id""; ";
 
         public long CreateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
@@ -179,9 +244,11 @@ namespace ReportService.Core
             {
                 try
                 {
-                    newTaskId = connection.Insert(task,
+                    newTaskId = connection.QueryFirst<long>(@"INSERT INTO ""Task""
+                        (""Name"", ""ScheduleId"", ""Parameters"", ""DependsOn"")
+                        VALUES(@Name, @ScheduleId, @Parameters, @DependsOn)
+                        RETURNING ""Id"";", task,
                         commandTimeout: 60, transaction: transaction);
-                    DefaultTypeMap.MatchNamesWithUnderscores = true;
 
                     if (bindedOpers != null)
 
@@ -190,8 +257,10 @@ namespace ReportService.Core
                             oper.TaskId = newTaskId;
                         }
 
-                    connection.Insert(bindedOpers,
-                        commandTimeout: 60, transaction: transaction);
+                    connection.Execute(@"INSERT INTO ""Operation""(
+                                    ""TaskId"",""Number"",""Name"",""ImplementationType"",""IsDefault"",""Config"",""IsDeleted"")
+                                     VALUES(@TaskId, @Number, @Name, @ImplementationType, @IsDefault, @Config, @IsDeleted); ",
+                                     bindedOpers, commandTimeout: 60, transaction: transaction);
 
                     transaction.Commit();
                 }
@@ -232,7 +301,7 @@ namespace ReportService.Core
             using var connection = new NpgsqlConnection(connectionString);
 
             var currentOperIds = connection.Query<long>
-            ($@"select Id from ""Operation"" where ""TaskId""={task.Id}
+            ($@"select ""Id"" from ""Operation"" where ""TaskId""={task.Id}
                 and ""IsDeleted""=false",
                 commandTimeout: 60);
 
@@ -256,7 +325,7 @@ namespace ReportService.Core
                 if (operIdsToDelete.Any())
                     connection.Execute(
                         $@"Update ""Operation"" set ""IsDeleted""=True where ""TaskId""={task.Id} and
-                            Id in ({string.Join(",", operIdsToDelete)})",
+                            ""Id"" in ({string.Join(",", operIdsToDelete)})",
                         commandTimeout: 60, transaction: transaction);
 
                 connection.Update(opersToUpdate, commandTimeout: 60, transaction: transaction);
@@ -295,7 +364,7 @@ namespace ReportService.Core
                             connection.Execute($@"delete from ""OperInstance"" where ""TaskInstanceId""={id}",
                                 commandTimeout: 60, transaction: transaction);
 
-                            connection.Execute($@"delete from ""TaskInstance"" where Id={id}",
+                            connection.Execute($@"delete from ""TaskInstance"" where ""Id""={id}",
                                 commandTimeout: 60, transaction: transaction);
 
                             transaction.Commit();
@@ -319,16 +388,16 @@ namespace ReportService.Core
                         {
 
                             connection.Execute($@"delete from ""OperInstance"" where ""TaskInstanceId"" in
-                                            (select Id from ""TaskInstance"" where ""TaskId""={id})",
+                                            (select ""Id"" from ""TaskInstance"" where ""TaskId""={id})",
                                 commandTimeout: 60, transaction: transaction);
 
-                            connection.Execute($@"delete from ""TaskInstance"" where ""TaskID""={id}",
+                            connection.Execute($@"delete from ""TaskInstance"" where ""TaskId""={id}",
                                 commandTimeout: 60, transaction: transaction);
 
-                            connection.Execute($@"delete from ""Operation"" where ""TaskID""={id}",
+                            connection.Execute($@"delete from ""Operation"" where ""TaskId""={id}",
                                 commandTimeout: 60, transaction: transaction);
 
-                            connection.Execute($@"delete from ""Task"" where Id={id}",
+                            connection.Execute($@"delete from ""Task"" where ""Id""={id}",
                                 commandTimeout: 60, transaction: transaction);
 
                             transaction.Commit();
@@ -348,7 +417,7 @@ namespace ReportService.Core
                 default:
                     try
                     {
-                        connection.Execute($@"delete from ""{tableName}"" where Id={id}",
+                        connection.Execute($@"delete from ""{tableName}"" where ""Id""={id}",
                             commandTimeout: 60);
                     }
 
@@ -383,7 +452,7 @@ namespace ReportService.Core
             var ids = connection.Query<long>(@"UPDATE ""OperInstance""
             SET ""State""=3,""ErrorMessage""='Unknown error.The service was probably stopped during the task execution.'            
             WHERE ""State""=1
-			RETURNING Id").ToList();
+			RETURNING ""Id""").ToList();
 
             return ids;
         }
@@ -395,7 +464,7 @@ namespace ReportService.Core
             var ids = connection.Query<long>(@"UPDATE ""TaskInstance""
             SET ""State""=3
             WHERE ""State""=1
-            RETURNING Id").ToList();
+            RETURNING ""Id""").ToList();
 
             return ids;
         }
@@ -413,56 +482,56 @@ namespace ReportService.Core
             // TODO: check db exists ~find way to cut redundant code 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""OperTemplate""
-                (Id INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
                 ""ImplementationType"" VARCHAR(255) NOT NULL,
                 ""Name"" VARCHAR(255) NOT NULL,
                 ""ConfigTemplate"" TEXT NOT NULL,
-                CONSTRAINT ""PK_OperTemplate_Id"" PRIMARY KEY(Id));
+                CONSTRAINT ""PK_OperTemplate_Id"" PRIMARY KEY(""Id""));
                 CLUSTER ""OperTemplate"" USING ""PK_OperTemplate_Id"";");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""RecepientGroup""
-                (Id INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
 	            ""Name"" VARCHAR(127) NOT NULL,
 	            ""Addresses"" VARCHAR(4000) NOT NULL,
 	            ""AddressesBcc"" VARCHAR(4000) NULL,
-                CONSTRAINT ""PK_RecepientGroup_Id"" PRIMARY KEY(Id));
+                CONSTRAINT ""PK_RecepientGroup_Id"" PRIMARY KEY(""Id""));
 				CLUSTER ""RecepientGroup"" USING ""PK_RecepientGroup_Id"";");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""TelegramChannel""
-                (Id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
                 ""Name"" VARCHAR(127) NOT NULL,
                 ""Description"" VARCHAR(255) NULL,
                 ""ChatId"" BIGINT NOT NULL,
                 ""Type"" SMALLINT NOT NULL,
-                CONSTRAINT ""PK_TelegramChannel_Id"" PRIMARY KEY(Id));
+                CONSTRAINT ""PK_TelegramChannel_Id"" PRIMARY KEY(""Id""));
                 CLUSTER ""TelegramChannel"" USING ""PK_TelegramChannel_Id"";");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""Schedule""
-                (Id INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
                 ""Name"" VARCHAR(127) NOT NULL,
                 ""Schedule"" VARCHAR(255) NOT NULL,
-                CONSTRAINT ""PK_Schedule_Id"" PRIMARY KEY(Id));
+                CONSTRAINT ""PK_Schedule_Id"" PRIMARY KEY(""Id""));
 				CLUSTER ""Schedule"" USING ""PK_Schedule_Id"";");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""Task""
-                (Id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
                 ""Name"" VARCHAR(127) NOT NULL,
                 ""ScheduleId"" INT NULL,
                 ""Parameters"" VARCHAR(1023) NULL,
                 ""DependsOn"" VARCHAR(1023) NULL,
-                CONSTRAINT ""PK_Task_Id"" PRIMARY KEY(Id),
+                CONSTRAINT ""PK_Task_Id"" PRIMARY KEY(""Id""),
                 CONSTRAINT ""FK_Task_Schedule"" FOREIGN KEY(""ScheduleId"") 
-                REFERENCES ""Schedule""(Id)
+                REFERENCES ""Schedule""(""Id"")
                 );
 				CLUSTER ""Task"" USING ""PK_Task_Id"";");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""Operation""
-                (Id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
                 ""TaskId"" BIGINT NOT NULL,
                 ""Number"" SMALLINT NOT NULL,
                 ""Name"" VARCHAR(255) NOT NULL,
@@ -470,28 +539,28 @@ namespace ReportService.Core
                 ""IsDefault"" BOOLEAN NOT NULL DEFAULT FALSE,
                 ""Config"" TEXT NOT NULL,
                 ""IsDeleted"" BOOLEAN NOT NULL DEFAULT FALSE,
-                CONSTRAINT ""PK_Operation_Id"" PRIMARY KEY(Id),
+                CONSTRAINT ""PK_Operation_Id"" PRIMARY KEY(""Id""),
                 CONSTRAINT ""FK_Operation_Task"" FOREIGN KEY(""TaskId"") 
-                REFERENCES ""Task""(Id));
+                REFERENCES ""Task""(""Id""));
 				CLUSTER ""Operation"" USING ""PK_Operation_Id"";
                 CREATE INDEX IF NOT EXISTS ""idx_Operation_TaskId"" ON ""Operation""(""TaskId"" ASC);");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""TaskInstance""
-                (Id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+                (""Id"" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
                 ""TaskId"" BIGINT NOT NULL,
                 ""StartTime"" TIMESTAMP(3) NOT NULL,
                 ""Duration"" INT NOT NULL,
                 ""State"" INT NOT NULL,
-                CONSTRAINT ""PK_TaskInstance_Id"" PRIMARY KEY(Id) ,
+                CONSTRAINT ""PK_TaskInstance_Id"" PRIMARY KEY(""Id"") ,
                 CONSTRAINT ""FK_TaskInstance_Task"" FOREIGN KEY(""TaskId"")
-                REFERENCES ""Task""(Id));
+                REFERENCES ""Task""(""Id""));
 				CLUSTER ""TaskInstance"" USING ""PK_TaskInstance_Id"";
                 CREATE INDEX IF NOT EXISTS ""idx_TaskInstance_TaskId"" ON ""TaskInstance""(""TaskId"" ASC);");
 
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""OperInstance""
-				(Id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+				(""Id"" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
 	            ""TaskInstanceId"" BIGINT NOT NULL,
                 ""OperationId"" BIGINT NOT NULL,
                 ""StartTime"" TIMESTAMP(3) NOT NULL,
@@ -499,11 +568,11 @@ namespace ReportService.Core
                 ""State"" INT NOT NULL,
 	            ""DataSet"" BYTEA NULL,
                 ""ErrorMessage"" VARCHAR(1023) NULL,
-                CONSTRAINT ""PK_OperInstance_Id"" PRIMARY KEY(Id),
+                CONSTRAINT ""PK_OperInstance_Id"" PRIMARY KEY(""Id""),
                 CONSTRAINT ""FK_OperInstance_Operation"" FOREIGN KEY(""OperationId"") 
-                REFERENCES ""Operation""(Id),
+                REFERENCES ""Operation""(""Id""),
                 CONSTRAINT ""FK_OperInstance_TaskInstance"" FOREIGN KEY(""TaskInstanceId"")
-                REFERENCES ""TaskInstance""(Id));
+                REFERENCES ""TaskInstance""(""Id""));
 				CLUSTER ""OperInstance"" USING ""PK_OperInstance_Id"";
                 CREATE INDEX IF NOT EXISTS ""idx_OperInstance_OperationId"" ON ""OperInstance""(""OperationId"" ASC);
                 CREATE INDEX IF NOT EXISTS ""idx_OperInstance_TaskInstanceId"" ON ""OperInstance""(""TaskInstanceId"" ASC);");
