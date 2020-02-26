@@ -36,7 +36,7 @@ namespace ReportService.Core
             CreateMap<TelegramExporterConfig, CommonOperationProperties>();
             CreateMap<B2BExporterConfig, B2BExporter>();
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
-            CreateMap<DbImporterConfig, DbImporter>()
+            CreateMap<DbImporterConfig, BaseDbImporter>()
                 .ForMember("DataSetNames", opt =>
                     opt.MapFrom(s => s.DataSetNames.Split(new[] {';'},
                             StringSplitOptions.RemoveEmptyEntries)

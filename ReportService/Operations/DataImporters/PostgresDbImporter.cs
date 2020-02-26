@@ -1,22 +1,22 @@
-﻿using System;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Dapper;
 using ReportService.Entities;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataImporters.Configurations;
+using System;
+using Npgsql;
+using System.Threading.Tasks;
 
 namespace ReportService.Operations.DataImporters
 {
-    public class DbImporter : BaseDbImporter
-    {
-
-        public DbImporter(IMapper mapper, DbImporterConfig config,
-          IPackageBuilder builder, ThreadSafeRandom rnd) : 
-            base(mapper, config,builder, rnd)
+    public class PostgresDbImporter: BaseDbImporter
+    {        
+        public PostgresDbImporter(IMapper mapper, DbImporterConfig config,
+            IPackageBuilder builder, ThreadSafeRandom rnd) :
+            base(mapper, config, builder, rnd)
         { }
+
         public override async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
             var parValues = new DynamicParameters();
@@ -29,7 +29,7 @@ namespace ReportService.Operations.DataImporters
             {
                 try
                 {
-                    await using var connection = new SqlConnection(ConnectionString);
+                    await using var connection = new NpgsqlConnection(ConnectionString);
 
                     await using var reader =
                         await connection.ExecuteReaderAsync(new CommandDefinition(
@@ -41,7 +41,7 @@ namespace ReportService.Operations.DataImporters
 
                 catch (Exception e)
                 {
-                    if (!(e is SqlException se))
+                    if (!(e is NpgsqlException se))
                         throw e;
 
                     if (i >= TriesCount - 1)

@@ -69,7 +69,7 @@ namespace ReportService.Protobuf
             {
                 columns.Add(new ColumnInfo
                 {
-                    Name = GetDbColumnValue<string>(cols, row, SchemaTableColumn.ColumnName),
+                    Name = GetDbColumnValue<string>(cols, row, SchemaTableColumn.ColumnName) ?? "",
                     Nullable = GetDbColumnValue<bool?>(cols, row, SchemaTableColumn.AllowDBNull) ?? false,
                     Type = dotNetTypesToScalarTypes[GetDbColumnValue<Type>(cols, row, SchemaTableColumn.DataType)]
                 });

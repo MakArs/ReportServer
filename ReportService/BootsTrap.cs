@@ -86,6 +86,9 @@ namespace ReportService
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (builder, "CommonDbImporter");
 
+            RegisterNamedDataImporter<PostgresDbImporter, DbImporterConfig>
+                (builder, "PostgresDbImporter");
+
             RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
                 (builder, "CommonExcelImporter");
 
