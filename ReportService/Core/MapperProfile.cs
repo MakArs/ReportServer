@@ -28,7 +28,7 @@ namespace ReportService.Core
 
             CreateMap<DtoOperation, CommonOperationProperties>();
 
-            CreateMap<DbExporterConfig, DbExporter>();
+            CreateMap<DbExporterConfig, BaseDbExporter>();
             CreateMap<DbExporterConfig, CommonOperationProperties>();
             CreateMap<EmailExporterConfig, EmailDataSender>();
             CreateMap<EmailExporterConfig, CommonOperationProperties>();

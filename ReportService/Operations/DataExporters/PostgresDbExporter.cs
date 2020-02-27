@@ -1,52 +1,52 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Dapper;
 using Google.Protobuf.Collections;
+using Npgsql;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters.Configurations;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ReportService.Operations.DataExporters
 {
-    public class DbExporter : BaseDbExporter
+    public class PostgresDbExporter : BaseDbExporter
     {
-        public DbExporter(IMapper mapper, DbExporterConfig config, IPackageParser parser) :
+        public PostgresDbExporter(IMapper mapper, DbExporterConfig config, IPackageParser parser) :
             base(mapper, config, parser)
         {
             scalarTypesToSqlTypes =
                 new Dictionary<ScalarType, string>
                 {
                     {ScalarType.Int32, "INT"},
-                    {ScalarType.Double, "FLOAT"},
+                    {ScalarType.Double, "DOUBLE PRECISION"},
                     {ScalarType.Int64, "BIGINT"},
-                    {ScalarType.Bool, "BIT"},
-                    {ScalarType.String, "NVARCHAR(4000)"},
-                    {ScalarType.Bytes, "VARBINARY(MAX)"},
-                    {ScalarType.DateTime, "DATETIME"},
+                    {ScalarType.Bool, "BOOLEAN"},
+                    {ScalarType.String, "VARCHAR(4000)"},
+                    {ScalarType.Bytes, "BYTEA"},
+                    {ScalarType.DateTime, "TIMESTAMP(3)"},
                     {ScalarType.Int16, "SMALLINT"},
-                    {ScalarType.Int8, "TINYINT"},
-                    {ScalarType.DateTimeOffset, "DATETIMEOFFSET(3)"},
+                    {ScalarType.Int8, "SMALLINT"},
+                    {ScalarType.DateTimeOffset, "TIMESTAMP(3) WITH TIME ZONE"},
                     {ScalarType.TimeSpan, "TIME"},
-                    {ScalarType.Decimal, "DECIMAL"}
+                    {ScalarType.Decimal, "NUMERIC"}
                     // {ScalarType.TimeStamp, typeof(DateTime)}
                 };
         }
 
         protected override string BuildCreateTableQuery(RepeatedField<ColumnInfo> columns)
         {
-            StringBuilder createQueryBuilder = new StringBuilder($@"IF OBJECT_ID('{TableName}') IS NULL
-                CREATE TABLE {TableName}(");
+            StringBuilder createQueryBuilder = new StringBuilder($@"CREATE TABLE IF NOT EXISTS 
+                ""{TableName}""(");
 
             var i = 1;
 
             foreach (var col in columns)
             {
                 var nullable = col.Nullable ? "NULL" : "NOT NULL";
-                createQueryBuilder.AppendLine(@$"[{col.Name ?? $"NoNameColumn{i++}"}] {scalarTypesToSqlTypes[col.Type]} {nullable},");
+                createQueryBuilder.AppendLine(@$"""{col.Name ?? $"NoNameColumn{i++}"}"" {scalarTypesToSqlTypes[col.Type]} {nullable},");
             }
 
             var index = createQueryBuilder.ToString().LastIndexOf(',');
@@ -62,7 +62,7 @@ namespace ReportService.Operations.DataExporters
         {
             var token = taskContext.CancelSource.Token;
 
-            await using var connection = new SqlConnection(ConnectionString);
+            await using var connection = new NpgsqlConnection(ConnectionString);
 
             var package = taskContext.Packages[Properties.PackageName];
 

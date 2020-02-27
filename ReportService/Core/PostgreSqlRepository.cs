@@ -154,37 +154,16 @@ namespace ReportService.Core
 
             var tableName = typeof(T).Name.Remove(0, 3);
 
-            string insertString;
-
-            switch (tableName)
+            var insertString = tableName switch
             {
-                case "OperInstance":
-                    insertString = operInstanceInsertString;
-                    break;
-
-                case "OperTemplate":
-                    insertString = operTemplateInsertString;
-                    break;
-
-                case "RecepientGroup":
-                    insertString = recepientGroupInsertString;
-                    break;
-
-                case "Schedule":
-                    insertString = scheduleInsertString;
-                    break;
-
-                case "TaskInstance":
-                    insertString = taskInstanceInsertString;
-                    break;
-
-                case "TelegramChannel":
-                    insertString = telegramChannelInsertString;
-                    break;
-
-                default:
-                    throw new Exception("Type not recognized as part of service");
-            }
+                "OperInstance" => operInstanceInsertString,
+                "OperTemplate" => operTemplateInsertString,
+                "RecepientGroup" => recepientGroupInsertString,
+                "Schedule" => scheduleInsertString,
+                "TaskInstance" => taskInstanceInsertString,
+                "TelegramChannel" => telegramChannelInsertString,
+                _ => throw new Exception("Type not recognized as part of service"),
+            };
 
             try
             {

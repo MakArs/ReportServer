@@ -38,8 +38,11 @@ namespace ReportService.Protobuf
             foreach (var set in package.DataSets)
             {
                 var setHeaders = set.Columns.Select(col => col.Name).ToList();
+
                 var setRows = new List<List<object>>();
+
                 var groupNumbers = set.ViewSettings?.GroupingColumnNumbers?.ToList();
+
                 var orderSettings = set.ViewSettings?.OrderSettings
                     .Select(stgs => new Entities.OrderSettings
                     {

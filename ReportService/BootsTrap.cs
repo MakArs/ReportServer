@@ -107,6 +107,9 @@ namespace ReportService
             RegisterNamedDataExporter<DbExporter, DbExporterConfig>
                 (builder, "CommonDbExporter");
 
+            RegisterNamedDataExporter<PostgresDbExporter, DbExporterConfig>
+               (builder, "PostgresDbExporter");
+
             RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
                 (builder, "CommonB2BExporter");
 

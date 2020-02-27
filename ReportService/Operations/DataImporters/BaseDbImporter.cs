@@ -39,7 +39,7 @@ namespace ReportService.Operations.DataImporters
 
         public abstract Task ExecuteAsync(IReportTaskRunContext taskContext);
 
-        protected void FillPackage(DbDataReader reader, IReportTaskRunContext taskContext)
+        protected virtual void FillPackage(DbDataReader reader, IReportTaskRunContext taskContext)
         {
             var pack = packageBuilder.GetPackage(reader, GroupNumbers);
 

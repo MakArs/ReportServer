@@ -27,7 +27,7 @@ namespace ReportService.Operations.DataImporters
 
         public async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
-            var query = $"select DataSet from [OperInstance] with(nolock) where id={OperInstanceId}";
+            var query = $@"select ""DataSet"" from ""OperInstance"" with(nolock) where ""Id""={OperInstanceId}";
 
             var instance = await repos.GetBaseQueryResult(query, taskContext.CancelSource.Token);
 
