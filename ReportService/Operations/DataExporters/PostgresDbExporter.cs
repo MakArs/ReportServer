@@ -15,6 +15,19 @@ namespace ReportService.Operations.DataExporters
     public class PostgresDbExporter : BaseDbExporter
     {
         protected override Dictionary<ScalarType, string> ScalarTypesToSqlTypes { get; set; }
+        protected override string CleanTableQuery =>
+                    $@"DO
+                        $$
+                        BEGIN
+	                        IF(SELECT EXISTS(
+			                        SELECT 1 
+			                        FROM pg_tables
+			                        WHERE tablename = '{TableName}'
+		                        ))THEN
+		                        DELETE FROM ""{TableName}"";
+                            END IF;
+                        END;
+                        $$";
 
         public PostgresDbExporter(IMapper mapper, DbExporterConfig config, IPackageParser parser) :
             base(mapper, config, parser)
@@ -62,57 +75,9 @@ namespace ReportService.Operations.DataExporters
 
         public override async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
-            var token = taskContext.CancelSource.Token;
-
             await using var connection = new NpgsqlConnection(ConnectionString);
 
-            var package = taskContext.Packages[Properties.PackageName];
-
-            if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                return;
-
-            var firstSet = packageParser.GetPackageValues(package).First();
-
-            var columns = package.DataSets.First().Columns;
-
-            if (CreateTable)
-                await connection.ExecuteAsync(new CommandDefinition(BuildCreateTableQuery(columns),
-                    commandTimeout: DbTimeOut,
-                    cancellationToken: token)); //todo:logic for auto-creating table by user-defined list of columns?
-
-            if (DropBefore)
-                await connection.ExecuteAsync(new CommandDefinition(
-                    $@"DO
-                        $$
-                        BEGIN
-	                        IF(SELECT EXISTS(
-			                        SELECT 1 
-			                        FROM pg_tables
-			                        WHERE tablename = '{TableName}'
-		                        ))THEN
-		                        DELETE FROM ""{TableName}"";
-                            END IF;
-                        END;
-                        $$",
-                    commandTimeout: DbTimeOut, cancellationToken: token));
-
-            var query = BuildInsertQuery(columns);
-
-            var dynamicRows = firstSet.Rows.Select(row =>
-            {
-                var p = new DynamicParameters();
-
-                for (int i = 0; i < row.Count; i++)
-                {
-                    p.Add($"@p{i}", row[i]);
-                }
-
-                return p;
-            });
-
-            await connection.ExecuteAsync(new CommandDefinition(
-                query, dynamicRows,
-                commandTimeout: DbTimeOut, cancellationToken: token));
+            await ExportDataSet(taskContext, connection);
         }
     }
 }
