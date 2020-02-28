@@ -18,7 +18,7 @@ namespace ReportService.Operations.DataExporters
         public bool RunIfVoidPackage { get; set; }
 
         protected readonly IPackageParser packageParser;
-        protected Dictionary<ScalarType, string> scalarTypesToSqlTypes;
+        protected abstract Dictionary<ScalarType, string> ScalarTypesToSqlTypes { get; set; }
 
         public string ConnectionString;
         public string TableName;

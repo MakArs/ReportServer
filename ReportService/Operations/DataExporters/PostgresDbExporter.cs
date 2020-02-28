@@ -14,10 +14,12 @@ namespace ReportService.Operations.DataExporters
 {
     public class PostgresDbExporter : BaseDbExporter
     {
+        protected override Dictionary<ScalarType, string> ScalarTypesToSqlTypes { get; set; }
+
         public PostgresDbExporter(IMapper mapper, DbExporterConfig config, IPackageParser parser) :
             base(mapper, config, parser)
         {
-            scalarTypesToSqlTypes =
+            ScalarTypesToSqlTypes =
                 new Dictionary<ScalarType, string>
                 {
                     {ScalarType.Int32, "INT"},
@@ -46,7 +48,7 @@ namespace ReportService.Operations.DataExporters
             foreach (var col in columns)
             {
                 var nullable = col.Nullable ? "NULL" : "NOT NULL";
-                createQueryBuilder.AppendLine(@$"""{col.Name ?? $"NoNameColumn{i++}"}"" {scalarTypesToSqlTypes[col.Type]} {nullable},");
+                createQueryBuilder.AppendLine(@$"""{col.Name ?? $"NoNameColumn{i++}"}"" {ScalarTypesToSqlTypes[col.Type]} {nullable},");
             }
 
             var index = createQueryBuilder.ToString().LastIndexOf(',');
@@ -80,7 +82,18 @@ namespace ReportService.Operations.DataExporters
 
             if (DropBefore)
                 await connection.ExecuteAsync(new CommandDefinition(
-                    $"IF OBJECT_ID('{TableName}') IS NOT NULL DELETE {TableName}",
+                    $@"DO
+                        $$
+                        BEGIN
+	                        IF(SELECT EXISTS(
+			                        SELECT 1 
+			                        FROM pg_tables
+			                        WHERE tablename = '{TableName}'
+		                        ))THEN
+		                        DELETE FROM ""{TableName}"";
+                            END IF;
+                        END;
+                        $$",
                     commandTimeout: DbTimeOut, cancellationToken: token));
 
             var query = BuildInsertQuery(columns);
