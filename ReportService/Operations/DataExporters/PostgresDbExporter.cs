@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
-using Dapper;
 using Google.Protobuf.Collections;
 using Npgsql;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters.Configurations;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 

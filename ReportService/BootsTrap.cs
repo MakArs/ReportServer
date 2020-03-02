@@ -113,6 +113,9 @@ namespace ReportService
             RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
                 (builder, "CommonB2BExporter");
 
+            RegisterNamedDataExporter<PostgresB2BExporter, B2BExporterConfig>
+                (builder, "PostgresB2BExporter");
+
             RegisterNamedDataExporter<SshExporter, SshExporterConfig>
                 (builder, "CommonSshExporter");
 

@@ -12,7 +12,7 @@ namespace ReportService.Interfaces.ReportTask
         Dictionary<string, OperationPackage> Packages { get; set; }
         List<string> PackageStates { get; set; }
         List<IOperation> OpersToExecute { get; set; }
-        int TaskId { get; set; }
+        long TaskId { get; set; }
         DtoTaskInstance TaskInstance { get; set; }
         CancellationTokenSource CancelSource { get; set; }
         string TaskName { get; set; }

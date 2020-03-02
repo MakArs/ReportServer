@@ -1,31 +1,23 @@
-﻿using System;
+﻿using System.Data.Common;
 using System.Data.SqlClient;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
-using Google.Protobuf;
-using ReportService.Entities;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters.Configurations;
 
 namespace ReportService.Operations.DataExporters
 {
-    public class B2BExporter : IOperation
+    public class B2BExporter : BaseB2BExporter
     {
-        public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
-        public bool RunIfVoidPackage { get; set; }
-
-        private readonly IArchiver archiver;
-
-        private string InsertQuery =>
-            $@"insert into {ExportInstanceTableName} 
-                ([ReportID], [Created], [DataPackage])
+        protected override string InsertQuery =>
+            $@"INSERT INTO ""{ExportInstanceTableName}""
+                (""ReportID"", ""Created"", ""DataPackage"")
                 VALUES(@ReportID, @Created, @DataPackage)";
 
-        private string DbStructureCheckQuery => $@"
+        protected override string DbStructureCheckQuery => $@"
                 IF OBJECT_ID('{ExportTableName}') IS NOT NULL
                 IF EXISTS(SELECT * FROM {ExportTableName} WHERE id = @taskId)
 				AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
@@ -44,56 +36,24 @@ namespace ReportService.Operations.DataExporters
                 SELECT 1
                 ELSE SELECT 0";
 
-        public string ConnectionString;
-        public string ExportTableName;
-        public string ExportInstanceTableName;
-        public int DbTimeOut;
-
         public B2BExporter(IMapper mapper, IArchiver archiver,
-            B2BExporterConfig config)
+            B2BExporterConfig config) : base(mapper, archiver, config)
+        {}
+
+        protected override async Task<bool> CheckIfDbStructureExists(DbConnection connection, IReportTaskRunContext taskContext)
         {
-            this.archiver = archiver;
-            mapper.Map(config, this);
-            mapper.Map(config, Properties);
+           var result= await connection.QueryFirstOrDefaultAsync<int>(new CommandDefinition(DbStructureCheckQuery,
+                    new { taskId = taskContext.TaskId }, commandTimeout: DbTimeOut,
+                    cancellationToken: taskContext.CancelSource.Token));
+
+            return result == 1;
         }
 
-        public async Task ExecuteAsync(IReportTaskRunContext taskContext)
+        public override async Task ExecuteAsync(IReportTaskRunContext taskContext)
         {
-            var package = taskContext.Packages[Properties.PackageName];
-
-            if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                return;
-
-            var token = taskContext.CancelSource.Token;
-
             await using var connection = new SqlConnection(ConnectionString);
 
-            if (await connection.QueryFirstOrDefaultAsync<int>(new CommandDefinition(DbStructureCheckQuery, 
-                    new { taskId = taskContext.TaskId }, commandTimeout: DbTimeOut,
-                    cancellationToken: token)) != 1)
-            {
-                var msg = "The export database structure doesn't contain the data required for export";
-                throw new Exception(msg);
-            }
-
-            byte[] archivedPackage;
-
-            await using (var stream = new MemoryStream())
-            {
-                package.WriteTo(stream);
-                archivedPackage = archiver.CompressStream(stream);
-            }
-
-            var newInstance = new
-            {
-                ReportID = taskContext.TaskId,
-                Created = DateTime.Now,
-                DataPackage = archivedPackage
-            };
-
-            await connection.ExecuteAsync(new CommandDefinition(InsertQuery,
-                newInstance, commandTimeout: DbTimeOut,
-                cancellationToken: token));
+            await ExportPackage(taskContext, connection);
         }
     }
 }

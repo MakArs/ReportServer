@@ -23,7 +23,7 @@ namespace ReportService.ReportTask
 
         public List<IOperation> OpersToExecute { get; set; }
 
-        public int TaskId { get; set; }
+        public long TaskId { get; set; }
         public DtoTaskInstance TaskInstance { get; set; }
         public CancellationTokenSource CancelSource { get; set; }
         public string TaskName { get; set; }
