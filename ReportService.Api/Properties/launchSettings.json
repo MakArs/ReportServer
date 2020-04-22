@@ -20,7 +20,7 @@
     "ReportService.Api": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:12344/site/tasks.html",
+      "launchUrl": "https://localhost:12344/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
