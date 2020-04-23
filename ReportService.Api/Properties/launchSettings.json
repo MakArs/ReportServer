@@ -15,16 +15,16 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:12344;http://localhost:12345"
+      "applicationUrl": "http://localhost:12345"
     },
     "ReportService.Api": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:12344/index.html",
+      "launchUrl": "http://localhost:12345/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:12344;http://localhost:12345"
+      "applicationUrl": "http://localhost:12345"
     },
     "Docker": {
       "commandName": "Docker",
@@ -32,8 +32,7 @@
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/",
       "publishAllPorts": true,
       "httpPort": 12345,
-      "useSSL": true,
-      "sslPort": 12344
+      "useSSL": true
     }
   }
 }
