@@ -1,6 +1,5 @@
 ﻿using System.Data.Common;
 using System.Data.SqlClient;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
@@ -13,7 +12,7 @@ namespace ReportService.Operations.DataExporters
     public class B2BExporter : BaseB2BExporter
     {
         protected override string InsertQuery =>
-            $@"INSERT INTO ""{ExportInstanceTableName}""
+            $@"INSERT INTO {ExportInstanceTableName}
                 (""ReportID"", ""Created"", ""DataPackage"")
                 VALUES(@ReportID, @Created, @DataPackage)";
 

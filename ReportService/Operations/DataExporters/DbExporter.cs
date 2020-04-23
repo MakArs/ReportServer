@@ -40,6 +40,27 @@ namespace ReportService.Operations.DataExporters
                 };
         }
 
+        protected override string BuildInsertQuery(RepeatedField<ColumnInfo> columns)
+        {
+            StringBuilder query = new StringBuilder($@"INSERT INTO {TableName} (");
+            for (int i = 0; i < columns.Count - 1; i++)
+            {
+                query.Append($@"""{columns[i].Name}"",");
+            }
+
+            query.Append($@"""{columns.Last().Name}"") VALUES (");
+
+            int j;
+            for (j = 0; j < columns.Count - 1; j++)
+            {
+                query.Append($"@p{j},");
+            }
+
+            query.Append($"@p{j})");
+
+            return query.ToString();
+        }
+
         protected override string BuildCreateTableQuery(RepeatedField<ColumnInfo> columns)
         {
             StringBuilder createQueryBuilder = new StringBuilder($@"IF OBJECT_ID('{TableName}') IS NULL

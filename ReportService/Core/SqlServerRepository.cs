@@ -109,7 +109,7 @@ namespace ReportService.Core
                 ($@"select oi.id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,ErrorMessage,Name as OperName
                     from OperInstance oi with(nolock)
                     join operation op with(nolock)
-                    n oi.OperationId=op.Id
+                    on oi.OperationId=op.Id
                     where oi.id={operInstanceId}",
                     commandTimeout: 60);
             }

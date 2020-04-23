@@ -10,7 +10,6 @@ using System.Data.Common;
 using Google.Protobuf;
 using System.Threading.Tasks;
 using System.IO;
-using System.Threading;
 
 namespace ReportService.Operations.DataExporters
 {
