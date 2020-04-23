@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using ReportService.Api.Models;
 
@@ -16,6 +17,7 @@ namespace ReportService.Api
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureContainer<ContainerBuilder>(builder =>
                 {
@@ -27,7 +29,9 @@ namespace ReportService.Api
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder
-                        .UseStartup<Startup>();
+                        .UseStartup<Startup>()
+                        .ConfigureAppConfiguration((hostingContext, config) =>
+                            config.AddJsonFile("hosting.json", optional: true));
                 });
     }
 }

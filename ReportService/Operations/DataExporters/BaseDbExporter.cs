@@ -107,7 +107,7 @@ namespace ReportService.Operations.DataExporters
                 transaction.Commit();
             }
 
-            catch (Exception e)
+            catch 
             {
                 transaction.Rollback();
                 throw;

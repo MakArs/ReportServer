@@ -7,8 +7,6 @@
     <!--for razorengine work-->
     <PreserveCompilationReferences>true</PreserveCompilationReferences>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyVersion>3.0.0.2</AssemblyVersion>
-    <FileVersion>3.0.0.2</FileVersion>
     <!--for razorengine work-->
   </PropertyGroup>
 
