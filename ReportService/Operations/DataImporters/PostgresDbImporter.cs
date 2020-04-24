@@ -33,7 +33,7 @@ namespace ReportService.Operations.DataImporters
 
                     await using var reader =
                         await connection.ExecuteReaderAsync(new CommandDefinition(
-                            $"{actualQuery}", parValues));
+                            $"{actualQuery}", parValues, commandTimeout: TimeOut));
                     FillPackage(reader, taskContext);
 
                     break;
