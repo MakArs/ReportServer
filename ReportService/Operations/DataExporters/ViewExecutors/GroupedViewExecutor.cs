@@ -287,8 +287,8 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                     else
                         base.AddDataSetToExcel(pack, packageContent[i]);
 
-                    if (pack.Workbook.Worksheets[i + 1].Name == "NoNamedList")
-                        pack.Workbook.Worksheets[i + 1].Name = $"Dataset{i + 1}";
+                    if (pack.Workbook.Worksheets[i].Name == "NoNamedList")
+                        pack.Workbook.Worksheets[i].Name = $"Dataset{i + 1}";
                 }
             }
 
