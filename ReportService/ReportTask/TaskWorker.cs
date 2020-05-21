@@ -90,7 +90,7 @@ namespace ReportService.ReportTask
                     var dependsOnStates = taskContext.DependsOn
                         .Select(dependency =>
                         {
-                            var state = repository.GetDependencyStateByTaskId(dependency.TaskId);
+                            var state = repository.GetTaskStateById(dependency.TaskId);
                             return new
                             {
                                 dependency.TaskId,

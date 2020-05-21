@@ -9,7 +9,7 @@ namespace ReportService.Interfaces.Core
     public interface IRepository
     {
         Task<object> GetBaseQueryResult(string query, CancellationToken token);
-        DependencyState GetDependencyStateByTaskId(long taskId);
+        TaskState GetTaskStateById(long taskId);
         Task<List<DtoTaskInstance>> GetAllTaskInstances(long taskId);
         List<DtoOperInstance> GetTaskOperInstances(long taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(long operInstanceId);

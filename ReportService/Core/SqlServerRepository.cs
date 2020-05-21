@@ -57,16 +57,23 @@ namespace ReportService.Core
             }
         }
 
-        public DependencyState GetDependencyStateByTaskId(long taskId)
+        public TaskState GetTaskStateById(long taskId)
         {
             using var connection = new SqlConnection(connectionString);
 
             try
             {
-                return connection.QueryFirst<DependencyState>(
-                    $@"SELECT max(case when State=2 then dateadd(ms,Duration,[StartTime]) else null end) LastSuccessfulFinish,
-	                                        count(case when State=1 then 1 else null end) InProcessCount
-                                            FROM[ReportServerDb].[dbo].[TaskInstance] with(nolock) where TaskId={taskId}",
+                return connection.QueryFirst<TaskState>(
+                    $@"SELECT max(case when State=2 then dateadd(ms,ti.Duration,ti.[StartTime]) else null end) LastSuccessfulFinish,
+	                                        count(case when State=1 then 1 else null end) InProcessCount,
+                                            iif(max(ti.[StartTime])>max(t.[UpdateDateTime]),
+                                                    max([StartTime]),
+                                                    max(t.[UpdateDateTime])) LastStart
+                                            FROM
+											[dbo].[Task] t with(nolock)
+											left join [dbo].[TaskInstance] ti with(nolock)
+											on t.id=ti.TaskID
+											where t.id={taskId}",
                     commandTimeout: 30);
             }
 

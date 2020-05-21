@@ -113,10 +113,10 @@ namespace ReportService.ReportTask
             context.CancelSource = new CancellationTokenSource();
 
 
-            var pairsTask =Task.Run(async()=>await Task.WhenAll(Parameters.Select(async pair => 
-            new KeyValuePair<string,object>(pair.Key, 
-            await repository.GetBaseQueryResult("select " + pair.Value,
-            context.CancelSource.Token)))));
+            var pairsTask = Task.Run(async () => await Task.WhenAll(Parameters.Select(async pair =>
+                new KeyValuePair<string, object>(pair.Key,
+                await repository.GetBaseQueryResult("select " + pair.Value,
+                context.CancelSource.Token)))));
 
             var pairs = pairsTask.Result;
 
@@ -128,7 +128,7 @@ namespace ReportService.ReportTask
                 TaskId = Id,
                 StartTime = DateTime.Now,
                 Duration = 0,
-                State = (int) InstanceState.InProcess
+                State = (int)InstanceState.InProcess
             };
 
             dtoTaskInstance.Id =
@@ -166,7 +166,8 @@ namespace ReportService.ReportTask
 
         public void UpdateLastTime()
         {
-            LastTime = DateTime.Now;
+            var taskState = repository.GetTaskStateById(Id);
+            LastTime = taskState.LastStart;
         }
     } //class
 }

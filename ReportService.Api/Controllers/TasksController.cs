@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Domain0.Tokens;
@@ -146,7 +147,10 @@ namespace ReportService.Api.Controllers
         {
             try
             {
-                var id = logic.CreateTask(mapper.Map<DtoTask>(newTask), newTask.BindedOpers);
+                var dtoTask = mapper.Map<DtoTask>(newTask);
+                dtoTask.UpdateDateTime = DateTime.Now;
+
+                var id = logic.CreateTask(dtoTask, newTask.BindedOpers);
 
                 return GetSuccessfulResult(id.ToString());
             }
@@ -170,7 +174,10 @@ namespace ReportService.Api.Controllers
                         StatusCode = StatusCodes.Status400BadRequest
                     };
 
-                logic.UpdateTask(mapper.Map<DtoTask>(task), task.BindedOpers);
+                var dtoTask = mapper.Map<DtoTask>(task);
+                dtoTask.UpdateDateTime = DateTime.Now;
+
+                logic.UpdateTask(dtoTask, task.BindedOpers);
 
                 return new ContentResult {StatusCode = StatusCodes.Status200OK};
             }

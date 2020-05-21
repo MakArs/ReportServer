@@ -58,18 +58,23 @@ namespace ReportService.Core
             }
         }
 
-        public DependencyState GetDependencyStateByTaskId(long taskId)
+        public TaskState GetTaskStateById(long taskId)
         {
             using var connection = new NpgsqlConnection(connectionString); //todo
 
             try
             {
-                return connection.QueryFirst<DependencyState>(
+                return connection.QueryFirst<TaskState>(
                     $@"SELECT max(case when ""State""=2 then ""StartTime""+ ""Duration""*INTERVAL'1 ms' 
-                                        else null end) LastSuccessfulFinish,
-                        count(case when ""State=1"" then 1 else null end) InProcessCount
-                        FROM ""TaskInstance"" 
-                        where ""TaskId""={taskId}",
+		                        else null end) LastSuccessfulFinish,
+	                                        count(case when ""State""=1 then 1 else null end) InProcessCount,
+                                            case when max(ti.""StartTime"")>max(t.""UpdateDateTime"") then max(ti.""StartTime"")
+											else  max(t.""UpdateDateTime"") end LastStart
+                                            FROM
+											""Task"" t
+											left join ""TaskInstance"" ti 
+											on t.""Id""=ti.""TaskId""
+											where t.""Id""={taskId}",
                     commandTimeout: 30);
             }
 

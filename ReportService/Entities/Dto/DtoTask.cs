@@ -1,5 +1,6 @@
 ﻿using Dapper.Contrib.Extensions;
 using ReportService.Interfaces.Core;
+using System;
 
 namespace ReportService.Entities.Dto
 {
@@ -12,5 +13,6 @@ namespace ReportService.Entities.Dto
         public string Parameters { get; set; }
         public string DependsOn { get; set; }
         public int? ScheduleId { get; set; }
+        public DateTime UpdateDateTime { get; set;}
     }
 }

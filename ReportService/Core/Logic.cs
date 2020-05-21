@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac.Core;
+using Microsoft.Extensions.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Monik.Common;
@@ -138,13 +139,16 @@ namespace ReportService.Core
                 foreach (var cronString in cronStrings)
                 {
                     var cronSchedule = CrontabSchedule.TryParse(cronString);
-
+                    
                     if (cronSchedule == null) continue;
 
                     var occurrences =
                         cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
 
-                    if (!occurrences.Any()) continue;
+                    if (!occurrences.Any() ||
+                        contextsInWork.Select(cont => cont.Value)
+                        .Where(rtask => rtask.TaskId == task.Id).Any())
+                        continue;
 
                     ExecuteTask(task);
                     break;
@@ -154,8 +158,6 @@ namespace ReportService.Core
 
         private void ExecuteTask(IReportTask task)
         {
-            task.UpdateLastTime();
-
             SendServiceInfo($"Executing task {task.Id} (scheduled)");
 
             var context = task.GetCurrentContext(false);
@@ -169,6 +171,8 @@ namespace ReportService.Core
 
             Task.Factory.StartNew(() => task.Execute(context), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
+
+            task.UpdateLastTime();
         }
 
         private void EndContextWork(long taskInstanceId)
@@ -284,7 +288,7 @@ namespace ReportService.Core
 
             lock (tasks)
                 currentTasks = tasks.ToList();
-
+            
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
