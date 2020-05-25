@@ -507,6 +507,7 @@ namespace ReportService.Core
                 ""ScheduleId"" INT NULL,
                 ""Parameters"" VARCHAR(1023) NULL,
                 ""DependsOn"" VARCHAR(1023) NULL,
+                ""UpdateDateTime"" TIMESTAMP(3) NOT NULL,
                 CONSTRAINT ""PK_Task_Id"" PRIMARY KEY(""Id""),
                 CONSTRAINT ""FK_Task_Schedule"" FOREIGN KEY(""ScheduleId"") 
                 REFERENCES ""Schedule""(""Id"")

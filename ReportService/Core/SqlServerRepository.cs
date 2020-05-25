@@ -472,6 +472,7 @@ namespace ReportService.Core
                 ScheduleId INT NULL,
                 Parameters NVARCHAR(1023) NULL,
                 DependsOn NVARCHAR(1023) NULL,
+                UpdateDateTime datetime NOT NULL
                 CONSTRAINT [PK__Task__Id] PRIMARY KEY CLUSTERED 
                 ([Id] ASC),
                 CONSTRAINT FK_Task_Schedule FOREIGN KEY(ScheduleId) 
