@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MimeKit;
+using ReportService.Entities;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ReportService.Interfaces.Core
 {
-    interface IEmailClientService
+    public interface IEmailClientService
     {
+        Task<MimePart> GetFileFromEmail(EmailSettings settings, CancellationToken token);
     }
 }

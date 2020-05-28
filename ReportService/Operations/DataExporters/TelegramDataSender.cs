@@ -14,6 +14,7 @@ namespace ReportService.Operations.DataExporters
 {
     public class TelegramDataSender : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public string PackageName { get; set; }
 

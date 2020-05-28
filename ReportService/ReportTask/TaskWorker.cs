@@ -144,7 +144,7 @@ namespace ReportService.ReportTask
 
             bool deleteFolder = false;
 
-            if (taskContext.OpersToExecute.Any(oper => oper is SshImporter)) //todo:not sshimporter but needsfolder
+            if (taskContext.OpersToExecute.Any(oper => oper.CreateDataFolder))
             {
                 deleteFolder = true;
                 taskContext.CreateDataFolder();

@@ -19,6 +19,7 @@ namespace ReportService.Operations.DataExporters
 {
     public class FtpExporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         private readonly IViewExecutor viewExecutor;
         private readonly ILifetimeScope autofac;
@@ -32,7 +33,7 @@ namespace ReportService.Operations.DataExporters
 
         public bool ConvertPackageToCsv;
 
-        //public bool ConvertPackageToXml; //in future
+        public bool ConvertPackageToXml; 
         public bool UseAllSets;
         public string PackageRename;
         public string Host;

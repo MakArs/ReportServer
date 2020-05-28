@@ -19,6 +19,7 @@ namespace ReportService.Operations.DataExporters
 {
     public class EmailDataSender : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool RunIfVoidPackage { get; set; }
 

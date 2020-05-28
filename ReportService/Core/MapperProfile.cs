@@ -36,12 +36,14 @@ namespace ReportService.Core
             CreateMap<TelegramExporterConfig, CommonOperationProperties>();
             CreateMap<B2BExporterConfig, BaseB2BExporter>();
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
+
             CreateMap<DbImporterConfig, BaseDbImporter>()
                 .ForMember("DataSetNames", opt =>
                     opt.MapFrom(s => s.DataSetNames.Split(new[] {';'},
                             StringSplitOptions.RemoveEmptyEntries)
                         .Where(name => !string.IsNullOrWhiteSpace(name))
                         .ToList()));
+
             CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelImporter>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
@@ -57,6 +59,9 @@ namespace ReportService.Core
             CreateMap<FtpExporterConfig, CommonOperationProperties>();
             CreateMap<HistoryImporterConfig, HistoryImporter>();
             CreateMap<HistoryImporterConfig, CommonOperationProperties>();
+
+            CreateMap<EmailImporterConfig, EmailSettings>()
+                .ForMember("Username", opt=>opt.MapFrom(s=> s.Email));
         }
     }
 }

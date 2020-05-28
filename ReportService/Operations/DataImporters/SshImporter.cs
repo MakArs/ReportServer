@@ -12,6 +12,7 @@ namespace ReportService.Operations.DataImporters
 {
     public class SshImporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public string Host;
         public string Login; 
@@ -20,6 +21,8 @@ namespace ReportService.Operations.DataImporters
 
         public SshImporter(IMapper mapper, SshImporterConfig config)
         {
+            CreateDataFolder = true;
+
             mapper.Map(config, this);
             mapper.Map(config, Properties);
         }

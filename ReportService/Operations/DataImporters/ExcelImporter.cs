@@ -13,6 +13,7 @@ namespace ReportService.Operations.DataImporters
 {
     public class ExcelImporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         private readonly IPackageBuilder packageBuilder;
         public ExcelReadingParameters ExcelParameters;
 

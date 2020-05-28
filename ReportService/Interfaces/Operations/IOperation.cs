@@ -7,6 +7,7 @@ namespace ReportService.Interfaces.Operations
     public interface IOperation
     {
         CommonOperationProperties Properties { get; set; }
+        bool CreateDataFolder { get; set; }
         Task ExecuteAsync(IReportTaskRunContext taskContext);
     }
 }

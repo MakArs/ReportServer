@@ -10,6 +10,7 @@ namespace ReportService.Operations.DataImporters
 {
     public class HistoryImporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         private readonly IRepository repos;
         private readonly IArchiver archiver;

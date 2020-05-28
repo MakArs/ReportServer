@@ -7,7 +7,7 @@ namespace ReportService.Operations.DataExporters.Configurations
         public string PackageName { get; set; }
         public bool RunIfVoidPackage { get; set; }
         public bool DateInName;
-        public string FileFolder;
+        public string SourceFileFolder;
         public string FileName;
         public bool ConvertPackageToXlsx;
         public bool ConvertPackageToJson;

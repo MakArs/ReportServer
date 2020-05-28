@@ -14,6 +14,7 @@ namespace ReportService.Operations.DataImporters
 {
     public abstract class BaseDbImporter: IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool SendVoidPackageError;
 

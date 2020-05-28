@@ -55,36 +55,36 @@ namespace ReportService.ReportTask
 
         private void ParseDtoOperations(ILogic logic, List<DtoOperation> opers)
         {
-            foreach (var operation in opers)
+            foreach (var dtoOperation in opers)
             {
-                IOperation newOper;
+                IOperation operation;
 
-                var operType = operation.ImplementationType;
+                var operType = dtoOperation.ImplementationType;
 
                 if (logic.RegisteredImporters.ContainsKey(operType))
                 {
-                    newOper = autofac.ResolveNamed<IOperation>(operType,
+                    operation = autofac.ResolveNamed<IOperation>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(operation.Config,
+                            JsonConvert.DeserializeObject(dtoOperation.Config,
                                 logic.RegisteredImporters[operType])));
                 }
 
                 else
                 {
-                    newOper = autofac.ResolveNamed<IOperation>(operType,
+                    operation = autofac.ResolveNamed<IOperation>(operType,
                         new NamedParameter("config",
-                            JsonConvert.DeserializeObject(operation.Config,
+                            JsonConvert.DeserializeObject(dtoOperation.Config,
                                 logic.RegisteredExporters[operType])));
                 }
 
-                if (newOper == null) continue;
+                if (operation == null) continue;
 
-                newOper.Properties.Id = operation.Id;
-                newOper.Properties.Number = operation.Number;
-                newOper.Properties.Name = operation.Name;
-                newOper.Properties.IsDefault = operation.IsDefault;
+                operation.Properties.Id = dtoOperation.Id;
+                operation.Properties.Number = dtoOperation.Number;
+                operation.Properties.Name = dtoOperation.Name;
+                operation.Properties.IsDefault = dtoOperation.IsDefault;
 
-                Operations.Add(newOper);
+                Operations.Add(operation);
             }
         }
 

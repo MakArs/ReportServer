@@ -98,6 +98,9 @@ namespace ReportService
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>
                 (builder, "CommonSshImporter");
 
+            RegisterNamedDataImporter<EmailAttachementImporter, EmailImporterConfig>
+              (builder, "CommonEmailImporter");
+
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
                 (builder, "CommonEmailSender");
 
@@ -164,7 +167,6 @@ namespace ReportService
 
             builder.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
-
             builder.RegisterNamedImplementation<IArchiver, ArchiverZip>("Zip");
             builder.RegisterNamedImplementation<IArchiver, Archiver7Zip>("7Zip");
 
@@ -186,6 +188,8 @@ namespace ReportService
             builder.RegisterImplementation<IPackageParser, ProtoPackageParser>();
 
             builder.RegisterImplementation<IProtoSerializer, ProtoSerializer>();
+
+            builder.RegisterImplementation<IEmailClientService, EmailClientService>();
 
             ConfigureTelegramBot(builder, config);
         }

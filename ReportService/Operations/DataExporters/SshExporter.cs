@@ -12,17 +12,19 @@ using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters.Configurations;
+using System.Xml.Serialization;
 
 namespace ReportService.Operations.DataExporters
 {
     public class SshExporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         private readonly IViewExecutor viewExecutor;
         private readonly ILifetimeScope autofac;
 
         public bool DateInName;
-        public string FileFolder;
+        public string SourceFileFolder;
         public string FileName;
         public bool RunIfVoidPackage { get; set; }
         public bool ConvertPackageToXlsx;
@@ -47,11 +49,6 @@ namespace ReportService.Operations.DataExporters
 
         private void Execute(IReportTaskRunContext taskContext)
         {
-            var package = taskContext.Packages[Properties.PackageName];
-
-            if (!RunIfVoidPackage && package.DataSets.Count == 0)
-                return;
-
             using var client = new SftpClient(Host, Login, Password);
 
             client.Connect();
@@ -59,8 +56,16 @@ namespace ReportService.Operations.DataExporters
             if (ClearInterval > 0)
                 CleanupFolder(client);
 
-            if (!string.IsNullOrEmpty(FileName) && !string.IsNullOrEmpty(FileFolder))
+            if (!string.IsNullOrEmpty(FileName) && !string.IsNullOrEmpty(SourceFileFolder))
                 SaveFileToServer(taskContext, client);
+
+            if (string.IsNullOrEmpty(Properties.PackageName))
+                return;
+
+            var package = taskContext.Packages[Properties.PackageName];
+
+            if (!RunIfVoidPackage && package.DataSets.Count == 0)
+                return;
 
             var packageFileName = (string.IsNullOrEmpty(PackageRename)
                                       ? $@"{Properties.PackageName}"
@@ -77,6 +82,9 @@ namespace ReportService.Operations.DataExporters
 
             if (ConvertPackageToCsv)
                 SaveCsvPackageToServer(package, packageFileName, client);
+
+            //if (ConvertPackageToXml)
+            //    SaveXmlFileToServer(package, packageFileName, client);
         }
 
         private void CleanupFolder(SftpClient client)
@@ -132,9 +140,22 @@ namespace ReportService.Operations.DataExporters
             client.UploadFile(streamJson, Path.Combine(FolderPath, filenameJson));
         }
 
+        private void SaveXmlFileToServer(OperationPackage package, string packageFileName, SftpClient client)
+        {
+            var filenameXml = packageFileName
+                               + ".xml";
+            XmlSerializer formatter = new XmlSerializer(typeof(DataSet));
+           
+            using var streamXml = new MemoryStream();
+
+            formatter.Serialize(streamXml, package.DataSets.First());
+
+            client.UploadFile(streamXml, Path.Combine(FolderPath, filenameXml));
+        }
+
         private void SaveFileToServer(IReportTaskRunContext taskContext, SftpClient client)
         {
-            var fullPath = Path.Combine(FileFolder == "Default folder" ? taskContext.DataFolderPath : FileFolder,
+            var fullPath = Path.Combine(SourceFileFolder == "Default folder" ? taskContext.DataFolderPath : SourceFileFolder,
                 FileName);
 
             using FileStream fstr = File.OpenRead(fullPath);

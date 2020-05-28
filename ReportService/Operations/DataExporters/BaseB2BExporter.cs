@@ -15,6 +15,7 @@ namespace ReportService.Operations.DataExporters
 {
     public abstract class BaseB2BExporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool RunIfVoidPackage { get; set; }
 

@@ -13,6 +13,7 @@ namespace ReportService.Operations.DataImporters
 {
     public class CsvImporter : IOperation
     {
+        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
         public bool SendVoidPackageError;
 

@@ -62,7 +62,7 @@ namespace ReportService.Core
 
         private async Task MarkMessageSeenAsync(UniqueId uid, CancellationToken token)
         {
-            await imapClient.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true);
+            await imapClient.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, token);
         }
 
         private async Task DisconnectAsync(CancellationToken token)
