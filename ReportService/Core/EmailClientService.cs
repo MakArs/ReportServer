@@ -31,7 +31,7 @@ namespace ReportService.Core
             var att = (msg.Message.Attachments.First(att => (att as MimePart)
                    .FileName == settings.AttachmentName) as MimePart);
 
-            await MarkMessageSeenAsync(msg.Uid, token);
+            await DeleteMessageAsync(msg.Uid, token);
 
             await DisconnectAsync(CancellationToken.None);
 
@@ -63,6 +63,12 @@ namespace ReportService.Core
         private async Task MarkMessageSeenAsync(UniqueId uid, CancellationToken token)
         {
             await imapClient.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, token);
+        }
+
+        public async Task DeleteMessageAsync(UniqueId uid, CancellationToken token)
+        {
+            imapClient.Inbox.AddFlags(uid, MessageFlags.Deleted, true, token);
+            await imapClient.Inbox.ExpungeAsync(token);
         }
 
         private async Task DisconnectAsync(CancellationToken token)
