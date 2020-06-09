@@ -22,13 +22,19 @@ namespace ReportService.Core
 
             var messages = await GetAllNewMessagesAsync(settings, token);
 
+            if (messages.Count == 0)
+                throw new Exception("No new emails found");
+
             var msg = messages.OrderByDescending(msg => msg.Message.Date)
                .Where(msg => msg.Message.Attachments.Any
                (att => (att as MimePart)
                    .FileName == settings.AttachmentName))
-               .First();
+               .FirstOrDefault();
 
-            var att = (msg.Message.Attachments.First(att => (att as MimePart)
+            if (msg == null)
+                throw new Exception("No matching files found in new emails");
+
+            var att = (msg.Message.Attachments.FirstOrDefault(att => (att as MimePart)
                    .FileName == settings.AttachmentName) as MimePart);
 
             await DeleteMessageAsync(msg.Uid, token);

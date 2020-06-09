@@ -155,12 +155,16 @@ namespace ReportService.Operations.DataExporters
 
         private void SaveFileToServer(IReportTaskRunContext taskContext, SftpClient client)
         {
+            var localFileName = Path.GetFileNameWithoutExtension(FileName) +
+                (DateInName ? $" {DateTime.Now:dd.MM.yy}" : null)
+                + Path.GetExtension(FileName);            
+
             var fullPath = Path.Combine(SourceFileFolder == "Default folder" ? taskContext.DataFolderPath : SourceFileFolder,
                 FileName);
 
             using FileStream fstr = File.OpenRead(fullPath);
 
-            client.UploadFile(fstr, Path.Combine(FolderPath, FileName));
+            client.UploadFile(fstr, Path.Combine(FolderPath, localFileName));
         }
 
         public Task ExecuteAsync(IReportTaskRunContext taskContext)
