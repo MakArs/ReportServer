@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  reportservice.api:
+    image: ${DOCKER_REGISTRY-}reportserviceapi
+    build:
+      context: .
+      dockerfile: ReportService.Api/Dockerfile
+    ports:
+      - 12345:80
+    volumes:
+      - $HOME/docker/volumes/reports:/app/reports
+    environment:
+      ASPNETCORE_URLS: "http://+"
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    driver: bridge
