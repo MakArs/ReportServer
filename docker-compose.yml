@@ -11,7 +11,7 @@ services:
     volumes:
       - $HOME/docker/volumes/reports:/app/reports
     environment:
-      ASPNETCORE_URLS: "http://+"
+      ASPNETCORE_URLS: "http://+:12345"
     networks:
       - mynetwork
 networks:
