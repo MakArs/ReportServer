@@ -24,7 +24,6 @@ RUN apk add tzdata \
         && echo "${TZ}" > /etc/timezone
 
 COPY . .
-WORKDIR "src/ReportService.Api"
 RUN dotnet build "ReportService.Api.csproj" -c Release -o /app/build 
 
 FROM build AS publish

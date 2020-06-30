@@ -14,15 +14,14 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 
 
 WORKDIR /src
-COPY ["ReportService/ReportService.csproj", "ReportService/"]
-RUN dotnet restore "ReportService/ReportService.csproj"
+COPY ["ReportService/ReportService.csproj", ""]
+RUN dotnet restore "ReportService.csproj"
 
 RUN apk add tzdata \
         && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
         && echo "${TZ}" > /etc/timezone
 
 COPY . .
-WORKDIR "/src/ReportService"
 RUN dotnet build "ReportService.csproj" -c Release -o /app/build
 
 FROM build AS publish
