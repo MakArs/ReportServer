@@ -17,7 +17,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 
 WORKDIR /src
 COPY ["ReportService.Api/ReportService.Api.csproj", ""]
-RUN dotnet restore "ReportService.Api.csproj"
+RUN dotnet restore "ReportService.Api/ReportService.Api.csproj"
 
 RUN apk add tzdata \
         && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
