@@ -8,8 +8,7 @@
     <PreserveCompilationReferences>true</PreserveCompilationReferences>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyVersion>3.0.1.2</AssemblyVersion>
-    <FileVersion>3.0.1.2</FileVersion>
-    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <FileVersion>3.0.1.0</FileVersion>
     <!--for razorengine work-->
   </PropertyGroup>
 

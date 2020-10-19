@@ -240,7 +240,7 @@ namespace ReportService
 
             var monikSettings = new ClientSettings
             {
-                SourceName = config["MonikSettings:SourceName"],
+                SourceName = "ReportServer",
                 InstanceName = config["MonikSettings:InstanceName"],
                 AutoKeepAliveEnable = true
             };
