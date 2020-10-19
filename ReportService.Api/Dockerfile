@@ -19,19 +19,23 @@ WORKDIR /src
 COPY ["ReportService.Api/ReportService.Api.csproj", "ReportService.Api/"]
 RUN dotnet restore "ReportService.Api/ReportService.Api.csproj"
 
-#RUN apk add tzdata \
-        #&& cp /usr/share/zoneinfo/${TZ} /etc/localtime \
-        #&& echo "${TZ}" > /etc/timezone
-#
-#COPY . .
-#WORKDIR "src/ReportService.Api"
-#RUN dotnet build "ReportService.Api.csproj" -c Release -o /app/build 
-#
-#FROM build AS publish
-#
-#RUN dotnet publish "ReportService.Api.csproj" -c Release -o /app/publish 
-#
-#FROM base AS final
-#WORKDIR /app
-#COPY --from=publish /app/publish .
-#ENTRYPOINT ["dotnet", "ReportService.Api.dll"]
+RUN apk add tzdata \
+        && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
+        && echo "${TZ}" > /etc/timezone
+
+COPY . .
+WORKDIR "src/ReportService.Api"
+RUN dotnet build "ReportService.Api.csproj" -c Release -o /app/build 
+
+WORKDIR "src/ReportService.Api"
+
+FROM build AS publish
+
+RUN dotnet publish "ReportService.Api.csproj" -c Release -o /app/publish 
+
+WORKDIR "src/ReportService.Api"
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "ReportService.Api.dll"]
