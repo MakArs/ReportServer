@@ -27,13 +27,9 @@ COPY . .
 WORKDIR "src/ReportService.Api"
 RUN dotnet build "ReportService.Api.csproj" -c Release -o /app/build 
 
-WORKDIR "src/ReportService.Api"
-
 FROM build AS publish
 
 RUN dotnet publish "ReportService.Api.csproj" -c Release -o /app/publish 
-
-WORKDIR "src/ReportService.Api"
 
 FROM base AS final
 WORKDIR /app
