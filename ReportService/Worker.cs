@@ -36,9 +36,21 @@ namespace ReportService
 
             while (!cancelToken.IsCancellationRequested)
             {
-                await Task.Factory.StartNew(Method, cancelToken);
+                try
+                {
+                    await Task.Factory.StartNew(Method, cancelToken);
 
-                await Task.Delay(Period * 1000, cancelToken);
+                    await Task.Delay(Period * 1000, cancelToken);
+
+                }
+                catch(TaskCanceledException _)
+                {
+                    monik.ApplicationWarning("Stopping...");
+                }
+                catch (Exception ex)
+                {
+                    monik.ApplicationError($"Error in core schedule loop: {ex}");
+                }
             }
         }
 
