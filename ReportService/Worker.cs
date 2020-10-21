@@ -39,17 +39,27 @@ namespace ReportService
                 try
                 {
                     await Task.Factory.StartNew(Method, cancelToken);
-
-                    await Task.Delay(Period * 1000, cancelToken);
-
                 }
-                catch(TaskCanceledException _)
+                catch (TaskCanceledException _)
                 {
                     monik.ApplicationWarning("Stopping...");
+                }
+                catch (AggregateException aggrExc)
+                {
+                    monik.ApplicationError("Aggregate exception at: " + stringVersion);
+                    aggrExc.Handle((ex) =>
+                    {
+                        monik.ApplicationError($"Inner exception of type {ex.GetType().Name} has occured. Message: {ex.Message} Stacktrace: {ex.StackTrace}");
+                        return true;
+                    });
                 }
                 catch (Exception ex)
                 {
                     monik.ApplicationError($"Error in core schedule loop: {ex}");
+                }
+                finally
+                {
+                    await Task.Delay(Period * 1000, cancelToken);
                 }
             }
         }
