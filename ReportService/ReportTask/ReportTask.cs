@@ -8,6 +8,7 @@ using Monik.Common;
 using Newtonsoft.Json;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
+using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
@@ -92,51 +93,64 @@ namespace ReportService.ReportTask
         {
             var context = autofac.Resolve<IReportTaskRunContext>();
 
-            context.OpersToExecute = takeDefault
-                ? Operations.Where(oper => oper.Properties.IsDefault)
-                    .OrderBy(oper => oper.Properties.Number).ToList()
-                : Operations.OrderBy(oper => oper.Properties.Number).ToList();
-
-            if (!context.OpersToExecute.Any())
+            try
             {
-                var msg = $"Task {Id} did not executed (no operations found)";
-                monik.ApplicationInfo(msg);
-                Console.WriteLine(msg);
-                return null;
+                context.OpersToExecute = takeDefault
+                    ? Operations.Where(oper => oper.Properties.IsDefault)
+                        .OrderBy(oper => oper.Properties.Number).ToList()
+                    : Operations.OrderBy(oper => oper.Properties.Number).ToList();
+
+                if (!context.OpersToExecute.Any())
+                {
+                    var msg = $"Task {Id} did not executed (no operations found)";
+                    monik.ApplicationInfo(msg);
+                    Console.WriteLine(msg);
+                    return null;
+                }
+
+                context.DefaultExporter = autofac.Resolve<IDefaultTaskExporter>();
+                context.TaskId = Id;
+                context.TaskName = Name;
+                context.DependsOn = DependsOn;
+
+                context.CancelSource = new CancellationTokenSource();
+
+
+                var pairsTask = Task.Run(async () => await Task.WhenAll(Parameters.Select(async pair =>
+                    new KeyValuePair<string, object>(pair.Key,
+                    await repository.GetBaseQueryResult("select " + pair.Value,
+                    context.CancelSource.Token)))));
+
+                var pairs = pairsTask.Result;
+
+                context.Parameters = pairs
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+                var dtoTaskInstance = new DtoTaskInstance
+                {
+                    TaskId = Id,
+                    StartTime = DateTime.Now,
+                    Duration = 0,
+                    State = (int)InstanceState.InProcess
+                };
+
+                dtoTaskInstance.Id =
+                    repository.CreateEntity(dtoTaskInstance);
+
+                context.TaskInstance = dtoTaskInstance;
+
+                return context;
             }
-
-            context.DefaultExporter = autofac.Resolve<IDefaultTaskExporter>();
-            context.TaskId = Id;
-            context.TaskName = Name;
-            context.DependsOn = DependsOn;
-
-            context.CancelSource = new CancellationTokenSource();
-
-
-            var pairsTask = Task.Run(async () => await Task.WhenAll(Parameters.Select(async pair =>
-                new KeyValuePair<string, object>(pair.Key,
-                await repository.GetBaseQueryResult("select " + pair.Value,
-                context.CancelSource.Token)))));
-
-            var pairs = pairsTask.Result;
-
-            context.Parameters = pairs
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            var dtoTaskInstance = new DtoTaskInstance
+            catch (Exception ex)
             {
-                TaskId = Id,
-                StartTime = DateTime.Now,
-                Duration = 0,
-                State = (int)InstanceState.InProcess
-            };
+                var exceptions = new List<Tuple<Exception, string>>();
+                var allExceptions = ex.FromHierarchy(e => e.InnerException).ToList();
 
-            dtoTaskInstance.Id =
-                repository.CreateEntity(dtoTaskInstance);
-
-            context.TaskInstance = dtoTaskInstance;
-
-            return context;
+                exceptions.AddRange(allExceptions
+                    .Select(exx => new Tuple<Exception, string>(exx, context.TaskName)));
+                context.DefaultExporter.SendError(exceptions, context.TaskName);
+			}
+            return null;
         }
 
         public void Execute(IReportTaskRunContext context)
