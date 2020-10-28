@@ -279,6 +279,7 @@ namespace ReportService.ReportTask
                             dtoOperInstance.ErrorMessage =
                                 string.Join("\n", allExceptions.Select(exx => exx.Message));
                         }
+                        dtoOperInstance.ErrorMessage += $"Error occured in task, Id: {taskContext.TaskId}, Name: {taskContext.TaskName}.";
 
                         dtoOperInstance.State = (int) InstanceState.Failed;
                     }

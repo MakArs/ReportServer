@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿//#define TEST
+using System.Linq;
 using Domain0.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -35,9 +36,17 @@ namespace ReportService.Api.Controllers
             {
                 var claims = User.Claims
                     .FirstOrDefault(claim => claim.Type == PermissionsType)?.Value;
-
                 ApiUserRole role = ApiUserRole.NoRole;
 
+#if TEST
+                if (claims != null)
+                    if (claims.Contains("api.basic"))
+                        role = ApiUserRole.Editor;
+                    else if (claims.Contains("api.basic"))
+                        role = ApiUserRole.StopRunner;
+                    else if (claims.Contains("api.basic"))
+                        role = ApiUserRole.Viewer;
+#else
                 if (claims != null)
                     if (claims.Contains("reporting.edit"))
                         role = ApiUserRole.Editor;
@@ -45,6 +54,7 @@ namespace ReportService.Api.Controllers
                         role = ApiUserRole.StopRunner;
                     else if (claims.Contains("reporting.view"))
                         role = ApiUserRole.Viewer;
+#endif
 
                 return GetSuccessfulResult(JsonConvert.SerializeObject(role));
             }

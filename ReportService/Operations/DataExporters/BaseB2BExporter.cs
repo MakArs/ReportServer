@@ -52,7 +52,7 @@ namespace ReportService.Operations.DataExporters
 
             if (!dbStructureExists)
             {
-                var msg = "The export database structure doesn't contain the data required for export";
+                var msg = $"The export database structure doesn't contain the data required for export. Required ExportTableName: {ExportTableName}, ExportInstanceTableName: {ExportInstanceTableName}.";
                 throw new Exception(msg);
             }
 
