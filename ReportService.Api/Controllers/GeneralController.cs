@@ -3,6 +3,7 @@ using Domain0.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace ReportService.Api.Controllers
@@ -12,6 +13,12 @@ namespace ReportService.Api.Controllers
     public class GeneralController : BaseController
     {
         private const string GetUserRoleRoute = "roles";
+        private readonly IConfigurationRoot configurationRoot;
+
+        public GeneralController(IConfigurationRoot configurationRoot)
+        {
+            this.configurationRoot = configurationRoot;
+        }
 
         [HttpGet]
         public IActionResult IsAlive()
@@ -35,15 +42,14 @@ namespace ReportService.Api.Controllers
             {
                 var claims = User.Claims
                     .FirstOrDefault(claim => claim.Type == PermissionsType)?.Value;
-
                 ApiUserRole role = ApiUserRole.NoRole;
 
                 if (claims != null)
-                    if (claims.Contains("reporting.edit"))
+                    if (claims.Contains(configurationRoot["PermissionsSettings:Permissions_Edit"]))
                         role = ApiUserRole.Editor;
-                    else if (claims.Contains("reporting.stoprun"))
+                    else if (claims.Contains(configurationRoot["PermissionsSettings:Permissions_StopRun"]))
                         role = ApiUserRole.StopRunner;
-                    else if (claims.Contains("reporting.view"))
+                    else if (claims.Contains(configurationRoot["PermissionsSettings: Permissions_View"]))
                         role = ApiUserRole.Viewer;
 
                 return GetSuccessfulResult(JsonConvert.SerializeObject(role));
