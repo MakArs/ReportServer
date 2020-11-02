@@ -13,31 +13,33 @@ using System.IO;
 
 namespace ReportService.Operations.DataExporters
 {
+
+
     public abstract class BaseB2BExporter : IOperation
     {
-        public bool CreateDataFolder { get; set; }
         public CommonOperationProperties Properties { get; set; } = new CommonOperationProperties();
+
+        public bool CreateDataFolder { get; set; }
         public bool RunIfVoidPackage { get; set; }
+        public string ExportTableName { get; set; }
+        public string ExportInstanceTableName { get; set; }
+        public int DbTimeOut { get; set; }
+        public string ConnectionString;
 
         protected readonly IArchiver archiver;
-
-        public string ConnectionString;
-        public string ExportTableName;
-        public string ExportInstanceTableName;
-        public int DbTimeOut;
-
+        protected readonly IDBStructureChecker dbStructureChecker;
         protected abstract string InsertQuery { get; }
-        protected abstract string DbStructureCheckQuery { get; }
 
-        public BaseB2BExporter(IMapper mapper, IArchiver archiver,
-            B2BExporterConfig config)
+        public BaseB2BExporter(IMapper mapper
+            , IArchiver archiver
+            , B2BExporterConfig config
+            , IDBStructureChecker dbStructureChecker)
         {
             this.archiver = archiver;
+            this.dbStructureChecker = dbStructureChecker;
             mapper.Map(config, this);
             mapper.Map(config, Properties);
         }
-
-        protected abstract Task<bool> CheckIfDbStructureExists(DbConnection connection, IReportTaskRunContext taskContext);
 
         protected async Task ExportPackage(IReportTaskRunContext taskContext, DbConnection connection)
         {
@@ -48,7 +50,7 @@ namespace ReportService.Operations.DataExporters
 
             var token = taskContext.CancelSource.Token;
 
-            var dbStructureExists = await CheckIfDbStructureExists(connection, taskContext);
+            var dbStructureExists = await dbStructureChecker.CheckIfDbStructureExists(connection,taskContext);
 
             if (!dbStructureExists)
             {

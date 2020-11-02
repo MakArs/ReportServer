@@ -18,6 +18,7 @@ using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters;
 using ReportService.Operations.DataExporters.Configurations;
+using ReportService.Operations.DataExporters.Dependencies;
 using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters;
 using ReportService.Operations.DataImporters.Configurations;
@@ -147,6 +148,8 @@ namespace ReportService
 
             builder.RegisterNamedImplementation<IRepository, SqlServerRepository>("SQLServer");
             builder.RegisterNamedImplementation<IRepository, PostgreSqlRepository>("PostgreSQL");
+            builder.RegisterImplementation<IDBStructureChecker, B2BDbStructureChecker>();
+            builder.RegisterImplementation<IDBStructureChecker, PostrgressDBStructureChecker>();
 
             builder.Register(c =>
                 {
@@ -159,7 +162,8 @@ namespace ReportService
                 .As<IRepository>()
                 .SingleInstance();
 
-
+            
+            
             ConfigureMapper(builder);
 
             var rnd = new ThreadSafeRandom();

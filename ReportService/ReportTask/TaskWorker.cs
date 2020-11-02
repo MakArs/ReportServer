@@ -196,7 +196,7 @@ namespace ReportService.ReportTask
             catch (Exception e)
             {
                 success = false;
-                var msg = $"Task {taskContext.TaskId} is not completed. An error has occurred: {e.Message}";
+                var msg = $"Task {taskContext.TaskId}, named {taskContext.TaskName} is not completed. An error has occurred: {e.Message}";
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
 
@@ -279,7 +279,6 @@ namespace ReportService.ReportTask
                             dtoOperInstance.ErrorMessage =
                                 string.Join("\n", allExceptions.Select(exx => exx.Message));
                         }
-                        dtoOperInstance.ErrorMessage += $"Error occured in task, Id: {taskContext.TaskId}, Name: {taskContext.TaskName}.";
 
                         dtoOperInstance.State = (int)InstanceState.Failed;
                     }
@@ -289,7 +288,6 @@ namespace ReportService.ReportTask
                         Convert.ToInt32(operDuration.ElapsedMilliseconds);
                     repository.UpdateEntity(dtoOperInstance);
                 }
-
                 finally
                 {
                     taskContext.PackageStates[oper.Properties.Number - 1] =
