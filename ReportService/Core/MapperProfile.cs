@@ -37,6 +37,7 @@ namespace ReportService.Core
             CreateMap<B2BExporterConfig, BaseB2BExporter>();
             CreateMap<B2BExporterConfig, CommonOperationProperties>();
 
+            CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<DbImporterConfig, BaseDbImporter>()
                 .ForMember("DataSetNames", opt =>
                     opt.MapFrom(s => s.DataSetNames.Split(new[] {';'},
@@ -44,7 +45,8 @@ namespace ReportService.Core
                         .Where(name => !string.IsNullOrWhiteSpace(name))
                         .ToList()));
 
-            CreateMap<DbImporterConfig, CommonOperationProperties>();
+            CreateMap<DbImporterConfig, PackageConsumerBase>();
+
             CreateMap<ExcelImporterConfig, ExcelImporter>();
             CreateMap<ExcelImporterConfig, CommonOperationProperties>();
             CreateMap<ExcelImporterConfig, ExcelReadingParameters>();

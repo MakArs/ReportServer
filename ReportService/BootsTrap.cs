@@ -84,6 +84,9 @@ namespace ReportService
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
                 (config);
 
+            RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>
+                (builder, "PackageDataConsumer");
+
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (builder, "CommonDbImporter");
 
@@ -152,18 +155,17 @@ namespace ReportService
             builder.RegisterImplementation<IDBStructureChecker, PostrgressDBStructureChecker>();
 
             builder.Register(c =>
-                {
-                    var repos = c.ResolveNamed<IRepository>(config["DBMS"],
-                        new NamedParameter("connStr", config["DBConnStr"]),
+            {
+                var repos = c.ResolveNamed<IRepository>(config["DBMS"],
+                    new NamedParameter("connStr", config["DBConnStr"]),
 
-                        new NamedParameter("monik", c.Resolve<IMonik>()));
-                    return repos;
-                })
+                    new NamedParameter("monik", c.Resolve<IMonik>()));
+                return repos;
+            })
                 .As<IRepository>()
                 .SingleInstance();
 
-            
-            
+
             ConfigureMapper(builder);
 
             var rnd = new ThreadSafeRandom();

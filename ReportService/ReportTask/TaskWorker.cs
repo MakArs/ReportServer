@@ -199,7 +199,7 @@ namespace ReportService.ReportTask
                 var msg = $"Task {taskContext.TaskId}, named {taskContext.TaskName} is not completed. An error has occurred: {e.Message}";
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
-
+                //  TODO: add a taskId to mail theme.
                 taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
             }
 
