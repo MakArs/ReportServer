@@ -304,8 +304,9 @@ namespace ReportService.Core
 
             contextsInWork.Add(instanceId, context);
 
-            task.Execute(context);
-            EndContextWork(instanceId);
+            Task.Factory.StartNew(() =>
+                     task.Execute(context), context.CancelSource.Token)
+                .ContinueWith(_ => EndContextWork(instanceId));
             return $"Task {taskId} executed!";
         }
 

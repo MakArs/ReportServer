@@ -27,7 +27,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,8 +47,9 @@ namespace ReportService.Tests
         private HttpClient _client;
         private ILifetimeScope autofac;
         private readonly ContainerBuilder builder;
+        private const string ReportServerTestDbName = "ReportServerTestDb";
         private const string WorkTableName = "TestTable";
-        private const string TestDbConnStr = "Data Source=WS-00245;Database=ReportsSchemeForUnitTesting;Integrated Security=true";
+        private const string TestDbConnStr = @"Server=(localdb)\mssqllocaldb;Integrated Security=true";
         #endregion
 
 
@@ -59,19 +59,19 @@ namespace ReportService.Tests
         {
             builder = new ContainerBuilder();
             ConfigureMapper(builder);
-
             //_factory = new APIWebApplicationFactory();
             //_client = _factory.CreateClient();
         }
         #endregion
 
-        
+
         #region testing methods
 
         [Fact]
-        public void TestDbPackageConsumer()
+        public async Task TestDbPackageConsumer()
         {
             IContainer autofac = InitializeTestContainer();
+            await ConfigureDbForTestScenario();
 
             var dtoTask = new Mock<DtoTask>();
             dtoTask.Object.Id = 1;
@@ -93,7 +93,7 @@ from [dbo].[OperTemplate]",
             };
             dbPackageInitializeDtoOperation.Object.Config = JsonConvert.SerializeObject(dbPackageInitializerConfig);
 
-            
+
             // simple import from db to package operation:
             var dbPackageInitializeDtoOperation2 = new Mock<DtoOperation>();
             dbPackageInitializeDtoOperation2.Object.TaskId = dtoTask.Object.Id;
@@ -132,7 +132,6 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
 
             var repoMock = autofac.Resolve<IRepository>();
             var repo = Mock.Get(repoMock);
-            ConfigureDbForTestScenario();
             repo.Setup(r => r.UpdateOperInstancesAndGetIds()).Returns(new List<long>());
             repo.Setup(r => r.UpdateTaskInstancesAndGetIds()).Returns(new List<long>());
             repo.Setup(r => r.GetListEntitiesByDtoType<DtoTask>()).Returns(
@@ -147,17 +146,17 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             var logic = autofac.Resolve<ILogic>();
             logic.Start();
             logic.ForceExecute(dtoTask.Object.Id);
-
+            await Task.Delay(1000); //  wait till all operations are complete.
 
             var taskContext = autofac.Resolve<IReportTaskRunContext>(); //  as it was registered as singleton during init.
-            var packageParaser = autofac.Resolve<IPackageParser>();
+            var packageParser = autofac.Resolve<IPackageParser>();
             var consumeOperationResultedPackage = taskContext.Packages[dbDataConsumerConfig.PackageName];
             Assert.NotNull(consumeOperationResultedPackage);
-            var dataSet = packageParaser.GetPackageValues(consumeOperationResultedPackage)[0];
+            var dataSet = packageParser.GetPackageValues(consumeOperationResultedPackage)[0];
             var resultedString = string.Join(' ', dataSet.Rows.Select(x => x[1]));
             Assert.Equal("Works fine!", resultedString);
         }
-
+        
         private IContainer InitializeTestContainer()
         {
             ConfigureMonik(builder);
@@ -229,7 +228,7 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             builder.RegisterImplementation<IArchiver, ArchiverZip>();
             builder.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
             builder.RegisterImplementation<ITaskWorker, TaskWorker>();
-            builder.RegisterImplementation<IDefaultTaskExporter,DefaultTaskExporter>();
+            builder.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
 
             var autofac = builder.Build();
             var taskContext = autofac.Resolve<IReportTaskRunContext>();
@@ -244,10 +243,10 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             operation.Setup(operation => operation.Properties).Returns(props);
             operation.Object.Properties.Number = 1;
             operation.Setup(operation => operation.ExecuteAsync(taskContext)).Returns(() => throw new NotImplementedException());
-           
+
             taskContext.OpersToExecute = new List<IOperation>();
             taskContext.OpersToExecute.Add(operation.Object);
-            
+
             string errMsg = string.Empty;
             var repository = autofac.Resolve<IRepository>();
             var repositoryMock = Mock.Get(repository);
@@ -320,21 +319,28 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
                 .RegisterType<TImplementation>()
                 .Named<IViewExecutor>(name);
         }
-        
-        private void ConfigureDbForTestScenario()
+        private async Task ConfigureDbForTestScenario()
         {
-            var msCreator = new SqlServerRepository(null, null);
-            msCreator.CreateBase(TestDbConnStr);
-
             using var connection = new SqlConnection(TestDbConnStr);
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = $@"
+IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '{ReportServerTestDbName}')
+BEGIN
+    CREATE DATABASE[{ReportServerTestDbName}]
+END";
+                await cmd.ExecuteNonQueryAsync();
+                var msCreator = new SqlServerRepository(null, null);
+                msCreator.CreateBase(TestDbConnStr);
 
-            connection.Execute(@"delete from [dbo].[OperInstance]");
-            connection.Execute(@"delete from [dbo].[OperTemplate];");
-            connection.Execute(@"delete from [dbo].[Operation];");
-            connection.Execute(@"delete from [dbo].[TaskInstance];");
-            connection.Execute(@"delete from [dbo].[Task]");
+                connection.Execute(@"delete from [dbo].[OperInstance]");
+                connection.Execute(@"delete from [dbo].[OperTemplate];");
+                connection.Execute(@"delete from [dbo].[Operation];");
+                connection.Execute(@"delete from [dbo].[TaskInstance];");
+                connection.Execute(@"delete from [dbo].[Task]");
 
-            connection.Execute(@"
+                connection.Execute(@"
 set IDENTITY_INSERT [dbo].[Task] ON;
 insert into [dbo].[Task] ([Id], [Name], [ScheduleId], [Parameters], [DependsOn], [UpdateDateTime])values
 (0, 'TestTask', null, null , null, getDate());
@@ -345,7 +351,7 @@ insert into [dbo].[Task] ([Id], [Name], [ScheduleId], [Parameters], [DependsOn],
 insert into [dbo].[Task] ([Id], [Name], [ScheduleId], [Parameters], [DependsOn], [UpdateDateTime])values
 (3, 'TestTask', null, null , null, getDate());");
 
-            connection.Execute(@"
+                connection.Execute(@"
 set IDENTITY_INSERT [dbo].[Task] ON;
 insert into [dbo].[OperTemplate]
 ([ImplementationType], [Name], [ConfigTemplate])
@@ -357,7 +363,7 @@ select 'TestType', 'TestName', 'CCC'
 union all
 select 'TestType', 'TestName', 'DDD'");
 
-            connection.Execute(@"
+                connection.Execute(@"
 insert into [dbo].[Operation]
 ([TaskId], [Number], [IsDefault], [Config], [ImplementationType], [IsDeleted], [Name])
 select '0', '0', '0', 'AAA', 'Test', '0', 'Test'
@@ -368,7 +374,8 @@ select '2', '0', '0', 'CCC', 'Test', '0', 'Test'
 union all
 select '3', '0', '0', 'DD', 'Test', '0', 'Test'
 ");
+            }
+            #endregion
         }
-        #endregion
     }
 }

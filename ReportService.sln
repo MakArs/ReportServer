@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReportService", "ReportServ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReportService.Api", "ReportService.Api\ReportService.Api.csproj", "{BD3CBEF7-C121-4938-B924-0BB77A484B0E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{43BD7F77-3CB5-4124-B91D-645F47302E4F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{43BD7F77-3CB5-4124-B91D-645F47302E4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportService.Tests", "ReportService.Tests\ReportService.Tests.csproj", "{3DC06056-B3BC-4453-8A73-0CB1FA8E0CC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReportService.Tests", "ReportService.Tests\ReportService.Tests.csproj", "{3DC06056-B3BC-4453-8A73-0CB1FA8E0CC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

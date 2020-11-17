@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Google.Protobuf.Collections;
 using ReportService.Interfaces.Protobuf;
-using ReportService.Operations.DataImporters;
 
 namespace ReportService.Operations.Helpers
 {
@@ -40,7 +39,7 @@ namespace ReportService.Operations.Helpers
                 var nullable = col.Nullable ? "NULL" : "NOT NULL";
                 commandBuilder.AppendQueryString(@$"[{col.Name ?? $"NoNameColumn{i++}"}] {ScalarTypesToSqlTypes[col.Type]} {nullable},");
             }
-            commandBuilder.HandleCloseBraket();
+            commandBuilder.HandleClosingBracket();
         }
     }
 }

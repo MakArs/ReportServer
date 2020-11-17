@@ -49,7 +49,7 @@ namespace ReportService.Operations.Helpers
             {
                 commandBuilder.AppendQueryString($@"""{columns[i].Name}"",");
             }
-            commandBuilder.HandleCloseBraket();
+            commandBuilder.HandleClosingBracket();
             commandBuilder.AppendQueryString("VALUES(");
 
             int j;
@@ -57,7 +57,7 @@ namespace ReportService.Operations.Helpers
             {
                 commandBuilder.AppendQueryString($"@p{globalParamIdx + j},");
             }
-            commandBuilder.HandleCloseBraket();
+            commandBuilder.HandleClosingBracket();
         }
     }
 }

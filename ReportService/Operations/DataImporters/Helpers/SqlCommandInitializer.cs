@@ -50,7 +50,7 @@ namespace ReportService.Operations.Helpers
             sqlCommand.Parameters.AddWithValue(paramName, paramValue);
         }
 
-        internal void HandleCloseBraket()
+        internal void HandleClosingBracket()
         {
             if (isResolved)
                 throw new InvalidOperationException("Command was resolved i.e. can`t change it`s query.");
