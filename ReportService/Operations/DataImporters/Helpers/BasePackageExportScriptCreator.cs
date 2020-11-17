@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Google.Protobuf.Collections;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Operations.DataImporters;
@@ -11,6 +13,8 @@ namespace ReportService.Operations.Helpers
     {
 
         private readonly IPackageParser packageParser;
+        private const string ReportParamKeyword = @"@RepPar";
+        private readonly Regex paramNameRegex = new Regex(@$"\B{ReportParamKeyword}\w*\b");
         protected abstract Dictionary<ScalarType, string> ScalarTypesToSqlTypes { get; set; }
 
         protected BasePackageExportScriptCreator(IPackageParser packageParser)
@@ -58,6 +62,19 @@ namespace ReportService.Operations.Helpers
                 commandBuilder.AppendQueryString($"@p{globalParamIdx + j},");
             }
             commandBuilder.HandleClosingBracket();
+        }
+
+        internal void BuildMainQuery(Dictionary<string, object> parameters, string mainQuery, SqlCommandInitializer commandInitializer, int parameterGlobalIdx)
+        {
+            var parametrizedString = paramNameRegex.Replace(mainQuery, match =>
+            {
+                if (!parameters.ContainsKey(match.Value))
+                    throw new DataException($"There is no parameter {match.Value} in the task");
+
+                commandInitializer.AddParameterWithValue($"@p{parameterGlobalIdx++}", parameters[match.Value]);
+                return match.Value.Replace(ReportParamKeyword, string.Empty);
+            });
+            commandInitializer.AppendQueryString(parametrizedString);
         }
     }
 }

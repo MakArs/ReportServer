@@ -49,8 +49,8 @@ namespace ReportService.Operations.DataImporters
 
                 complexScriptCreator.BuildPackageExportQuery(taskContext.Packages[packageName], packageName, commandInitializer, ref parameterGlobalIdx);
             }
-            var parametrizedQuery = taskContext.SetStringParameters(Query);
-            commandInitializer.AppendQueryString(parametrizedQuery);
+
+            complexScriptCreator.BuildMainQuery(taskContext.Parameters, Query, commandInitializer, parameterGlobalIdx);
             await ExecuteComplexCommand(taskContext, commandInitializer);
         }
 
