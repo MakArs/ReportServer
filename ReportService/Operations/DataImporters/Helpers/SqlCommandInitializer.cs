@@ -33,7 +33,7 @@ namespace ReportService.Operations.Helpers
             
             sqlStringBuilder.Append(queryString);
         }
-        internal SqlCommand ResolveCommand()
+        public SqlCommand ResolveCommand()
         {
             if (isResolved)
                 return sqlCommand;

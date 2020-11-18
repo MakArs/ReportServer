@@ -122,7 +122,7 @@ select 'AAA', 'fine!';",
                 ConnectionString = TestDbConnStr,
                 PackageName = "ConsumedPackage",
                 Query = $@"
-select o.id,  tt.msg
+select o.id, tt.msg
 from [dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
 join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField",
@@ -146,6 +146,33 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             var logic = autofac.Resolve<ILogic>();
             logic.Start();
             logic.ForceExecute(dtoTask.Object.Id);
+
+            await Task.Delay(1000); //  delay till all operations are complete.
+            var commandText = autofac.Resolve<SqlCommandInitializer>().ResolveCommand().CommandText;
+
+            Assert.Equal(
+@$"CREATE TABLE #RepPackPackageToConsume ([id] INT NOT NULL,[ConfigTemplate] NVARCHAR(4000) NOT NULL)
+INSERT INTO #RepPackPackageToConsume (""id"",""ConfigTemplate"")
+VALUES(@p0,@p1)
+INSERT INTO #RepPackPackageToConsume (""id"",""ConfigTemplate"")
+VALUES(@p2,@p3)
+INSERT INTO #RepPackPackageToConsume (""id"",""ConfigTemplate"")
+VALUES(@p4,@p5)
+INSERT INTO #RepPackPackageToConsume (""id"",""ConfigTemplate"")
+VALUES(@p6,@p7)
+CREATE TABLE #RepPackPackageToConsume2 ([testJoinField] NVARCHAR(4000) NOT NULL,[msg] NVARCHAR(4000) NOT NULL)
+INSERT INTO #RepPackPackageToConsume2 (""testJoinField"",""msg"")
+VALUES(@p8,@p9)
+INSERT INTO #RepPackPackageToConsume2 (""testJoinField"",""msg"")
+VALUES(@p10,@p11)
+INSERT INTO #RepPackPackageToConsume2 (""testJoinField"",""msg"")
+VALUES(@p12,@p13)
+
+select o.id, tt.msg
+from [dbo].[Operation] o
+join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
+join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField"
+        ,commandText);
         }
 
         [Fact]
@@ -256,12 +283,12 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             builder.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
             var confRoot = new ConfigurationRoot(new List<IConfigurationProvider>());
             builder.RegisterSingleInstance<IConfigurationRoot, ConfigurationRoot>(confRoot);
-            builder.RegisterType<DbPackageExportScriptCreator>().SingleInstance();
-
+            builder.RegisterType<DbPackageExportScriptCreator>();
+            builder.RegisterType<SqlCommandInitializer>().SingleInstance();
 
             builder.RegisterType<DbPackageDataConsumer>()
                 .Named<IOperation>(nameof(DbPackageDataConsumer))
-                .Keyed<IOperation>(typeof(DbImporterConfig));
+                .Keyed<IOperation>(typeof(DbImporterConfig)).SingleInstance();
 
             builder.RegisterType<DbImporter>()
                 .Named<IOperation>(nameof(DbImporter))

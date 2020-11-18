@@ -24,19 +24,22 @@ namespace ReportService.Operations.DataImporters
         
         public const string ReportPackageKeyword = "#RepPack";
 
+        protected readonly SqlCommandInitializer commandInitializer;
+
         private static readonly Regex reportPackageRegex = new Regex($@"\B\{ReportPackageKeyword}\w*\b");
         private static readonly IEqualityComparer<Match> matchComparer = new RegexpMatchEqualityComparer();
         private readonly BasePackageExportScriptCreator complexScriptCreator;
-        private readonly SqlCommandInitializer commandInitializer = new SqlCommandInitializer();
 
         protected PackageConsumerBase(
             IMapper mapper,
             DbImporterConfig config, 
             IPackageBuilder builder, 
             ThreadSafeRandom rnd,
-            BasePackageExportScriptCreator exportScriptCreator) : base(mapper, config, builder, rnd)
+            BasePackageExportScriptCreator exportScriptCreator,
+            SqlCommandInitializer sqlCommandInitializer) : base(mapper, config, builder, rnd)
         {
             this.complexScriptCreator = exportScriptCreator;
+            this.commandInitializer = sqlCommandInitializer;
         }
 
         public override async Task ExecuteAsync(IReportTaskRunContext taskContext)
@@ -51,10 +54,10 @@ namespace ReportService.Operations.DataImporters
             }
 
             complexScriptCreator.BuildMainQuery(taskContext.Parameters, Query, commandInitializer, parameterGlobalIdx);
-            await ExecuteComplexCommand(taskContext, commandInitializer);
+            await ExecuteCommand(taskContext);
         }
 
-        protected abstract Task ExecuteComplexCommand(IReportTaskRunContext taskContext, SqlCommandInitializer commandBuilder);
+        protected abstract Task ExecuteCommand(IReportTaskRunContext taskContext);
         
         private string[] GetRequiredPackageNames(string baseQuery)
             =>  reportPackageRegex.Matches(baseQuery).Distinct(matchComparer)

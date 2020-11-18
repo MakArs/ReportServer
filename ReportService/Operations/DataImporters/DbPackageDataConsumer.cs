@@ -18,51 +18,43 @@ namespace ReportService.Operations.DataImporters
             DbImporterConfig config, 
             IPackageBuilder builder, 
             ThreadSafeRandom rnd,
-            DbPackageExportScriptCreator scriptCreator) 
-            : base(mapper, config, builder, rnd, scriptCreator)
+            DbPackageExportScriptCreator scriptCreator,
+            SqlCommandInitializer sqlCommandInitializer) 
+            : base(mapper, config, builder, rnd, scriptCreator, sqlCommandInitializer)
         {
         }
 
-        protected async override Task ExecuteComplexCommand(
-            IReportTaskRunContext taskContext, SqlCommandInitializer commandInitializer)
+        protected async override Task ExecuteCommand(IReportTaskRunContext taskContext)
         {
             var token = taskContext.CancelSource.Token;
             for (int i = 0; i < TriesCount; i++)
             {
-                
-                using (var connection = new SqlConnection(ConnectionString))
+                using var connection = new SqlConnection(ConnectionString);
+                connection.Open();
+                using var transaction = connection.BeginTransaction();
+                try
                 {
-                    connection.Open();
-                    using (var transaction = connection.BeginTransaction())
-                    {
-                        try
-                        {
-                            var resultedExportPackagesCommand = commandInitializer.ResolveCommand();
-                            resultedExportPackagesCommand.Connection = connection;
-                            resultedExportPackagesCommand.Transaction = transaction;
+                    var resultedExportPackagesCommand = commandInitializer.ResolveCommand();
+                    resultedExportPackagesCommand.Connection = connection;
+                    resultedExportPackagesCommand.Transaction = transaction;
 
-                            using (var reader = await resultedExportPackagesCommand.ExecuteReaderAsync(token))
-                            {
-                                FillPackage(reader, taskContext);
-                            }
+                    using var reader = await resultedExportPackagesCommand.ExecuteReaderAsync(token);
+                    FillPackage(reader, taskContext);
 
-                            break;
-                        }
-                        catch (Exception e)
-                        {
-                            if (!(e is SqlException se))
-                                throw e;
+                    break;
+                }
+                catch (Exception e)
+                {
+                    if (!(e is SqlException se))
+                        throw e;
 
-                            if (i >= TriesCount - 1)
-                                throw se;
+                    if (i >= TriesCount - 1)
+                        throw se;
 
-                            transaction.Rollback();
-                            await Task.Delay(rnd.Next(1000, 60000), token);
-                        }
-                    }
+                    transaction.Rollback();
+                    await Task.Delay(rnd.Next(1000, 60000), token);
                 }
             }
-            
         }
     }
 }
