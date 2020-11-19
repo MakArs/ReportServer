@@ -77,7 +77,7 @@ namespace ReportService.Tests
             dtoTask.Id = 1;
             dtoTask.Name = $"{nameof(DbImporter)} - {nameof(DbPackageDataConsumer)} Test";
 
-            // simple import from db to package operation:
+            // setup a simple db import operation, which initializes an operaion package in the taskContext:
             string packageInitializingQuery1 = @"select id, ConfigTemplate 
 from [dbo].[OperTemplate]";
             CreateOperation(dtoTask.Id
@@ -87,7 +87,7 @@ from [dbo].[OperTemplate]";
                , "PackageToConsume"
                , out DtoOperation packageInitializeOperation1);
 
-            // simple import from db to package operation:
+            // setup a simple db import operation, which initializes an operaion package in the taskContext:
             string packageInitializingQuery2 = @"select 'AAA' testJoinField, 'Works' as msg
 union all 
 select 'BBB', ' bad!'
@@ -100,7 +100,7 @@ select 'AAA', 'fine!';";
                , "PackageToConsume2"
                , out DtoOperation packageInitializeOperation2);
 
-
+            //  setup a package consuming operation:
             string consumingQuery = @"select o.id, tt.msg
 from [dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
@@ -112,17 +112,7 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
                 , "ConsumedPackage"
                 , out DtoOperation packageConsumingOperation);
 
-            var repo = Mock.Get(autofac.Resolve<IRepository>());
-            repo.Setup(r => r.UpdateOperInstancesAndGetIds()).Returns(new List<long>());
-            repo.Setup(r => r.UpdateTaskInstancesAndGetIds()).Returns(new List<long>());
-            repo.Setup(r => r.GetListEntitiesByDtoType<DtoTask>()).Returns(
-                new List<DtoTask>(new[] { dtoTask }));
-            repo.Setup(r => r.GetListEntitiesByDtoType<DtoOperation>()).Returns(
-                new List<DtoOperation>(new[] {
-                    packageInitializeOperation1,
-                    packageInitializeOperation2,
-                    packageConsumingOperation }));
-            repo.Setup(r => r.GetTaskStateById(It.IsAny<long>())).Returns(new TaskState());
+            SetupRepository(autofac, dtoTask, packageInitializeOperation1, packageInitializeOperation2, packageConsumingOperation);
 
             var logic = autofac.Resolve<ILogic>();
             logic.Start();
@@ -157,7 +147,7 @@ select o.id, tt.msg
 from [dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
 join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField"
-        ,commandText);
+        , commandText);
         }
 
         [Fact]
@@ -170,7 +160,7 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             dtoTask.Id = 1;
             dtoTask.Name = $"{nameof(DbImporter)} - {nameof(DbPackageDataConsumer)} Test";
 
-            // simple import from db to package operation:
+            // setup a simple db import operation, which initializes an operaion package in the taskContext:
             string packageInitializingQuery1 = @"select id, ConfigTemplate 
 from [dbo].[OperTemplate]";
             CreateOperation(dtoTask.Id
@@ -180,7 +170,7 @@ from [dbo].[OperTemplate]";
                , "PackageToConsume"
                , out DtoOperation packageInitializeOperation1);
 
-            // simple import from db to package operation:
+            // setup a simple db import operation, which initializes an operaion package in the taskContext:
             string packageInitializingQuery2 = @"select 'AAA' testJoinField, 'Works' as msg
 union all 
 select 'BBB', ' bad!'
@@ -193,7 +183,7 @@ select 'AAA', 'fine!';";
                , "PackageToConsume2"
                , out DtoOperation packageInitializeOperation2);
 
-
+            //  setup a package consuming operation:
             string consumingQuery = @"select o.id,  tt.msg
 from[dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
@@ -205,17 +195,7 @@ join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFiel
                 , "ConsumedPackage"
                 , out DtoOperation packageConsumingOperation);
 
-            var repo = Mock.Get(autofac.Resolve<IRepository>());
-            repo.Setup(r => r.UpdateOperInstancesAndGetIds()).Returns(new List<long>());
-            repo.Setup(r => r.UpdateTaskInstancesAndGetIds()).Returns(new List<long>());
-            repo.Setup(r => r.GetListEntitiesByDtoType<DtoTask>()).Returns(
-                new List<DtoTask>(new[] { dtoTask }));
-            repo.Setup(r => r.GetListEntitiesByDtoType<DtoOperation>()).Returns(
-                new List<DtoOperation>(new[] {
-                    packageInitializeOperation1,
-                    packageInitializeOperation2,
-                    packageConsumingOperation }));
-            repo.Setup(r => r.GetTaskStateById(It.IsAny<long>())).Returns(new TaskState());
+            SetupRepository(autofac, dtoTask, packageInitializeOperation1, packageInitializeOperation2, packageConsumingOperation);
 
             var logic = autofac.Resolve<ILogic>();
             logic.Start();
@@ -234,7 +214,6 @@ join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFiel
             var resultedString = string.Join(' ', dataSet.Rows.Select(x => x[1]));
             Assert.Equal("Works fine!", resultedString);
         }
-
 
         [Fact]
         public async void TestExceptionMessageOnFailedDbStructureCheck()
@@ -302,7 +281,6 @@ join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFiel
             worker.RunTask(taskContext);
             repositoryMock.Verify(repo => repo.UpdateEntity(It.Is<DtoOperInstance>((s) => s.ErrorMessage.Equals(errMsg))));
         }
-
         #endregion
 
 
@@ -368,6 +346,20 @@ join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFiel
         {
             var repoMock = new Mock<IRepository>();
             builder.RegisterInstance(repoMock.Object).As<IRepository>().SingleInstance();
+        }
+        private static void SetupRepository(IContainer autofac, DtoTask dtoTask, DtoOperation packageInitializeOperation1, DtoOperation packageInitializeOperation2, DtoOperation packageConsumingOperation)
+        {
+            var repo = Mock.Get(autofac.Resolve<IRepository>());
+            repo.Setup(r => r.UpdateOperInstancesAndGetIds()).Returns(new List<long>());
+            repo.Setup(r => r.UpdateTaskInstancesAndGetIds()).Returns(new List<long>());
+            repo.Setup(r => r.GetListEntitiesByDtoType<DtoTask>()).Returns(
+                new List<DtoTask>(new[] { dtoTask }));
+            repo.Setup(r => r.GetListEntitiesByDtoType<DtoOperation>()).Returns(
+                new List<DtoOperation>(new[] {
+                    packageInitializeOperation1,
+                    packageInitializeOperation2,
+                    packageConsumingOperation }));
+            repo.Setup(r => r.GetTaskStateById(It.IsAny<long>())).Returns(new TaskState());
         }
         private void RegisterDbStructureChecker()
         {
