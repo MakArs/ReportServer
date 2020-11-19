@@ -73,81 +73,67 @@ namespace ReportService.Tests
             IContainer autofac = InitializeTestContainer();
             await ConfigureDbForTestScenario();
 
-            var dtoTask = new Mock<DtoTask>();
-            dtoTask.Object.Id = 1;
-            dtoTask.Object.Name = $"{nameof(DbImporter)} - {nameof(DbPackageDataConsumer)} Test";
+            var dtoTask = new DtoTask();
+            dtoTask.Id = 1;
+            dtoTask.Name = $"{nameof(DbImporter)} - {nameof(DbPackageDataConsumer)} Test";
 
             // simple import from db to package operation:
-            var dbPackageInitializeDtoOperation = new Mock<DtoOperation>();
-            dbPackageInitializeDtoOperation.Object.TaskId = dtoTask.Object.Id;
-            dbPackageInitializeDtoOperation.Object.ImplementationType = nameof(DbImporter);
-            dbPackageInitializeDtoOperation.Object.Number = 1;
-            var dbPackageInitializerConfig = new DbImporterConfig()
-            {
-                PackageName = "PackageToConsume",
-                ConnectionString = TestDbConnStr,
-                Query =
-@"select id, ConfigTemplate 
-from [dbo].[OperTemplate]",
-                TimeOut = 10,
-            };
-            dbPackageInitializeDtoOperation.Object.Config = JsonConvert.SerializeObject(dbPackageInitializerConfig);
-
+            string packageInitializingQuery1 = @"select id, ConfigTemplate 
+from [dbo].[OperTemplate]";
+            CreateOperation(dtoTask.Id
+               , 1
+               , nameof(DbImporter)
+               , packageInitializingQuery1
+               , "PackageToConsume"
+               , out DtoOperation packageInitializeOperation1);
 
             // simple import from db to package operation:
-            var dbPackageInitializeDtoOperation2 = new Mock<DtoOperation>();
-            dbPackageInitializeDtoOperation2.Object.TaskId = dtoTask.Object.Id;
-            dbPackageInitializeDtoOperation2.Object.ImplementationType = nameof(DbImporter);
-            dbPackageInitializeDtoOperation2.Object.Number = 2;
-            var dbPackageInitializerConfig2 = new DbImporterConfig()
-            {
-                PackageName = "PackageToConsume2",
-                ConnectionString = TestDbConnStr,
-                Query =
-@"select 'AAA' testJoinField, 'Works' as msg
+            string packageInitializingQuery2 = @"select 'AAA' testJoinField, 'Works' as msg
 union all 
-select 'BBB', ' bug'
+select 'BBB', ' bad!'
 union all 
-select 'AAA', 'fine!';",
-                TimeOut = 10,
-            };
-            dbPackageInitializeDtoOperation2.Object.Config = JsonConvert.SerializeObject(dbPackageInitializerConfig2);
+select 'AAA', 'fine!';";
+            CreateOperation(dtoTask.Id
+               , 2
+               , nameof(DbImporter)
+               , packageInitializingQuery2
+               , "PackageToConsume2"
+               , out DtoOperation packageInitializeOperation2);
 
-            var dbPackageConsumingOperation = new Mock<DtoOperation>();
-            dbPackageConsumingOperation.Object.TaskId = dtoTask.Object.Id;
-            dbPackageConsumingOperation.Object.ImplementationType = nameof(DbPackageDataConsumer);
-            dbPackageConsumingOperation.Object.Number = 3;
-            var dbDataConsumerConfig = new DbImporterConfig()
-            {
-                ConnectionString = TestDbConnStr,
-                PackageName = "ConsumedPackage",
-                Query = $@"
-select o.id, tt.msg
+
+            string consumingQuery = @"select o.id, tt.msg
 from [dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
-join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField",
-                TimeOut = 10
-            };
-            dbPackageConsumingOperation.Object.Config = JsonConvert.SerializeObject(dbDataConsumerConfig);
+join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField";
+            CreateOperation(dtoTask.Id
+                , 3
+                , nameof(DbPackageDataConsumer)
+                , consumingQuery
+                , "ConsumedPackage"
+                , out DtoOperation packageConsumingOperation);
 
-            var repoMock = autofac.Resolve<IRepository>();
-            var repo = Mock.Get(repoMock);
+            var repo = Mock.Get(autofac.Resolve<IRepository>());
             repo.Setup(r => r.UpdateOperInstancesAndGetIds()).Returns(new List<long>());
             repo.Setup(r => r.UpdateTaskInstancesAndGetIds()).Returns(new List<long>());
             repo.Setup(r => r.GetListEntitiesByDtoType<DtoTask>()).Returns(
-                new List<DtoTask>(new[] { dtoTask.Object }));
+                new List<DtoTask>(new[] { dtoTask }));
             repo.Setup(r => r.GetListEntitiesByDtoType<DtoOperation>()).Returns(
                 new List<DtoOperation>(new[] {
-                    dbPackageInitializeDtoOperation.Object,
-                    dbPackageInitializeDtoOperation2.Object,
-                    dbPackageConsumingOperation.Object }));
+                    packageInitializeOperation1,
+                    packageInitializeOperation2,
+                    packageConsumingOperation }));
             repo.Setup(r => r.GetTaskStateById(It.IsAny<long>())).Returns(new TaskState());
 
             var logic = autofac.Resolve<ILogic>();
             logic.Start();
-            logic.ForceExecute(dtoTask.Object.Id);
+            logic.ForceExecute(dtoTask.Id);
 
-            await Task.Delay(1000); //  delay till all operations are complete.
+            var taskContext = autofac.Resolve<IReportTaskRunContext>(); //  as it was registered as singleton during init.
+            var packageParser = autofac.Resolve<IPackageParser>();
+            while (taskContext.Packages.TryGetValue("ConsumedPackage", out _) == false)
+            {
+                await Task.Delay(1000); //  delay till package appears.
+            }
             var commandText = autofac.Resolve<SqlCommandInitializer>().ResolveCommand().CommandText;
 
             Assert.Equal(
@@ -167,7 +153,6 @@ INSERT INTO #RepPackPackageToConsume2 (""testJoinField"",""msg"")
 VALUES(@p10,@p11)
 INSERT INTO #RepPackPackageToConsume2 (""testJoinField"",""msg"")
 VALUES(@p12,@p13)
-
 select o.id, tt.msg
 from [dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
@@ -181,126 +166,75 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
             IContainer autofac = InitializeTestContainer();
             await ConfigureDbForTestScenario();
 
-            var dtoTask = new Mock<DtoTask>();
-            dtoTask.Object.Id = 1;
-            dtoTask.Object.Name = $"{nameof(DbImporter)} - {nameof(DbPackageDataConsumer)} Test";
+            var dtoTask = new DtoTask();
+            dtoTask.Id = 1;
+            dtoTask.Name = $"{nameof(DbImporter)} - {nameof(DbPackageDataConsumer)} Test";
 
             // simple import from db to package operation:
-            var dbPackageInitializeDtoOperation = new Mock<DtoOperation>();
-            dbPackageInitializeDtoOperation.Object.TaskId = dtoTask.Object.Id;
-            dbPackageInitializeDtoOperation.Object.ImplementationType = nameof(DbImporter);
-            dbPackageInitializeDtoOperation.Object.Number = 1;
-            var dbPackageInitializerConfig = new DbImporterConfig()
-            {
-                PackageName = "PackageToConsume",
-                ConnectionString = TestDbConnStr,
-                Query =
-@"select id, ConfigTemplate 
-from [dbo].[OperTemplate]",
-                TimeOut = 10,
-            };
-            dbPackageInitializeDtoOperation.Object.Config = JsonConvert.SerializeObject(dbPackageInitializerConfig);
-
+            string packageInitializingQuery1 = @"select id, ConfigTemplate 
+from [dbo].[OperTemplate]";
+            CreateOperation(dtoTask.Id
+               , 1
+               , nameof(DbImporter)
+               , packageInitializingQuery1
+               , "PackageToConsume"
+               , out DtoOperation packageInitializeOperation1);
 
             // simple import from db to package operation:
-            var dbPackageInitializeDtoOperation2 = new Mock<DtoOperation>();
-            dbPackageInitializeDtoOperation2.Object.TaskId = dtoTask.Object.Id;
-            dbPackageInitializeDtoOperation2.Object.ImplementationType = nameof(DbImporter);
-            dbPackageInitializeDtoOperation2.Object.Number = 2;
-            var dbPackageInitializerConfig2 = new DbImporterConfig()
-            {
-                PackageName = "PackageToConsume2",
-                ConnectionString = TestDbConnStr,
-                Query =
-@"select 'AAA' testJoinField, 'Works' as msg
+            string packageInitializingQuery2 = @"select 'AAA' testJoinField, 'Works' as msg
 union all 
-select 'BBB', ' bug'
+select 'BBB', ' bad!'
 union all 
-select 'AAA', 'fine!';",
-                TimeOut = 10,
-            };
-            dbPackageInitializeDtoOperation2.Object.Config = JsonConvert.SerializeObject(dbPackageInitializerConfig2);
+select 'AAA', 'fine!';";
+            CreateOperation(dtoTask.Id
+               , 2
+               , nameof(DbImporter)
+               , packageInitializingQuery2
+               , "PackageToConsume2"
+               , out DtoOperation packageInitializeOperation2);
 
-            var dbPackageConsumingOperation = new Mock<DtoOperation>();
-            dbPackageConsumingOperation.Object.TaskId = dtoTask.Object.Id;
-            dbPackageConsumingOperation.Object.ImplementationType = nameof(DbPackageDataConsumer);
-            dbPackageConsumingOperation.Object.Number = 3;
-            var dbDataConsumerConfig = new DbImporterConfig()
-            {
-                ConnectionString = TestDbConnStr,
-                PackageName = "ConsumedPackage",
-                Query = $@"
-select o.id,  tt.msg
-from [dbo].[Operation] o
+
+            string consumingQuery = @"select o.id,  tt.msg
+from[dbo].[Operation] o
 join #RepPackPackageToConsume t on t.ConfigTemplate = o.config
-join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField",
-                TimeOut = 10
-            };
-            dbPackageConsumingOperation.Object.Config = JsonConvert.SerializeObject(dbDataConsumerConfig);
+join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinField != 'BBB') tt on o.config = tt.testJoinField";
+            CreateOperation(dtoTask.Id
+                , 3
+                , nameof(DbPackageDataConsumer)
+                , consumingQuery
+                , "ConsumedPackage"
+                , out DtoOperation packageConsumingOperation);
 
-            var repoMock = autofac.Resolve<IRepository>();
-            var repo = Mock.Get(repoMock);
+            var repo = Mock.Get(autofac.Resolve<IRepository>());
             repo.Setup(r => r.UpdateOperInstancesAndGetIds()).Returns(new List<long>());
             repo.Setup(r => r.UpdateTaskInstancesAndGetIds()).Returns(new List<long>());
             repo.Setup(r => r.GetListEntitiesByDtoType<DtoTask>()).Returns(
-                new List<DtoTask>(new[] { dtoTask.Object }));
+                new List<DtoTask>(new[] { dtoTask }));
             repo.Setup(r => r.GetListEntitiesByDtoType<DtoOperation>()).Returns(
                 new List<DtoOperation>(new[] {
-                    dbPackageInitializeDtoOperation.Object,
-                    dbPackageInitializeDtoOperation2.Object,
-                    dbPackageConsumingOperation.Object }));
+                    packageInitializeOperation1,
+                    packageInitializeOperation2,
+                    packageConsumingOperation }));
             repo.Setup(r => r.GetTaskStateById(It.IsAny<long>())).Returns(new TaskState());
 
             var logic = autofac.Resolve<ILogic>();
             logic.Start();
-            logic.ForceExecute(dtoTask.Object.Id);
-            await Task.Delay(1000); //  delay till all operations are complete.
+            logic.ForceExecute(dtoTask.Id);
 
-            
             var taskContext = autofac.Resolve<IReportTaskRunContext>(); //  as it was registered as singleton during init.
             var packageParser = autofac.Resolve<IPackageParser>();
-            var consumeOperationResultedPackage = taskContext.Packages[dbDataConsumerConfig.PackageName];
+            while (taskContext.Packages.TryGetValue("ConsumedPackage", out _) == false)
+            {
+                await Task.Delay(1000); //  delay till package appears.
+            }
+            var consumeOperationResultedPackage = taskContext.Packages["ConsumedPackage"];
             Assert.NotNull(consumeOperationResultedPackage);
+            Assert.True(packageParser.GetPackageValues(consumeOperationResultedPackage).Any());
             var dataSet = packageParser.GetPackageValues(consumeOperationResultedPackage)[0];
             var resultedString = string.Join(' ', dataSet.Rows.Select(x => x[1]));
             Assert.Equal("Works fine!", resultedString);
         }
-        
-        private IContainer InitializeTestContainer()
-        {
-            ConfigureMonik(builder);
-            ConfigureSqlServer();
-            ConfigureTelegramBot(builder);
-            builder.RegisterImplementationSingleton<ILogic, Logic>();
-            builder.RegisterImplementation<IArchiver, ArchiverZip>();
-            builder.RegisterImplementationSingleton<IReportTaskRunContext, ReportTaskRunContext>();
-            builder.RegisterImplementation<ITaskWorker, TaskWorker>();
-            builder.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
-            builder.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
-            builder.RegisterImplementation<IPackageParser, ProtoPackageParser>();
-            builder.RegisterImplementation<IReportTask, ReportTask.ReportTask>();
-            var rnd = new ThreadSafeRandom();
-            builder.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
-            var confRoot = new ConfigurationRoot(new List<IConfigurationProvider>());
-            builder.RegisterSingleInstance<IConfigurationRoot, ConfigurationRoot>(confRoot);
-            builder.RegisterType<DbPackageExportScriptCreator>();
-            builder.RegisterType<SqlCommandInitializer>().SingleInstance();
 
-            builder.RegisterType<DbPackageDataConsumer>()
-                .Named<IOperation>(nameof(DbPackageDataConsumer))
-                .Keyed<IOperation>(typeof(DbImporterConfig)).SingleInstance();
-
-            builder.RegisterType<DbImporter>()
-                .Named<IOperation>(nameof(DbImporter))
-                .Keyed<IOperation>(typeof(DbImporterConfig));
-
-            builder.RegisterType<Worker>();
-            RegisterNamedViewExecutor<CommonTableViewExecutor>
-                (builder, "CommonTableViewEx");
-
-            var autofac = builder.Build();
-            return autofac;
-        }
 
         [Fact]
         public async void TestExceptionMessageOnFailedDbStructureCheck()
@@ -374,6 +308,62 @@ join (select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFie
 
         #region private members
 
+        private static void CreateOperation(
+            long dtoTaskId,
+            int operationNumber,
+            string implementationType,
+            string queryString,
+            string packageName,
+            out DtoOperation operation)
+        {
+            operation = new DtoOperation();
+            operation.TaskId = dtoTaskId;
+            operation.ImplementationType = implementationType;
+            operation.Number = operationNumber;
+            var operationConfig = new DbImporterConfig()
+            {
+                ConnectionString = TestDbConnStr,
+                PackageName = packageName,
+                Query = queryString,
+                TimeOut = 10
+            };
+            operation.Config = JsonConvert.SerializeObject(operationConfig);
+        }
+        private IContainer InitializeTestContainer()
+        {
+            ConfigureMonik(builder);
+            ConfigureSqlServer();
+            ConfigureTelegramBot(builder);
+            builder.RegisterImplementationSingleton<ILogic, Logic>();
+            builder.RegisterImplementation<IArchiver, ArchiverZip>();
+            builder.RegisterImplementationSingleton<IReportTaskRunContext, ReportTaskRunContext>();
+            builder.RegisterImplementation<ITaskWorker, TaskWorker>();
+            builder.RegisterImplementation<IDefaultTaskExporter, DefaultTaskExporter>();
+            builder.RegisterImplementation<IPackageBuilder, ProtoPackageBuilder>();
+            builder.RegisterImplementation<IPackageParser, ProtoPackageParser>();
+            builder.RegisterImplementation<IReportTask, ReportTask.ReportTask>();
+            var rnd = new ThreadSafeRandom();
+            builder.RegisterSingleInstance<ThreadSafeRandom, ThreadSafeRandom>(rnd);
+            var confRoot = new ConfigurationRoot(new List<IConfigurationProvider>());
+            builder.RegisterSingleInstance<IConfigurationRoot, ConfigurationRoot>(confRoot);
+            builder.RegisterType<DbPackageExportScriptCreator>();
+            builder.RegisterType<SqlCommandInitializer>().SingleInstance();
+
+            builder.RegisterType<DbPackageDataConsumer>()
+                .Named<IOperation>(nameof(DbPackageDataConsumer))
+                .Keyed<IOperation>(typeof(DbImporterConfig)).SingleInstance();
+
+            builder.RegisterType<DbImporter>()
+                .Named<IOperation>(nameof(DbImporter))
+                .Keyed<IOperation>(typeof(DbImporterConfig));
+
+            builder.RegisterType<Worker>();
+            RegisterNamedViewExecutor<CommonTableViewExecutor>
+                (builder, "CommonTableViewEx");
+
+            var autofac = builder.Build();
+            return autofac;
+        }
         private void ConfigureSqlServer()
         {
             var repoMock = new Mock<IRepository>();

@@ -152,7 +152,6 @@ namespace ReportService.ReportTask
 			}
             return null;
         }
-
         public void Execute(IReportTaskRunContext context)
         {
             var taskWorker = autofac.Resolve<ITaskWorker>();
