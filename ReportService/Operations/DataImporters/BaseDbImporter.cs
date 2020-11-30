@@ -52,6 +52,8 @@ namespace ReportService.Operations.DataImporters
                 if (pack.DataSets.ElementAtOrDefault(i) != null)
                     pack.DataSets[i].Name = DataSetNames[i];
             }
+            if (taskContext.Packages.ContainsKey(Properties.PackageName) == false)
+                taskContext.Packages.Add(Properties.PackageName, null);
 
             taskContext.Packages[Properties.PackageName] = pack;
         }

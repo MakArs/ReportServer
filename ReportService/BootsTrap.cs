@@ -18,6 +18,7 @@ using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters;
 using ReportService.Operations.DataExporters.Configurations;
+using ReportService.Operations.DataExporters.Dependencies;
 using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters;
 using ReportService.Operations.DataImporters.Configurations;
@@ -83,6 +84,9 @@ namespace ReportService
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
                 (config);
 
+            RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>
+                (builder, "PackageDataConsumer");
+
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (builder, "CommonDbImporter");
 
@@ -147,15 +151,17 @@ namespace ReportService
 
             builder.RegisterNamedImplementation<IRepository, SqlServerRepository>("SQLServer");
             builder.RegisterNamedImplementation<IRepository, PostgreSqlRepository>("PostgreSQL");
+            builder.RegisterImplementation<IDBStructureChecker, B2BDbStructureChecker>();
+            builder.RegisterImplementation<IDBStructureChecker, PostrgressDBStructureChecker>();
 
             builder.Register(c =>
-                {
-                    var repos = c.ResolveNamed<IRepository>(config["DBMS"],
-                        new NamedParameter("connStr", config["DBConnStr"]),
+            {
+                var repos = c.ResolveNamed<IRepository>(config["DBMS"],
+                    new NamedParameter("connStr", config["DBConnStr"]),
 
-                        new NamedParameter("monik", c.Resolve<IMonik>()));
-                    return repos;
-                })
+                    new NamedParameter("monik", c.Resolve<IMonik>()));
+                return repos;
+            })
                 .As<IRepository>()
                 .SingleInstance();
 

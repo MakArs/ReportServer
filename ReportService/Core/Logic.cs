@@ -307,7 +307,6 @@ namespace ReportService.Core
             Task.Factory.StartNew(() =>
                      task.Execute(context), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
-
             return $"Task {taskId} executed!";
         }
 
