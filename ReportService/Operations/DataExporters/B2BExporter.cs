@@ -4,7 +4,6 @@ using AutoMapper;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters.Configurations;
-using ReportService.Operations.DataExporters.Dependencies;
 
 namespace ReportService.Operations.DataExporters
 {
@@ -17,7 +16,7 @@ namespace ReportService.Operations.DataExporters
                 VALUES(@ReportID, @Created, @DataPackage)";
 
         public B2BExporter(IMapper mapper, IArchiver archiver,
-            B2BExporterConfig config, B2BDbStructureChecker dbStructureChecker) : base(mapper, archiver, config, dbStructureChecker)
+            B2BExporterConfig config, IDBStructureChecker dbStructureChecker) : base(mapper, archiver, config, dbStructureChecker)
         {
         }
 

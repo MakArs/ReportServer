@@ -49,7 +49,7 @@ namespace ReportService.Tests
         private readonly ContainerBuilder builder;
         private const string ReportServerTestDbName = "ReportServerTestDb";
         private const string WorkTableName = "TestTable";
-        private const string TestDbConnStr = "Server=localhost,11433;User Id=sa;Password=P@55w0rd;Timeout=5";
+        private const string TestDbConnStr = "Server=localhost,1433;User Id=sa;Password=P@55w0rd;Timeout=5";
         #endregion
 
 
