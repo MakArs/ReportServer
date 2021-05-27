@@ -16,7 +16,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2017-latest
     container_name: mssql
     ports:
-      - "11433:1433"
+      - "1438:1433"
     environment:
       - "ACCEPT_EULA=Y"
       - "SA_PASSWORD=P@55w0rd"

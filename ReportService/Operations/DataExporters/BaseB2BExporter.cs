@@ -39,6 +39,7 @@ namespace ReportService.Operations.DataExporters
             this.dbStructureChecker = dbStructureChecker;
             mapper.Map(config, this);
             mapper.Map(config, Properties);
+            dbStructureChecker.Initialize(config);
         }
 
         protected async Task ExportPackage(IReportTaskRunContext taskContext, DbConnection connection)

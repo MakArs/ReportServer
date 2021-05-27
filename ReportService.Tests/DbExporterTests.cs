@@ -49,7 +49,7 @@ namespace ReportService.Tests
         private readonly ContainerBuilder builder;
         private const string ReportServerTestDbName = "ReportServerTestDb";
         private const string WorkTableName = "TestTable";
-        private const string TestDbConnStr = "Server=localhost,11433;User Id=sa;Password=P@55w0rd;Timeout=5";
+        private const string TestDbConnStr = "Server=localhost,1438;User Id=sa;Password=P@55w0rd;Timeout=5";
         #endregion
 
 
@@ -223,7 +223,7 @@ join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFiel
             builder.RegisterImplementation<IReportTaskRunContext, ReportTaskRunContext>();
 
             RegisterExportConfig();
-            RegisterDbStructureChecker();
+            RegisterDBStructureChecker();
 
             autofac = builder.Build();
 
@@ -361,12 +361,16 @@ join(select msg, testJoinField from #RepPackPackageToConsume2 where testJoinFiel
                     packageConsumingOperation }));
             repo.Setup(r => r.GetTaskStateById(It.IsAny<long>())).Returns(new TaskState());
         }
-        private void RegisterDbStructureChecker()
+
+        private void RegisterDBStructureChecker()
         {
             var structureChecker = new Mock<B2BDbStructureChecker>();
-            structureChecker.Setup(checker => checker.CheckIfDbStructureExists(null, null)).Returns(Task.Factory.StartNew(() => false));
-            builder.RegisterInstance(structureChecker.Object).As<B2BDbStructureChecker>();
+            structureChecker
+                .Setup(checker => checker.CheckIfDbStructureExists(null, null))
+                .ReturnsAsync(false);
+            builder.RegisterInstance(structureChecker.Object).As<IDBStructureChecker>();
         }
+
         private void RegisterExportConfig()
         {
             var exportConfig = new Mock<B2BExporterConfig>();
