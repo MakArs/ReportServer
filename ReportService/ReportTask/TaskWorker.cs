@@ -52,7 +52,7 @@ namespace ReportService.ReportTask
 
             SendServiceInfo(msg);
 
-            taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
+            taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName, taskContext.TaskId);
 
             taskContext.TaskInstance.Duration = 0;
 
@@ -189,7 +189,7 @@ namespace ReportService.ReportTask
                     var msg = $"Task {taskContext.TaskId} completed with errors";
                     SendServiceInfo(msg);
 
-                    taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
+                    taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName, taskContext.TaskId);
                 }
             }
 
@@ -200,7 +200,7 @@ namespace ReportService.ReportTask
                 monik.ApplicationError(msg);
                 Console.WriteLine(msg);
                 //  TODO: add a taskId to mail theme.
-                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName);
+                taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName, taskContext.TaskId);
             }
 
             duration.Stop();
