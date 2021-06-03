@@ -52,7 +52,7 @@ namespace ReportService.ReportTask
             return msg;
         }
 
-        public void SendError(List<Tuple<Exception, string>> exceptions, string taskName)
+        public void SendError(List<Tuple<Exception, string>> exceptions, string taskName, long taskId)
         {
             using var client = ConfigureClient();
 
@@ -64,7 +64,7 @@ namespace ReportService.ReportTask
                 msg.To.Add(new MailAddress(addr));
             }
 
-            msg.Subject = $"Errors occured in task {taskName} at" +
+            msg.Subject = $"Errors occured in task {taskName} with id: {taskId} at" +
                           $" {DateTime.Now:dd.MM.yy HH:mm}";
 
             List<ColumnInfo> columns = new List<ColumnInfo>

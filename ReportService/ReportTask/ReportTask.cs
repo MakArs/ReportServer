@@ -148,7 +148,7 @@ namespace ReportService.ReportTask
 
                 exceptions.AddRange(allExceptions
                     .Select(exx => new Tuple<Exception, string>(exx, context.TaskName)));
-                context.DefaultExporter.SendError(exceptions, context.TaskName);
+                context.DefaultExporter.SendError(exceptions, context.TaskName, context.TaskId);
 			}
             return null;
         }
