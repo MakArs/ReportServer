@@ -105,6 +105,7 @@ namespace ReportService.Core
                             new NamedParameter("opers", operations
                                 .Where(oper => oper.TaskId == dtoTask.Id)
                                 .Where(oper => !oper.IsDeleted).ToList()));
+                            //new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
 
                         //todo: might be replaced with saved time from db
                         task.UpdateLastTime();
@@ -133,25 +134,16 @@ namespace ReportService.Core
 
             foreach (var task in currentTasks.Where(x => x.Schedule != null))
             {
-                string[] cronStrings =
-                    schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(';');
-
-                foreach (var cronString in cronStrings)
+                try
                 {
-                    var cronSchedule = CrontabSchedule.TryParse(cronString);
-                    
-                    if (cronSchedule == null) continue;
-
-                    var occurrences =
-                        cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
-
-                    if (!occurrences.Any() ||
-                        contextsInWork.Select(cont => cont.Value)
-                        .Where(rtask => rtask.TaskId == task.Id).Any())
-                        continue;
-
-                    ExecuteTask(task);
-                    break;
+                    if (isTaskNeedToRun(task)) 
+                    {
+                        ExecuteTask(task);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    monik.ApplicationError($"CheckScheduleAndExecute error in task {task.Id} with schedule {task.Schedule?.Schedule}: {ex}");
                 }
             }
         }
@@ -223,7 +215,7 @@ namespace ReportService.Core
         public void Start()
         {
             //var serviceConfig = autofac.Resolve<IConfigurationRoot>();
-            
+
             //CreateBase(serviceConfig["DBConnStr"]);
 
             RegisteredImporters = GetRegistrationsByTypeAndKeyType<IOperation, IImporterConfig>();
@@ -747,10 +739,43 @@ namespace ReportService.Core
             }
         }
 
+        public void UpdateTaskRecord(DtoTask task)
+        {
+            repository.UpdateEntity(task);
+            UpdateTaskList();
+        }
+
         private void SendServiceInfo(string msg)
         {
             monik.ApplicationInfo(msg);
             Console.WriteLine(msg);
+        }
+
+        private bool isTaskNeedToRun(IReportTask task)
+        {
+            string[] cronStrings =
+                       schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(';');
+
+            foreach (var cronString in cronStrings)
+            {
+                var cronSchedule = CrontabSchedule.TryParse(cronString);
+
+                if (cronSchedule == null)
+                    continue;
+
+                var occurrences =
+                    cronSchedule.GetNextOccurrences(task.LastTime, DateTime.Now);
+
+                if (!occurrences.Any())
+                    continue;
+
+                if (contextsInWork.Select(cont => cont.Value)
+                    .Where(rtask => rtask.TaskId == task.Id).Any())
+                    continue;
+
+                return true;
+            }
+            return false;
         }
     } //class
 }
