@@ -14,52 +14,47 @@ namespace ReportService.Core
 {
     public class EmailClientService: IEmailClientService
     {
-        private readonly ImapClient imapClient = new ImapClient();
+        private readonly ImapClient mImapClient = new ImapClient();
 
         public async Task<MimePart> GetFileFromEmail(EmailSettings settings, CancellationToken token)
         {
             await ConnectAsync(settings, token);
 
-            var messages = await GetAllNewMessagesAsync(settings, token);
+            List<EmailMessage> messages = await GetNewMessagesAsync(settings, token);
 
+            //TODO: rework. It is not an error, just normal situation
             if (messages.Count == 0)
                 throw new Exception("No new emails found");
 
-            var msg = messages.OrderByDescending(msg => msg.Message.Date)
-               .Where(msg => msg.Message.Attachments.Any
-               (att => (att as MimePart)
-                   .FileName == settings.AttachmentName))
-               .FirstOrDefault();
+            EmailMessage message = messages.OrderByDescending(msg => msg.Message.Date)
+                .FirstOrDefault(msg => msg.Message.Attachments.Any(att => (att as MimePart)?.FileName == settings.AttachmentName));
 
-            if (msg == null)
+            if (message == null)
                 throw new Exception("No matching files found in new emails");
 
-            var att = (msg.Message.Attachments.FirstOrDefault(att => (att as MimePart)
-                   .FileName == settings.AttachmentName) as MimePart);
+            MimePart attachment = message.Message.Attachments.FirstOrDefault(att => (att as MimePart)?.FileName == settings.AttachmentName) as MimePart;
 
-            await DeleteMessageAsync(msg.Uid, token);
-
+            await DeleteMessageAsync(message.Uid, token);
             await DisconnectAsync(CancellationToken.None);
 
-            return att;
+            return attachment;
         }
 
-        private async Task<List<EmailMessage>> GetAllNewMessagesAsync(EmailSettings settings, CancellationToken token)
+        private async Task<List<EmailMessage>> GetNewMessagesAsync(EmailSettings settings, CancellationToken token)
         {
-            if (!imapClient.Inbox.IsOpen)
+            if (!mImapClient.Inbox.IsOpen)
             {
-                await imapClient.Inbox.OpenAsync(FolderAccess.ReadWrite, token);
+                await mImapClient.Inbox.OpenAsync(FolderAccess.ReadWrite, token);
             }
 
-            var uids = (await imapClient.Inbox.SearchAsync
-                (SearchQuery.NotSeen
+            List<UniqueId> newIds = (await mImapClient.Inbox.SearchAsync(SearchQuery.NotSeen
                 .And(SearchQuery.FromContains(settings.SenderEmail)
-                .And(SearchQuery.DeliveredAfter(DateTime.Today.AddDays(-settings.SearchDays)))
-                ), token)).ToList();
+                    .And(SearchQuery.DeliveredAfter(DateTime.Today.AddDays(-settings.SearchDays)))), 
+                token)).ToList();
 
-            var messages = uids.Select(async uid =>
+            var messages = newIds.Select(async uid =>
              {
-                 var msg = await imapClient.Inbox.GetMessageAsync(uid, token);
+                 var msg = await mImapClient.Inbox.GetMessageAsync(uid, token);
                  return new EmailMessage { Uid = uid, Message = msg };
              }).Select(task => task.Result).ToList();
 
@@ -68,31 +63,31 @@ namespace ReportService.Core
 
         private async Task MarkMessageSeenAsync(UniqueId uid, CancellationToken token)
         {
-            await imapClient.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, token);
+            await mImapClient.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, token);
         }
 
         public async Task DeleteMessageAsync(UniqueId uid, CancellationToken token)
         {
-            imapClient.Inbox.AddFlags(uid, MessageFlags.Deleted, true, token);
-            await imapClient.Inbox.ExpungeAsync(token);
+            await mImapClient.Inbox.AddFlagsAsync(uid, MessageFlags.Deleted, true, token);
+            await mImapClient.Inbox.ExpungeAsync(token);
         }
 
         private async Task DisconnectAsync(CancellationToken token)
         {
-            await imapClient.DisconnectAsync(true, token);
+            await mImapClient.DisconnectAsync(true, token);
         }
 
         private async Task ConnectAsync(EmailSettings settings, CancellationToken token)
         {
-            if (imapClient.IsConnected)
+            if (mImapClient.IsConnected)
                 return;
 
-            await imapClient.ConnectAsync(settings.ServerHost, settings.Port,
-                settings.UseImapSecureOptions
-                    ? MailKit.Security.SecureSocketOptions.Auto
+            await mImapClient.ConnectAsync(settings.ServerHost, settings.Port,
+                settings.UseImapSecureOptions ? 
+                    MailKit.Security.SecureSocketOptions.Auto
                     : MailKit.Security.SecureSocketOptions.None, token);
 
-            await imapClient.AuthenticateAsync(settings.Username, settings.Password, token);
+            await mImapClient.AuthenticateAsync(settings.Username, settings.Password, token);
         }
     }
 }
