@@ -35,125 +35,72 @@ namespace ReportService
 
     public partial class Bootstrapper
     {
-        private IConfigurationRoot GetConfiguration()
+      private IConfigurationRoot GetConfiguration()
         {
-            var configBuilder = new ConfigurationBuilder()
-                .AddJsonFile("ConsulSettings.json");
+            var configBuilder = new ConfigurationBuilder().AddJsonFile("ConsulSettings.json");
+            IConfigurationRoot config = configBuilder.Build();
 
-            var config = configBuilder.Build();
-            try
+            var store = new ConsulConfigurationStore(config["Url"], config["Token"]);
+            IExternalConfigurationProvider provider = new ExternalConfigurationProvider(store, config["Environment"]);
+            Dictionary<string, string> serviceSettings = provider.GetServiceSettingsAsync(config["ServiceName"]).Result;
+
+            configBuilder.Sources.Clear();
+
+            if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
             {
-                var store = new ConsulConfigurationStore(config["Url"], config["Token"]);
-
-                IExternalConfigurationProvider prov =
-                    new ExternalConfigurationProvider(store, config["Environment"]);
-
-                var serviceSettings = prov.GetServiceSettingsAsync(config["ServiceName"]).Result;
-
-                if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
-                {
-                    configBuilder.Sources.Clear();
-
-                    using var jsonStream = new MemoryStream(Encoding.UTF8
-                        .GetBytes(serviceSettings["AppService"]));
-
-                    configBuilder.AddJsonStream(jsonStream);
-
-                    config = configBuilder.Build();
-                }
-
-                else
-                    throw new Exception("Consul doesn't contain needed settings");
+              using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"])); 
+              configBuilder.AddJsonStream(jsonStream);
             }
 
-            catch
+            else
             {
-                configBuilder.Sources.Clear();
-                configBuilder.AddJsonFile("appsettings.json");
-
-                config = configBuilder.Build();
+              configBuilder.AddJsonFile("appsettings.json");
             }
 
+            config = configBuilder.Build();
             return config;
         }
 
-        public void ConfigureContainer(ContainerBuilder builder)
+      public void ConfigureContainer(ContainerBuilder builder)
         {
             var config = GetConfiguration();
+            builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>(config);
 
-            builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
-                (config);
+            RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>(builder, "PackageDataConsumer");
+            RegisterNamedDataImporter<DbImporter, DbImporterConfig>(builder, "CommonDbImporter");
+            RegisterNamedDataImporter<PostgresDbImporter, DbImporterConfig>(builder, "PostgresDbImporter");
+            RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>(builder, "CommonExcelImporter");
+            RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>(builder, "CommonCsvImporter");
+            RegisterNamedDataImporter<SshImporter, SshImporterConfig>(builder, "CommonSshImporter");
+            RegisterNamedDataImporter<EmailAttachementImporter, EmailImporterConfig>(builder, "CommonEmailImporter");
 
-            RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>
-                (builder, "PackageDataConsumer");
+            RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>(builder, "CommonEmailSender");
+            RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>(builder, "CommonTelegramSender");
+            RegisterNamedDataExporter<DbExporter, DbExporterConfig>(builder, "CommonDbExporter");
+            RegisterNamedDataExporter<PostgresDbExporter, DbExporterConfig>(builder, "PostgresDbExporter");
+            RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>(builder, "CommonB2BExporter");
+            RegisterNamedDataExporter<PostgresB2BExporter, B2BExporterConfig>(builder, "PostgresB2BExporter");
+            RegisterNamedDataExporter<SshExporter, SshExporterConfig>(builder, "CommonSshExporter");
+            RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>(builder, "CommonFtpExporter");
 
-            RegisterNamedDataImporter<DbImporter, DbImporterConfig>
-                (builder, "CommonDbImporter");
+            RegisterNamedViewExecutor<CommonViewExecutor>(builder, "commonviewex");
+            RegisterNamedViewExecutor<GroupedViewExecutor>(builder, "GroupedViewex");
+            RegisterNamedViewExecutor<CommonTableViewExecutor>(builder, "CommonTableViewEx");
 
-            RegisterNamedDataImporter<PostgresDbImporter, DbImporterConfig>
-                (builder, "PostgresDbImporter");
+            builder.RegisterImplementationSingleton<ILogic, Logic>();
 
-            RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>
-                (builder, "CommonExcelImporter");
-
-            RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>
-                (builder, "CommonCsvImporter");
-
-            RegisterNamedDataImporter<SshImporter, SshImporterConfig>
-                (builder, "CommonSshImporter");
-
-            RegisterNamedDataImporter<EmailAttachementImporter, EmailImporterConfig>
-              (builder, "CommonEmailImporter");
-
-            RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>
-                (builder, "CommonEmailSender");
-
-            RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>
-                (builder, "CommonTelegramSender");
-
-            RegisterNamedDataExporter<DbExporter, DbExporterConfig>
-                (builder, "CommonDbExporter");
-
-            RegisterNamedDataExporter<PostgresDbExporter, DbExporterConfig>
-               (builder, "PostgresDbExporter");
-
-            RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>
-                (builder, "CommonB2BExporter");
-
-            RegisterNamedDataExporter<PostgresB2BExporter, B2BExporterConfig>
-                (builder, "PostgresB2BExporter");
-
-            RegisterNamedDataExporter<SshExporter, SshExporterConfig>
-                (builder, "CommonSshExporter");
-
-            RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>
-                (builder, "CommonFtpExporter");
-
-            RegisterNamedViewExecutor<CommonViewExecutor>
-                (builder, "commonviewex");
-
-            RegisterNamedViewExecutor<GroupedViewExecutor>
-                (builder, "GroupedViewex");
-
-            RegisterNamedViewExecutor<CommonTableViewExecutor>
-                (builder, "CommonTableViewEx");
-
-            builder
-                .RegisterImplementationSingleton<ILogic, Logic>();
-            builder
-                .RegisterImplementation<IReportTask, ReportTask.ReportTask>();
+            builder.RegisterImplementation<IReportTask, ReportTask.ReportTask>();
 
             // Partial bootstrapper for private named implementations registration
-            (this as IPrivateBootstrapper)?
-                .PrivateConfigureApplicationContainer(builder);
+            (this as IPrivateBootstrapper)?.PrivateConfigureApplicationContainer(builder);
 
             ConfigureMonik(builder, config);
 
             builder.RegisterNamedImplementation<IRepository, SqlServerRepository>("SQLServer");
             builder.RegisterNamedImplementation<IRepository, PostgreSqlRepository>("PostgreSQL");
             builder.RegisterImplementation<IDBStructureChecker, B2BDbStructureChecker>();
-            //TODO Realese a cross action for MSql server and PostgreSql
-            //builder.RegisterImplementation<IDBStructureChecker, PostrgressDBStructureChecker>();
+            //TODO implement cross support for MSql server and PostgreSql
+            //builder.RegisterImplementation<IDBStructureChecker, PostgresDBStructureChecker>();
 
             builder.Register(c =>
             {
@@ -252,11 +199,9 @@ namespace ReportService
                 AutoKeepAliveEnable = true
             };
 
-            builder
-                .RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
+            builder.RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
 
-            builder
-                .RegisterImplementationSingleton<IMonik, MonikClient>();
+            builder.RegisterImplementationSingleton<IMonik, MonikClient>();
         }
 
 
@@ -265,8 +210,7 @@ namespace ReportService
             where TImplementation : IOperation
             where TConfigType : IExporterConfig
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .Named<IOperation>(name)
                 .Keyed<IOperation>(typeof(TConfigType));
         }
@@ -276,8 +220,7 @@ namespace ReportService
             where TImplementation : IOperation
             where TConfigType : IImporterConfig
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .Named<IOperation>(name)
                 .Keyed<IOperation>(typeof(TConfigType));
         }
@@ -285,8 +228,7 @@ namespace ReportService
         private static void RegisterNamedViewExecutor<TImplementation>
             (ContainerBuilder builder, string name) where TImplementation : IViewExecutor
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .Named<IViewExecutor>(name);
         }
     }
