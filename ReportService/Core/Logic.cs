@@ -190,7 +190,7 @@ namespace ReportService.Core
 
         private void CreateBase(string connStr)
         {
-            repository.CreateBase(connStr);
+            repository.CreateSchema(connStr);
         }
 
         private Dictionary<string, Type> GetRegistrationsByTypeAndKeyType<T, TU>()
@@ -216,7 +216,7 @@ namespace ReportService.Core
         {
             //var serviceConfig = autofac.Resolve<IConfigurationRoot>();
 
-            //CreateBase(serviceConfig["DBConnStr"]);
+            //CreateSchema(serviceConfig["DBConnStr"]);
 
             RegisteredImporters = GetRegistrationsByTypeAndKeyType<IOperation, IImporterConfig>();
             RegisteredExporters = GetRegistrationsByTypeAndKeyType<IOperation, IExporterConfig>();
