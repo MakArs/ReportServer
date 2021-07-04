@@ -32,7 +32,7 @@ namespace ReportService.Operations.DataImporters
         {
             var service = autofac.Resolve<IEmailClientService>();
 
-            var attachmentMimePart = await service.GetFileFromEmail
+            var attachmentMimePart = await service.GetLastMatchingFileFromEmail
                 (emailSettings, taskContext.CancelSource.Token);
 
             using FileStream fstr =

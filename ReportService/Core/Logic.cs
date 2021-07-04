@@ -582,11 +582,11 @@ namespace ReportService.Core
                 : view;
         }
 
-        public void DeleteTaskInstanceById(long taskInstanceid)
+        public void DeleteTaskInstanceById(long taskInstanceId)
         {
-            repository.DeleteEntity<DtoTaskInstance, long>(taskInstanceid);
+            repository.DeleteEntity<DtoTaskInstance, long>(taskInstanceId);
             UpdateTaskList();
-            SendServiceInfo($"Deleted task instance {taskInstanceid}");
+            SendServiceInfo($"Deleted task instance {taskInstanceId}");
         }
 
 

@@ -16,7 +16,7 @@ namespace ReportService.Core
     {
         private readonly ImapClient mImapClient = new ImapClient();
 
-        public async Task<MimePart> GetFileFromEmail(EmailSettings settings, CancellationToken token)
+        public async Task<MimePart> GetLastMatchingFileFromEmail(EmailSettings settings, CancellationToken token)
         {
             await ConnectAsync(settings, token);
 

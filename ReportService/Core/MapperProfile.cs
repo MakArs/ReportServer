@@ -39,9 +39,8 @@ namespace ReportService.Core
 
             CreateMap<DbImporterConfig, CommonOperationProperties>();
             CreateMap<DbImporterConfig, BaseDbImporter>()
-                .ForMember("DataSetNames", opt =>
-                    opt.MapFrom(s => s.DataSetNames.Split(new[] { ';' },
-                            StringSplitOptions.RemoveEmptyEntries)
+                .ForMember("DataSetNames", opt => opt.MapFrom
+                (s => s.DataSetNames.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
                         .Where(name => !string.IsNullOrWhiteSpace(name))
                         .ToList()));
 
