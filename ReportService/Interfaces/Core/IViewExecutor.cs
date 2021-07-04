@@ -7,6 +7,6 @@ namespace ReportService.Interfaces.Core
         string ExecuteHtml(string viewTemplate, OperationPackage package);
         string ExecuteTelegramView(OperationPackage package, string reportName = "Отчёт", bool useAllSets = false);
         ExcelPackage ExecuteXlsx(OperationPackage package, string reportName, bool useAllSets = false);
-        byte[] ExecuteCsv(OperationPackage package, string delimiterr = ";", bool useAllSets = false);
+        byte[] ExecuteCsv(OperationPackage package, string delimiter = ";", bool useAllSets = false);
     }
 }

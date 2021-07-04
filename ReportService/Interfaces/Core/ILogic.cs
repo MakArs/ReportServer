@@ -50,7 +50,7 @@ namespace ReportService.Interfaces.Core
         string GetWorkingTaskInstancesJson(long taskId);
         Task<string> GetCurrentViewAsync(long taskId);
 
-        void DeleteTaskInstanceById(long taskInstanceid);
+        void DeleteTaskInstanceById(long taskInstanceId);
         Task<string> GetAllTaskInstancesJson(long taskId);
         Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 

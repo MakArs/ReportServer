@@ -7,6 +7,6 @@ namespace ReportService.Interfaces.Core
 {
     public interface IEmailClientService
     {
-        Task<MimePart> GetFileFromEmail(EmailSettings settings, CancellationToken token);
+        Task<MimePart> GetLastMatchingFileFromEmail(EmailSettings settings, CancellationToken token);
     }
 }

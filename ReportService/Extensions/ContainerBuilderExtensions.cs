@@ -7,8 +7,7 @@ namespace ReportService.Extensions
         public static void RegisterImplementationSingleton<TInterface, TImplementation>(
             this ContainerBuilder builder)
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .As<TInterface>()
                 .SingleInstance();
         }
@@ -16,8 +15,7 @@ namespace ReportService.Extensions
         public static void RegisterImplementation<TInterface, TImplementation>(
             this ContainerBuilder builder)
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .As<TInterface>();
         }
 
@@ -25,8 +23,7 @@ namespace ReportService.Extensions
             this ContainerBuilder builder,
             TImplementation aInstance)
         {
-            builder
-                .Register(_ => aInstance)
+            builder.Register(_ => aInstance)
                 .As<TInterface>();
         }
 
@@ -34,8 +31,7 @@ namespace ReportService.Extensions
             this ContainerBuilder builder,
             TImplementation aInstance)
         {
-            builder
-                .Register(_ => aInstance)
+            builder.Register(_ => aInstance)
                 .As<TInterface>()
                 .SingleInstance();
         }
@@ -44,8 +40,7 @@ namespace ReportService.Extensions
             this ContainerBuilder builder,
             string name)
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .Named<TInterface>(name)
                 .SingleInstance();
         }
@@ -54,8 +49,7 @@ namespace ReportService.Extensions
             this ContainerBuilder builder,
             string name)
         {
-            builder
-                .RegisterType<TImplementation>()
+            builder.RegisterType<TImplementation>()
                 .Named<TInterface>(name);
         }
     }

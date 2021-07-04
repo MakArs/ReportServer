@@ -49,7 +49,7 @@ namespace ReportService
                     monik.ApplicationError("Aggregate exception at: " + stringVersion);
                     aggrExc.Handle((ex) =>
                     {
-                        monik.ApplicationError($"Inner exception of type {ex.GetType().Name} has occured. Message: {ex.Message} Stacktrace: {ex.StackTrace}");
+                        monik.ApplicationError($"Inner exception of type {ex.GetType().Name} has occurred. Message: {ex.Message} Stacktrace: {ex.StackTrace}");
                         return true;
                     });
                 }

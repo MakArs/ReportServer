@@ -8,16 +8,13 @@ namespace ReportService.Extensions
 {
     public static class MailMessageExtension
     {
-        public static void AddRecipientsFromGroup(this MailMessage msg,
-            RecipientAddresses addresses)
+        public static void AddRecipientsFromGroup(this MailMessage msg, RecipientAddresses addresses)
         {
             AddAddressesToCollection(addresses.To, msg.To);
-
             AddAddressesToCollection(addresses.Bcc, msg.Bcc);
         }
 
-        private static void AddAddressesToCollection(List<string> addresses,
-            MailAddressCollection col)
+        private static void AddAddressesToCollection(List<string> addresses, MailAddressCollection col)
         {
             if (addresses == null) return;
 
@@ -32,13 +29,11 @@ namespace ReportService.Extensions
             List<string> bcc = new List<string>();
 
             var set = package.DataSets.FirstOrDefault();
-            if (set == null)
+            if (set == null) 
                 return;
 
-            var addressIndex = set.Columns.IndexOf(set.Columns
-                .FirstOrDefault(col => col.Name == "Address"));
-            var recTypeIndex = set.Columns.IndexOf(set.Columns
-                .FirstOrDefault(col => col.Name == "RecType"));
+            var addressIndex = set.Columns.IndexOf(set.Columns.FirstOrDefault(col => col.Name == "Address"));
+            var recTypeIndex = set.Columns.IndexOf(set.Columns.FirstOrDefault(col => col.Name == "RecType"));
 
             if (addressIndex == -1 || recTypeIndex == -1)
                 return;
@@ -49,7 +44,8 @@ namespace ReportService.Extensions
                     .Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                     .ToList();
 
-                if (newAddrs.Count == 0) continue;
+                if (newAddrs.Count == 0) 
+                    continue;
 
                 var recType = row.Values[recTypeIndex].StringValue;
 

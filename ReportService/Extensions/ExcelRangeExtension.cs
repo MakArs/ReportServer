@@ -33,39 +33,31 @@ namespace ReportService.Extensions
                 case int intValue:
                     rng.Value = intValue;
                     break;
-
                 case short shortValue:
                     rng.Value = shortValue;
                     break;
-
                 case byte byteValue:
                     rng.Value = byteValue;
                     break;
-
                 case double doublevValue:
                     rng.Value = doublevValue;
                     break;
-
                 case decimal decimalValue:
                     rng.Value = decimalValue;
                     break;
-
                 case long longValue:
                     rng.Value = longValue;
                     break;
-
                 case bool boolValue:
                     rng.Value = boolValue;
                     break;
-
                 case DateTime dateTimeValue:
                     rng.Value = dateTimeValue;
                     rng.Style.Numberformat.Format =
-                        dateTimeValue.TimeOfDay == TimeSpan.Zero //todo: change logic in some way
+                        dateTimeValue.TimeOfDay == TimeSpan.Zero //todo: change logic to use date format
                             ? "dd.mm.yyyy"
                             : "dd.mm.yyyy HH:mm:ss";
                     break;
-
                 default:
                     rng.Value = value?.ToString();
                     break;

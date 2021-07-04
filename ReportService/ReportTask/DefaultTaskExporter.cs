@@ -64,7 +64,7 @@ namespace ReportService.ReportTask
                 msg.To.Add(new MailAddress(addr));
             }
 
-            msg.Subject = $"Errors occured in task {taskName} with id: {taskId} at" +
+            msg.Subject = $"Errors occurred in task {taskName} with id: {taskId} at" +
                           $" {DateTime.Now:dd.MM.yy HH:mm}";
 
             List<ColumnInfo> columns = new List<ColumnInfo>

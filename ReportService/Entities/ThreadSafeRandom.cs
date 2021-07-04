@@ -4,19 +4,21 @@ namespace ReportService.Entities
 {
     public class ThreadSafeRandom
     {
-        private static readonly Random Global = new Random();
-        [ThreadStatic] private static Random _local;
+        private static readonly Random sGlobal = new Random();
+
+        [ThreadStatic] 
+        private static Random sLocal;
 
         private void InitializeLocal()
         {
-            if (_local == null)
+            if (sLocal == null)
             {
-                lock (Global)
+                lock (sGlobal)
                 {
-                    if (_local == null)
+                    if (sLocal == null)
                     {
-                        int seed = Global.Next();
-                        _local = new Random(seed);
+                        int seed = sGlobal.Next();
+                        sLocal = new Random(seed);
                     }
                 }
             }
@@ -25,14 +27,14 @@ namespace ReportService.Entities
         public int Next()
         {
             InitializeLocal();
-            return _local.Next();
+            return sLocal.Next();
         }
 
         public int Next(int minValue, int maxValue)
         {
             InitializeLocal();
 
-            return _local.Next(minValue, maxValue);
+            return sLocal.Next(minValue, maxValue);
         }
     }
 }
