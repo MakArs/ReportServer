@@ -42,6 +42,7 @@ namespace ReportService.Core
         private readonly List<IReportTask> tasks;
         private readonly List<DtoOperation> operations;
         private readonly Dictionary<long, IReportTaskRunContext> contextsInWork;
+        private readonly List<TaskRequestInfo> taskRequestInfos;
 
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
@@ -66,6 +67,7 @@ namespace ReportService.Core
             schedules = new List<DtoSchedule>();
             tasks = new List<IReportTask>();
             operations = new List<DtoOperation>();
+            taskRequestInfos = new List<TaskRequestInfo>();
 
             this.bot.OnUpdate += OnBotUpd;
         } //ctor
@@ -104,8 +106,8 @@ namespace ReportService.Core
                                 .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                             new NamedParameter("opers", operations
                                 .Where(oper => oper.TaskId == dtoTask.Id)
-                                .Where(oper => !oper.IsDeleted).ToList()));
-                            //new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
+                                .Where(oper => !oper.IsDeleted).ToList()),
+                        new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
 
                         //todo: might be replaced with saved time from db
                         task.UpdateLastTime();
@@ -144,6 +146,18 @@ namespace ReportService.Core
                 catch (Exception ex)
                 {
                     monik.ApplicationError($"CheckScheduleAndExecute error in task {task.Id} with schedule {task.Schedule?.Schedule}: {ex}");
+                }
+            }
+
+            List<TaskRequestInfo> currentTasksInfos;
+            lock (taskRequestInfos)
+                currentTasksInfos = taskRequestInfos.ToList();
+
+            foreach (var taskInfo in currentTasksInfos)
+            {
+                if (taskInfo.Status == 1)
+                {
+                    
                 }
             }
         }
@@ -226,6 +240,7 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(telegramChannels);
             UpdateDtoEntitiesList(schedules);
             UpdateDtoEntitiesList(operations);
+            UpdateDtoEntitiesList(taskRequestInfos);
 
             UpdateTaskList();
 
@@ -749,6 +764,15 @@ namespace ReportService.Core
         {
             monik.ApplicationInfo(msg);
             Console.WriteLine(msg);
+        }
+
+        public long CreateRequestTaskInfo(TaskRequestInfo taskRequestInfo)
+        {
+            var newTaskRequestInfoId = repository.CreateTaskRequestInfo(taskRequestInfo);
+
+            UpdateDtoEntitiesList(taskRequestInfos);
+            SendServiceInfo($"Created TaskRequestInfo {newTaskRequestInfoId}");
+            return newTaskRequestInfoId;
         }
 
         private bool isTaskNeedToRun(IReportTask task)

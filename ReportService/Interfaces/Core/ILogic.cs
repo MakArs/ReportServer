@@ -69,5 +69,8 @@ namespace ReportService.Interfaces.Core
 
         //int CreateTaskByTemplate(ApiTask newTask); 
         Task<bool> StopTaskInstanceAsync(long taskInstanceId);
+
+        public long CreateRequestTaskInfo(TaskRequestInfo taskRequestInfo);
+        public void UpdateTaskRecord(DtoTask task);
     }
 }

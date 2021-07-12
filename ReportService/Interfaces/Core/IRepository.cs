@@ -28,7 +28,6 @@ namespace ReportService.Interfaces.Core
         long CreateEntity<T>(T entity) where T : class, IDtoEntity;
 
         long CreateTask(DtoTask task, params DtoOperation[] bindedOpers);
-
         /// <summary>
         /// Updates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
@@ -48,6 +47,7 @@ namespace ReportService.Interfaces.Core
 
         List<long> UpdateTaskInstancesAndGetIds();
 
+        long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
         void CreateBase(string baseConnStr);
     }
 }

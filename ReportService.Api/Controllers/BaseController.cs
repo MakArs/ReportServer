@@ -28,5 +28,23 @@ namespace ReportService.Api.Controllers
                 StatusCode = StatusCodes.Status200OK
             };
         }
+
+        protected ContentResult GetNotFoundErrorResult(string content)
+        {
+            return new ContentResult
+            {
+                Content = content,
+                StatusCode = StatusCodes.Status404NotFound
+            };
+        }
+
+        protected ContentResult GetBadRequestError(string content)
+        {
+            return new ContentResult
+            {
+                Content = content,
+                StatusCode = StatusCodes.Status400BadRequest
+            };
+        }
     }
 }

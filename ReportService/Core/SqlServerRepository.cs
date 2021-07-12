@@ -406,6 +406,34 @@ namespace ReportService.Core
             Console.WriteLine(msg);
         }
 
+        public long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            long newTaskRequestInfoId;
+
+            connection.Open();
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    newTaskRequestInfoId = connection.Insert(taskRequestInfo,
+                        commandTimeout: 60, transaction: transaction);
+
+                    transaction.Commit();
+                }
+
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return newTaskRequestInfoId;
+        }
+
         public void CreateBase(string baseConnStr)
         {
             using var connection = new SqlConnection(baseConnStr);

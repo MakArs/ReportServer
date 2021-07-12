@@ -15,7 +15,7 @@ using ReportService.Interfaces.ReportTask;
 
 namespace ReportService.ReportTask
 {
-    public class ReportTask : IReportTask
+    public partial class ReportTask : IReportTask
     {
         public int Id { get; }
         public string Name { get; }
@@ -23,6 +23,7 @@ namespace ReportService.ReportTask
         public DateTime LastTime { get; private set; }
         public List<IOperation> Operations { get; set; }
         public Dictionary<string, object> Parameters { get; set; } //todo: change to class?
+        public List<ParameterInfo> ParameterInfos { get; set; }
         public List<TaskDependency> DependsOn { get; set; }
 
         private readonly IMonik monik;
@@ -30,7 +31,7 @@ namespace ReportService.ReportTask
         private readonly IRepository repository;
 
         public ReportTask(ILogic logic, ILifetimeScope autofac, IRepository repository, IMonik monik, int id,
-            string name, string parameters, string dependsOn, DtoSchedule schedule, List<DtoOperation> opers)
+            string name, string parameters, string dependsOn, DtoSchedule schedule, List<DtoOperation> opers, string parameterInfos)
         {
             this.monik = monik;
             this.repository = repository;
@@ -48,6 +49,11 @@ namespace ReportService.ReportTask
             if (!string.IsNullOrEmpty(dependsOn))
                 DependsOn = JsonConvert
                     .DeserializeObject<List<TaskDependency>>(dependsOn);
+
+            ParameterInfos = new List<ParameterInfo>();
+            if (!string.IsNullOrEmpty(parameterInfos))
+                ParameterInfos = JsonConvert
+                    .DeserializeObject<List<ParameterInfo>>(parameterInfos);
 
             this.autofac = autofac;
 

@@ -459,6 +459,11 @@ namespace ReportService.Core
             Console.WriteLine(msg);
         }
 
+        public long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo)
+        {
+            return 0;
+        }
+
         public void CreateBase(string baseConnStr)
         {
             using var connection = new NpgsqlConnection(baseConnStr);
