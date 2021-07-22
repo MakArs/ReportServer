@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Autofac;
 using AutoMapper;
 using ExternalConfiguration;
@@ -42,19 +43,23 @@ namespace ReportService
 
             var store = new ConsulConfigurationStore(config["Url"], config["Token"]);
             IExternalConfigurationProvider provider = new ExternalConfigurationProvider(store, config["Environment"]);
-            Dictionary<string, string> serviceSettings = provider.GetServiceSettingsAsync(config["ServiceName"]).Result;
+            Task<Dictionary<string, string>> getConsulSettingsTask = provider.GetServiceSettingsAsync(config["ServiceName"]);
 
             configBuilder.Sources.Clear();
 
-            if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
+            try
             {
-              using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"])); 
-              configBuilder.AddJsonStream(jsonStream);
-            }
+                Dictionary<string, string> serviceSettings = getConsulSettingsTask.Result;
 
-            else
+                if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
+                {
+                    using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
+                    configBuilder.AddJsonStream(jsonStream);
+                }
+            }
+            catch (AggregateException _)
             {
-              configBuilder.AddJsonFile("appsettings.json");
+                configBuilder.AddJsonFile("appsettings.json");
             }
 
             config = configBuilder.Build();
