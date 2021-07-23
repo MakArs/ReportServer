@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using ReportService.Interfaces.Core;
 using AutoMapper;
 using ReportService.Entities.Dto;
+using ReportService.Entities;
 using ReportService.Api.Models;
 using ReportService.Interfaces.ReportTask;
 using Newtonsoft.Json;
@@ -40,13 +41,12 @@ namespace ReportService.Api.Controllers
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.stoprun, reporting.edit")]
         [HttpPost(RunTaskRoute)]
-        //TaskRequestInfo
         public ContentResult RunTask([FromBody] RunTaskParameters newParameters) 
         {
             var currentTask = logic.GetAllTasksJson().SingleOrDefault(t => t.Id == newParameters.TaskId);
             if (currentTask is null)
             {
-                return GetNotFoundErrorResult($"Task with id {newParameters.TaskId} doesn't exist.");
+                return GetNotFoundErrorResult(JsonConvert.SerializeObject(new Errors { ErrorsInfo =  new Dictionary<string, string[]> { ["Common"] = new[] { $"Task with id {newParameters.TaskId} doesn't exist." } } }));
             }
 
             var mapParameters = MapParameters(newParameters.Parameters, currentTask.ParameterInfos.ToArray());
@@ -54,29 +54,40 @@ namespace ReportService.Api.Controllers
 
             if (mapErrors.Any())
             {
-                var errors = new Errors();
-                errors.ErrorsInfo = new Dictionary<string, string[]>();
-                foreach (var mapError in mapErrors)
-                {
-                    errors.ErrorsInfo.Add(mapError.ParameterInfo.Name, mapError.Error.ToArray());
-                }
+                var errors = new Errors
+                { 
+                    ErrorsInfo = mapErrors
+                        .ToDictionary(k => k.ParameterInfo.Name, v => v.Error.ToArray())
+                };
+
                 return GetBadRequestError(JsonConvert.SerializeObject(errors));
+
             }
 
-            //return GetSuccessfulResult(JsonConvert.SerializeObject(mapParameters));
+            DateTime timeFrom = DateTime.MinValue;
+            DateTime timeTo = DateTime.MinValue;
+            
+            foreach (var parameter in mapParameters)
+            {
+                if (parameter.ParameterInfo.Name.ToLower().Contains("repparfrom"))
+                    timeFrom = Convert.ToDateTime(parameter.UserValue.Value);
+                else if (parameter.ParameterInfo.Name.ToLower().Contains("repparto"))
+                    timeTo = Convert.ToDateTime(parameter.UserValue.Value);
+            }
 
-            //var parametersDictionary = parametersList.ToDictionary(p => p.Name, p => p.Value);
 
-            //var timeDifference = DateTime.Parse(parametersDictionary["@RepParto"]).Subtract(DateTime.Parse(parametersDictionary["@RepParfrom"])).Days;
-            //if (timeDifference > 30)
-            //    return GetBadRequestError("The time period is to big.");
-            //if (timeDifference < 0)
-            //    return GetBadRequestError("The time from is larger than time to.");
-
+            if (timeTo.Subtract(timeFrom).Days > 30)
+                return GetBadRequestError(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Common"] = new[] { $"The time period is to big ({timeTo.Subtract(timeFrom).Days} days)." } } })
+                    );
+            else if (timeTo.Subtract(timeFrom).Days < 0)
+                return GetBadRequestError(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Common"] = new[] { $"RepParFrom ({timeFrom}) is bigger than RepParTo ({timeTo})." } } })
+                    );
+            
             var taskRequestInfo = new TaskRequestInfo(
                 newParameters.TaskId,
-                newParameters.Parameters,
-                RequestStatus.Pending
+                newParameters.Parameters
                 );
 
             var test = mapper.Map<Entities.TaskRequestInfo>(taskRequestInfo);
@@ -167,32 +178,8 @@ namespace ReportService.Api.Controllers
                 .ToArray();
         }
 
-        [Authorize(Domain0Auth.Policy, Roles = "reporting.view, reporting.edit")]
-        [HttpPost(AddParameterInfoRoute)]
-        public ContentResult AddParameterInfo(long taskId, List<ParameterInfo> parameterInfos)
-        {
-            try
-            {
-                var currentTasks = logic.GetAllTasksJson();
-                var apiTask = currentTasks.Select(task => mapper.Map<ApiTask>(task))
-                    .FirstOrDefault(t => t.Id == taskId);
+        //todo Create a functional for canceling task. Create a list of available tasks to user.
 
-                var dtoTask = mapper.Map<DtoTask>(apiTask);
-                dtoTask.ParameterInfos = JsonConvert.SerializeObject(parameterInfos);
-                dtoTask.UpdateDateTime = DateTime.Now;
-
-                logic.UpdateTaskRecord(dtoTask);
-
-                return GetSuccessfulResult($"Parameters Info was succsesfuly add to task with id: {taskId}");
-            }
-            catch
-            {
-                return GetInternalErrorResult();
-            }
-        }
-        //.Select(task => mapper.Map<ApiTask>(task))
-        //public ContentResult CancelTask(long requestId) { return null; }
-        //public ContentResult GetReportData(long requestID) { return null; }
     }
 
     public class TaskInfoFilter
@@ -204,12 +191,6 @@ namespace ReportService.Api.Controllers
     {
         public long TaskId { get; set; }
         public TaskParameter[] Parameters { get; set; }
-    }
-
-    public class TaskParameter
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
     }
 
     public class TaskInfo
@@ -237,13 +218,13 @@ namespace ReportService.Api.Controllers
         public DateTime UpdateTime { get; set; }
         public RequestStatus Status { get; set; }
 
-        public TaskRequestInfo(long taskId, TaskParameter[] parameters, RequestStatus status = RequestStatus.Pending) 
+        public TaskRequestInfo(long taskId, TaskParameter[] parameters, RequestStatus Status = RequestStatus.Pending) 
         {
             this.TaskId = taskId;
             this.Parameters = parameters;
             this.CreateTime = DateTime.UtcNow;
             this.UpdateTime = DateTime.UtcNow;
-            this.Status = status;
+            this.Status = Status;
         }
     }
     public class ParameterMapping
@@ -270,14 +251,5 @@ namespace ReportService.Api.Controllers
     public class Errors
     {
         public Dictionary<string, string[]> ErrorsInfo { get; set; }
-    }
-
-    public enum RequestStatus
-    {
-        Pending = 1,
-        InProgress = 2,
-        Completed = 3,
-        Canceled = 4,
-        Failed = 5
     }
 }

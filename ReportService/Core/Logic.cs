@@ -150,16 +150,54 @@ namespace ReportService.Core
             }
 
             List<TaskRequestInfo> currentTasksInfos;
-            lock (taskRequestInfos)
-                currentTasksInfos = taskRequestInfos.ToList();
+            currentTasksInfos = taskRequestInfos.ToList();
 
             foreach (var taskInfo in currentTasksInfos)
             {
-                if (taskInfo.Status == 1)
+                if (taskInfo.Status == (int)RequestStatus.Pending)
                 {
-                    
+                    taskInfo.Status = (int)RequestStatus.InProgress;
+                    repository.UpdateEntity(taskInfo);
+                    var task = currentTasks.FirstOrDefault(x => x.Id == taskInfo.TaskId);
+                    var newTaskParams = JsonConvert.DeserializeObject<List<TaskParameter>>(taskInfo.Parameters).ToDictionary(x => x.Name, x => x.Value);
+
+                    try
+                    {
+                        RequestExecuteTask(task, newTaskParams, taskInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        taskInfo.Status = (int)RequestStatus.Failed;
+                        repository.UpdateEntity(taskInfo);
+                        monik.ApplicationError($"RequestExecute error in taskRequest {taskInfo.RequestId} with error: {ex}");
+                    }
                 }
             }
+        }
+
+        private void RequestExecuteTask(IReportTask task, Dictionary<string, string> parameters, TaskRequestInfo taskRequestInfo)
+        {
+            SendServiceInfo($"Executing task {task.Id} (request)");
+
+            var context = task.GetCurrentContext(false);
+
+            if (context is null)
+                return;
+
+            foreach (var item in parameters)
+            {
+                context.Parameters[item.Key] = item.Value;
+            }
+
+            context.TaskRequestInfo = taskRequestInfo;
+
+            var instanceId = context.TaskInstance.Id;
+            contextsInWork.Add(instanceId, context);
+
+            Task.Factory.StartNew(() => task.Execute(context), context.CancelSource.Token)
+                .ContinueWith(_ => EndContextWork(instanceId));
+
+            task.UpdateLastTime();
         }
 
         private void ExecuteTask(IReportTask task)

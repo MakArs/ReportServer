@@ -155,6 +155,8 @@ namespace ReportService.ReportTask
 
             var dtoTaskInstance = taskContext.TaskInstance;
 
+            var taskRequestInfo = taskContext.TaskRequestInfo;
+
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
 
@@ -215,7 +217,12 @@ namespace ReportService.ReportTask
                 : dtoTaskInstance.State == (int)InstanceState.Canceled ? (int)InstanceState.Canceled
                 : (int)InstanceState.Failed;
 
+            taskRequestInfo.Status =
+                success ? (int)RequestStatus.Completed
+                : (int)RequestStatus.Failed;
+
             repository.UpdateEntity(dtoTaskInstance);
+            repository.UpdateEntity(taskRequestInfo);
         }
 
         private void RunOperation(IReportTaskRunContext taskContext, IOperation oper,
