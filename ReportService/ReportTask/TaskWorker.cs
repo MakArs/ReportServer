@@ -217,12 +217,18 @@ namespace ReportService.ReportTask
                 : dtoTaskInstance.State == (int)InstanceState.Canceled ? (int)InstanceState.Canceled
                 : (int)InstanceState.Failed;
 
-            taskRequestInfo.Status =
-                success ? (int)RequestStatus.Completed
-                : (int)RequestStatus.Failed;
-
             repository.UpdateEntity(dtoTaskInstance);
-            repository.UpdateEntity(taskRequestInfo);
+
+            if (taskRequestInfo != null)
+            {
+                taskRequestInfo.Status =
+                    success ? (int)RequestStatus.Completed
+                    : (int)RequestStatus.Failed;
+
+                taskRequestInfo.TaskInstanceId = dtoTaskInstance.Id;
+
+                repository.UpdateEntity(taskRequestInfo);
+            }
         }
 
         private void RunOperation(IReportTaskRunContext taskContext, IOperation oper,
