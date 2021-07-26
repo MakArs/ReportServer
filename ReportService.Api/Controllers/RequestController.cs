@@ -25,16 +25,12 @@ namespace ReportService.Api.Controllers
         private const string GetTaskStatusRoute = "status/{id}";
         private const string RunTaskRoute = "runTask/";
         private const string GetTaskInfoRoute = "getTaskInfo/";
-        private const string AddParameterInfoRoute = "addParameterInfos/";
 
         public RequestController(ILogic logic, IMapper mapper)
         {
             this.logic = logic;
             this.mapper = mapper;
         }
-
-        //[HttpPost]
-        //public TaskInfo[] GetAvaliableTaskInfo() { return null; } 
 
         //[HttpPost(GetTaskStatusRoute)]
         //public TaskRequestInfo[] GetTaskRequestInfo() { return null; }
@@ -44,9 +40,14 @@ namespace ReportService.Api.Controllers
         public ContentResult RunTask([FromBody] RunTaskParameters newParameters) 
         {
             var currentTask = logic.GetAllTasksJson().SingleOrDefault(t => t.Id == newParameters.TaskId);
-            if (currentTask is null)
+            if (currentTask == null)
             {
-                return GetNotFoundErrorResult(JsonConvert.SerializeObject(new Errors { ErrorsInfo =  new Dictionary<string, string[]> { ["Common"] = new[] { $"Task with id {newParameters.TaskId} doesn't exist." } } }));
+                return GetNotFoundErrorResult(JsonConvert.SerializeObject(new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Task Error"] = new[] { $"Task with id {newParameters.TaskId} doesn't exist." } } }));
+            }
+
+            if (currentTask.ParameterInfos.Count() == 0)
+            {
+                return GetNotFoundErrorResult(JsonConvert.SerializeObject(new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Task Error"] = new[] { $"There is not task parameters in task ({currentTask.Id}:{currentTask.Name})" } } }));
             }
 
             var mapParameters = MapParameters(newParameters.Parameters, currentTask.ParameterInfos.ToArray());
@@ -78,11 +79,11 @@ namespace ReportService.Api.Controllers
 
             if (timeTo.Subtract(timeFrom).Days > 30)
                 return GetBadRequestError(JsonConvert.SerializeObject(
-                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Common"] = new[] { $"The time period is to big ({timeTo.Subtract(timeFrom).Days} days)." } } })
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"The time period is to big ({timeTo.Subtract(timeFrom).Days} days)." } } })
                     );
             else if (timeTo.Subtract(timeFrom).Days < 0)
                 return GetBadRequestError(JsonConvert.SerializeObject(
-                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Common"] = new[] { $"RepParFrom ({timeFrom}) is bigger than RepParTo ({timeTo})." } } })
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"RepParFrom ({timeFrom}) is bigger than RepParTo ({timeTo})." } } })
                     );
             
             var taskRequestInfo = new TaskRequestInfo(
@@ -170,16 +171,13 @@ namespace ReportService.Api.Controllers
         public TaskInfo[] GetTaskInfo([FromBody]  TaskInfoFilter filter)
         {
             var currentTasks = logic.GetAllTasksJson();
-            var taskIds = new HashSet<long>(filter.TaskIds);
+            var tasksByTaskIds = new HashSet<long>(filter.TaskIds);
 
             return currentTasks
-                .Where(t => taskIds.Contains(t.Id))
+                .Where(t => tasksByTaskIds.Contains(t.Id))
                 .Select(t => new TaskInfo(t.Id, t.Name, t.ParameterInfos))
                 .ToArray();
         }
-
-        //todo Create a functional for canceling task. Create a list of available tasks to user.
-
     }
 
     public class TaskInfoFilter

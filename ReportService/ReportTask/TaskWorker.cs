@@ -160,6 +160,10 @@ namespace ReportService.ReportTask
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
 
+            taskRequestInfo.Status = (int)RequestStatus.InProgress;
+            taskRequestInfo.UpdateTime = DateTime.UtcNow;
+            repository.UpdateEntity(taskRequestInfo);
+
             if (!CheckIfDependenciesCompleted(taskContext, exceptions))
                 return;
 
@@ -226,6 +230,7 @@ namespace ReportService.ReportTask
                     : (int)RequestStatus.Failed;
 
                 taskRequestInfo.TaskInstanceId = dtoTaskInstance.Id;
+                taskRequestInfo.UpdateTime = DateTime.UtcNow;
 
                 repository.UpdateEntity(taskRequestInfo);
             }

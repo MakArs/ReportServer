@@ -66,7 +66,7 @@ namespace ReportService
                     throw new Exception("Consul doesn't contain needed settings");
             }
 
-            catch
+            catch (Exception e)
             {
                 configBuilder.Sources.Clear();
                 configBuilder.AddJsonFile("appsettings.json");
@@ -84,8 +84,8 @@ namespace ReportService
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>
                 (config);
 
-            RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>
-                (builder, "PackageDataConsumer");
+            //RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>
+            //    (builder, "PackageDataConsumer");
 
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>
                 (builder, "CommonDbImporter");
