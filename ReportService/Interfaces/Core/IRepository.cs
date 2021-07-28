@@ -12,6 +12,7 @@ namespace ReportService.Interfaces.Core
         TaskState GetTaskStateById(long taskId);
         Task<List<DtoTaskInstance>> GetAllTaskInstances(long taskId);
         List<DtoOperInstance> GetTaskOperInstances(long taskInstanceId);
+        List<DtoOperInstance> GetFullTaskOperInstances(long taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(long operInstanceId);
 
         /// <summary>
@@ -49,5 +50,6 @@ namespace ReportService.Interfaces.Core
 
         long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
         void CreateBase(string baseConnStr);
+        TaskRequestInfo GetTaskRequestInfoById(long taskRequestId);
     }
 }

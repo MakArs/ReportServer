@@ -409,6 +409,11 @@ namespace ReportService.Core
             return currentTasks;
         }
 
+        public TaskRequestInfo GetTaskRequestInfoById(long id)
+        {
+            return repository.GetTaskRequestInfoById(id);
+        }
+
         public string GetEntitiesCountJson()
         {
             var entities = new Dictionary<string, int>()
@@ -672,6 +677,12 @@ namespace ReportService.Core
         {
             return repository
                 .GetTaskOperInstances(id);
+        }
+
+        public List<DtoOperInstance> GetFullTaskOperInstances(long id)
+        {
+            return repository
+                .GetFullTaskOperInstances(id);
         }
 
         public DtoOperInstance GetFullOperInstanceById(long id)

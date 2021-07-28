@@ -140,6 +140,7 @@ namespace ReportService.ReportTask
         {
             Stopwatch duration = new Stopwatch();
 
+
             duration.Start();
 
             bool deleteFolder = false;
@@ -160,9 +161,12 @@ namespace ReportService.ReportTask
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
 
-            taskRequestInfo.Status = (int)RequestStatus.InProgress;
-            taskRequestInfo.UpdateTime = DateTime.UtcNow;
-            repository.UpdateEntity(taskRequestInfo);
+            if (taskRequestInfo != null)
+            {
+                taskRequestInfo.Status = (int)RequestStatus.InProgress;
+                taskRequestInfo.UpdateTime = DateTime.UtcNow;
+                repository.UpdateEntity(taskRequestInfo);
+            }
 
             if (!CheckIfDependenciesCompleted(taskContext, exceptions))
                 return;

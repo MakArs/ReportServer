@@ -106,6 +106,27 @@ namespace ReportService.Core
             }
         }
 
+        public List<DtoOperInstance> GetFullTaskOperInstances(long taskInstanceId)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.Query<DtoOperInstance>
+                    ($@"select Id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,
+                        ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}",
+                        commandTimeout: 60)
+                    .ToList();
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting operation instances: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
         public DtoOperInstance GetFullOperInstanceById(long operInstanceId)
         {
             using var connection = new SqlConnection(connectionString);
@@ -432,6 +453,35 @@ namespace ReportService.Core
             }
 
             return newTaskRequestInfoId;
+        }
+
+        public TaskRequestInfo GetTaskRequestInfoById(long taskRequestId)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.QueryFirst<TaskRequestInfo>
+                ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                where tri.RequestId = {taskRequestId}",
+                    commandTimeout: 60);
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task request info data: " +
+                               $"{e.Message}");
+                throw;
+            }
         }
 
         public void CreateBase(string baseConnStr)

@@ -12,6 +12,9 @@ using ReportService.Entities;
 using ReportService.Api.Models;
 using ReportService.Interfaces.ReportTask;
 using Newtonsoft.Json;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ReportService.Api.Controllers
 {
@@ -22,14 +25,17 @@ namespace ReportService.Api.Controllers
     {
         private readonly ILogic logic;
         private readonly IMapper mapper;
+        private readonly IArchiver archiver;
         private const string GetTaskStatusRoute = "status/{id}";
         private const string RunTaskRoute = "runTask/";
         private const string GetTaskInfoRoute = "getTaskInfo/";
+        private const string DownloadOpersResultRoute = "downloadOpersResult/";
 
-        public RequestController(ILogic logic, IMapper mapper)
+        public RequestController(ILogic logic, IMapper mapper, IArchiver archiver)
         {
             this.logic = logic;
             this.mapper = mapper;
+            this.archiver = archiver;
         }
 
         //[HttpPost(GetTaskStatusRoute)]
@@ -98,6 +104,41 @@ namespace ReportService.Api.Controllers
             return GetSuccessfulResult(JsonConvert.SerializeObject(taskRequestInfo));
         }
 
+        [Authorize(Domain0Auth.Policy, Roles = "reporting.view")]
+        [HttpPost(GetTaskInfoRoute)]
+        public TaskInfo[] GetTaskInfo([FromBody] TaskInfoFilter filter)
+        {
+            var currentTasks = logic.GetAllTasksJson();
+            var tasksByTaskIds = new HashSet<long>(filter.TaskIds);
+
+            return currentTasks
+                .Where(t => tasksByTaskIds.Contains(t.Id))
+                .Select(t => new TaskInfo(t.Id, t.Name, t.ParameterInfos))
+                .ToArray();
+        }
+
+        [Authorize(Domain0Auth.Policy, Roles = "reporting.view")]
+        [HttpPost(DownloadOpersResultRoute)]
+        public DataSet[] DownloadOpersResult(DownloadFilter downloadFilter)
+        {
+            DataSet[] data;
+            var currentTaskRequestInfo = logic.GetTaskRequestInfoById(downloadFilter.TaskRequestInfoId);
+
+            if (currentTaskRequestInfo.TaskInstanceId == null)
+                return null;
+
+            var fullOperInstances = logic.GetFullTaskOperInstances((long)currentTaskRequestInfo.TaskInstanceId);
+
+            data = fullOperInstances.Select(opi => 
+                new DataSet { 
+                    OperationInstanceId = opi.OperationId, 
+                    StartTime = opi.StartTime, 
+                    Data = archiver.ExtractFromByteArchive(opi.DataSet)
+                }).Where(dt => dt.Data != null).ToArray();
+
+            return data;
+        }
+
         private ParameterMapping[] MapParameters(
             TaskParameter[] userParameters, 
             ParameterInfo[] taskParameters)
@@ -164,25 +205,16 @@ namespace ReportService.Api.Controllers
             }
             return mapResult.ToArray();
         }
-
-
-        [Authorize(Domain0Auth.Policy, Roles = "reporting.view")]
-        [HttpPost(GetTaskInfoRoute)]
-        public TaskInfo[] GetTaskInfo([FromBody]  TaskInfoFilter filter)
-        {
-            var currentTasks = logic.GetAllTasksJson();
-            var tasksByTaskIds = new HashSet<long>(filter.TaskIds);
-
-            return currentTasks
-                .Where(t => tasksByTaskIds.Contains(t.Id))
-                .Select(t => new TaskInfo(t.Id, t.Name, t.ParameterInfos))
-                .ToArray();
-        }
     }
 
     public class TaskInfoFilter
     {
         public long[] TaskIds { get; set; }
+    }
+
+    public class DownloadFilter
+    {
+        public long TaskRequestInfoId { get; set; }
     }
 
     public class RunTaskParameters
@@ -249,5 +281,12 @@ namespace ReportService.Api.Controllers
     public class Errors
     {
         public Dictionary<string, string[]> ErrorsInfo { get; set; }
+    }
+
+    public class DataSet
+    {
+        public long OperationInstanceId { get; set; }
+        public DateTime StartTime { get; set; }
+        public byte[] Data { get; set; }
     }
 }
