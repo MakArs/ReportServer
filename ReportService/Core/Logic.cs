@@ -234,6 +234,8 @@ namespace ReportService.Core
             context.CancelSource.Cancel();
 
             context.TaskInstance.State = (int) InstanceState.Canceled;
+            if(context.TaskRequestInfo != null)
+                context.TaskRequestInfo.Status = (int)RequestStatus.Canceled;
             repository.UpdateEntity(context.TaskInstance);
             contextsInWork.Remove(taskInstanceId);
         }
@@ -847,6 +849,79 @@ namespace ReportService.Core
                 return true;
             }
             return false;
+        }
+
+        public void UpdateTaskRequestInfo(TaskRequestInfo taskRequestInfo)
+        {
+            repository.UpdateEntity(taskRequestInfo);
+            UpdateDtoEntitiesList(taskRequestInfos);
+        }
+
+        public ParameterMapping[] MapParameters(
+            TaskParameter[] userParameters,
+            ParameterInfo[] taskParameters)
+        {
+            var mapResult = new List<ParameterMapping>();
+
+            foreach (var param in taskParameters)
+            {
+                var userParameter = userParameters.FirstOrDefault(up => up.Name.Equals(param.Name, StringComparison.InvariantCultureIgnoreCase));
+
+                var mapParameter = new ParameterMapping(
+                    param,
+                    userParameter,
+                    new List<string>(),
+                    new object()
+                    );
+
+                if (userParameter == null)
+                {
+                    if (param.IsRequired)
+                    {
+                        mapParameter.Error.Add($"The required parameter with name:{param.Name} is missing.");
+                    }
+                    mapResult.Add(mapParameter);
+                    continue;
+                }
+
+                var paramType = param.Type;
+                switch (paramType)
+                {
+                    case "bigint":
+                        if (!long.TryParse(userParameter.Value, out _))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = Convert.ToInt64(userParameter.Value);
+                        break;
+
+                    case "int":
+                        if (!int.TryParse(userParameter.Value, out _))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = Convert.ToInt32(userParameter.Value);
+                        break;
+
+                    case "datetime":
+                        if (!DateTime.TryParse(userParameter.Value, out _))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = Convert.ToDateTime(userParameter.Value);
+                        break;
+
+                    case "string":
+                        if (userParameter.GetType() != typeof(string))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = userParameter.Value;
+                        break;
+
+                    default:
+                        mapParameter.Error.Add($"Wrong type of parameter: {param.Name}.");
+                        break;
+                }
+                mapResult.Add(mapParameter);
+            }
+            return mapResult.ToArray();
         }
     } //class
 }

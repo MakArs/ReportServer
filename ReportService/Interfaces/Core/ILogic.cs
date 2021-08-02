@@ -74,5 +74,8 @@ namespace ReportService.Interfaces.Core
         public long CreateRequestTaskInfo(TaskRequestInfo taskRequestInfo);
         public TaskRequestInfo GetTaskRequestInfoById(long id);
         public void UpdateTaskRecord(DtoTask task);
+
+        void UpdateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
+        public ParameterMapping[] MapParameters(TaskParameter[] userParameters, ParameterInfo[] taskParameters);
     }
 }

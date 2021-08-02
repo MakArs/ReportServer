@@ -164,6 +164,7 @@ namespace ReportService.ReportTask
             if (taskRequestInfo != null)
             {
                 taskRequestInfo.Status = (int)RequestStatus.InProgress;
+                taskRequestInfo.TaskInstanceId = dtoTaskInstance.Id;
                 taskRequestInfo.UpdateTime = DateTime.UtcNow;
                 repository.UpdateEntity(taskRequestInfo);
             }
@@ -231,9 +232,9 @@ namespace ReportService.ReportTask
             {
                 taskRequestInfo.Status =
                     success ? (int)RequestStatus.Completed
+                    : taskRequestInfo.Status == (int)RequestStatus.Canceled ? (int)RequestStatus.Canceled
                     : (int)RequestStatus.Failed;
 
-                taskRequestInfo.TaskInstanceId = dtoTaskInstance.Id;
                 taskRequestInfo.UpdateTime = DateTime.UtcNow;
 
                 repository.UpdateEntity(taskRequestInfo);

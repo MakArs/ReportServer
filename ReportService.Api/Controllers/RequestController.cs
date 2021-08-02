@@ -7,7 +7,6 @@ using Domain0.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using ReportService.Interfaces.Core;
 using AutoMapper;
-using ReportService.Entities.Dto;
 using ReportService.Entities;
 using ReportService.Api.Models;
 using ReportService.Interfaces.ReportTask;
@@ -30,6 +29,7 @@ namespace ReportService.Api.Controllers
         private const string RunTaskRoute = "runTask/";
         private const string GetTaskInfoRoute = "getTaskInfo/";
         private const string DownloadOpersResultRoute = "downloadOpersResult/";
+        private const string StopTaskInstanceRoute = "stopTaskInstance/";
 
         public RequestController(ILogic logic, IMapper mapper, IArchiver archiver)
         {
@@ -37,9 +37,6 @@ namespace ReportService.Api.Controllers
             this.mapper = mapper;
             this.archiver = archiver;
         }
-
-        //[HttpPost(GetTaskStatusRoute)]
-        //public TaskRequestInfo[] GetTaskRequestInfo() { return null; }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.stoprun, reporting.edit")]
         [HttpPost(RunTaskRoute)]
@@ -56,7 +53,7 @@ namespace ReportService.Api.Controllers
                 return GetNotFoundErrorResult(JsonConvert.SerializeObject(new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Task Error"] = new[] { $"There is not task parameters in task ({currentTask.Id}:{currentTask.Name})" } } }));
             }
 
-            var mapParameters = MapParameters(newParameters.Parameters, currentTask.ParameterInfos.ToArray());
+            var mapParameters = logic.MapParameters(newParameters.Parameters, currentTask.ParameterInfos.ToArray());
             var mapErrors = mapParameters.Where(mp => mp.Error.Any());
 
             if (mapErrors.Any())
@@ -92,7 +89,7 @@ namespace ReportService.Api.Controllers
                     new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"RepParFrom ({timeFrom}) is bigger than RepParTo ({timeTo})." } } })
                     );
             
-            var taskRequestInfo = new TaskRequestInfo(
+            var taskRequestInfo = new Models.TaskRequestInfo(
                 newParameters.TaskId,
                 newParameters.Parameters
                 );
@@ -119,174 +116,57 @@ namespace ReportService.Api.Controllers
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.view")]
         [HttpPost(DownloadOpersResultRoute)]
-        public DataSet[] DownloadOpersResult(DownloadFilter downloadFilter)
+        public ContentResult DownloadOpersResult(TaskRequestInfoFilter taskRequestInfoFilter)
         {
-            DataSet[] data;
-            var currentTaskRequestInfo = logic.GetTaskRequestInfoById(downloadFilter.TaskRequestInfoId);
+            var currentTaskRequestInfo = logic.GetTaskRequestInfoById(taskRequestInfoFilter.TaskRequestInfoId);
+
+            if (currentTaskRequestInfo == null)
+                return GetNotFoundErrorResult(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["NotFoundError"] = new[] { $"The TaskRequestInfo with ID: {taskRequestInfoFilter.TaskRequestInfoId} was not found." } } })
+                    );
 
             if (currentTaskRequestInfo.TaskInstanceId == null)
                 return null;
 
             var fullOperInstances = logic.GetFullTaskOperInstances((long)currentTaskRequestInfo.TaskInstanceId);
 
-            data = fullOperInstances.Select(opi => 
-                new DataSet { 
+            var data = fullOperInstances.Select(opi => 
+                new Models.DataSet { 
                     OperationInstanceId = opi.OperationId, 
                     StartTime = opi.StartTime, 
                     Data = archiver.ExtractFromByteArchive(opi.DataSet)
                 }).Where(dt => dt.Data != null).ToArray();
 
-            return data;
+            return GetSuccessfulResult(JsonConvert.SerializeObject(data));
         }
 
-        private ParameterMapping[] MapParameters(
-            TaskParameter[] userParameters, 
-            ParameterInfo[] taskParameters)
+        [Authorize(Domain0Auth.Policy, Roles = "reporting.stoprun, reporting.edit")]
+        [HttpPost(StopTaskInstanceRoute)]
+        public async Task<ContentResult> CancelRequest([FromBody] TaskRequestInfoFilter taskRequestInfoFilter)
         {
-            var mapResult = new List<ParameterMapping>();
+            var currentTaskRequestInfo = logic.GetTaskRequestInfoById(taskRequestInfoFilter.TaskRequestInfoId);
 
-            foreach (var param in taskParameters)
+            if (currentTaskRequestInfo == null)
             {
-                var userParameter = userParameters.FirstOrDefault(up => up.Name.Equals(param.Name, StringComparison.InvariantCultureIgnoreCase));
-
-                var mapParameter = new ParameterMapping(
-                    param,
-                    userParameter,
-                    new List<string>(),
-                    new object()
-                    );
-
-                if (userParameter == null)
-                {
-                    if (param.IsRequired)
-                    {
-                        mapParameter.Error.Add($"The required parameter with name:{param.Name} is missing.");
-                    }
-                    mapResult.Add(mapParameter);
-                    continue;
-                }
-
-                var paramType = param.Type;
-                switch (paramType)
-                {
-                    case "bigint":
-                        if (!long.TryParse(userParameter.Value, out _))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = Convert.ToInt64(userParameter.Value);
-                        break;
-
-                    case "int":
-                        if (!int.TryParse(userParameter.Value, out _))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = Convert.ToInt32(userParameter.Value);
-                        break;
-
-                    case "datetime":
-                        if (!DateTime.TryParse(userParameter.Value, out _))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = Convert.ToDateTime(userParameter.Value);
-                        break;
-
-                    case "string":
-                        if (userParameter.GetType() != typeof(string))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = userParameter.Value;
-                        break;
-
-                    default:
-                        mapParameter.Error.Add($"Wrong type of parameter: {param.Name}.");
-                        break;
-                }
-                mapResult.Add(mapParameter);
+                return GetNotFoundErrorResult($"TaskRequestInfo with id {taskRequestInfoFilter.TaskRequestInfoId} not found.");
             }
-            return mapResult.ToArray();
+
+            if (currentTaskRequestInfo.TaskInstanceId == null)
+            {
+                currentTaskRequestInfo.Status = (int)RequestStatus.Canceled;
+                logic.UpdateTaskRequestInfo(currentTaskRequestInfo);
+                return (GetSuccessfulResult(JsonConvert.SerializeObject(currentTaskRequestInfo)));
+            }
+            try
+            {
+                var stopped = await logic.StopTaskInstanceAsync((long)currentTaskRequestInfo.TaskInstanceId);
+
+                return GetSuccessfulResult(JsonConvert.SerializeObject(currentTaskRequestInfo));
+            }
+            catch
+            {
+                return GetInternalErrorResult();
+            }
         }
-    }
-
-    public class TaskInfoFilter
-    {
-        public long[] TaskIds { get; set; }
-    }
-
-    public class DownloadFilter
-    {
-        public long TaskRequestInfoId { get; set; }
-    }
-
-    public class RunTaskParameters
-    {
-        public long TaskId { get; set; }
-        public TaskParameter[] Parameters { get; set; }
-    }
-
-    public class TaskInfo
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public ParameterInfo[] ParameterInfos { get; set; }
-
-        public TaskInfo(long id, string name, List<ParameterInfo> parameterInfos)
-        {
-            this.Id = id;
-            this.Name = name;
-            this.ParameterInfos = parameterInfos.ToArray();
-        }
-    }
-
-    public class TaskRequestInfo
-    {
-        public long? RequestId { get; set; }
-        public long TaskId { get; set; }
-        public long? TaskInstanceId { get; set; }
-        public TaskParameter[] Parameters { get; set; }
-        public DateTime CreateTime { get; set; }
-        public DateTime UpdateTime { get; set; }
-        public RequestStatus Status { get; set; }
-
-        public TaskRequestInfo(long taskId, TaskParameter[] parameters, RequestStatus Status = RequestStatus.Pending) 
-        {
-            this.TaskId = taskId;
-            this.Parameters = parameters;
-            this.CreateTime = DateTime.UtcNow;
-            this.UpdateTime = DateTime.UtcNow;
-            this.Status = Status;
-        }
-    }
-    public class ParameterMapping
-    {
-        public ParameterInfo ParameterInfo { get; set; }
-        public TaskParameter UserValue { get; set; }
-        public List<string> Error { get; set; }
-        public object Value { get; set; }
-
-        public ParameterMapping(
-            ParameterInfo parameterInfo, 
-            TaskParameter taskParameter,
-            List<string> error,
-            object value
-            )
-        {
-            this.ParameterInfo = parameterInfo;
-            this.UserValue = taskParameter;
-            this.Error = error;
-            this.Value = value;
-        }
-    }
-
-    public class Errors
-    {
-        public Dictionary<string, string[]> ErrorsInfo { get; set; }
-    }
-
-    public class DataSet
-    {
-        public long OperationInstanceId { get; set; }
-        public DateTime StartTime { get; set; }
-        public byte[] Data { get; set; }
     }
 }
