@@ -157,10 +157,10 @@ namespace ReportService.Core
                 if (taskInfo.Status == (int)RequestStatus.Pending)
                 {
                     var task = currentTasks.FirstOrDefault(x => x.Id == taskInfo.TaskId);
-                    var newTaskParams = JsonConvert.DeserializeObject<List<TaskParameter>>(taskInfo.Parameters).ToDictionary(x => x.Name, x => x.Value);
 
                     try
                     {
+                        var newTaskParams = JsonConvert.DeserializeObject<List<TaskParameter>>(taskInfo.Parameters).ToDictionary(x => x.Name, x => x.Value);
                         RequestExecuteTask(task, newTaskParams, taskInfo);
                     }
                     catch (Exception ex)
