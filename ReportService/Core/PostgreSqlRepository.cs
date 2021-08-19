@@ -486,6 +486,12 @@ namespace ReportService.Core
         {
             return 0;
         }
+
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds)
+        { 
+            return null; 
+        }
+
         public TaskRequestInfo GetTaskRequestInfoById(long taskRequestId)
         {
             using var connection = new NpgsqlConnection(connectionString);
@@ -502,7 +508,7 @@ namespace ReportService.Core
                     tri.CreateTime,
                     tri.UpdateTime,
                     tri.Status
-                from TaskRequestInfo tri with(nolock)
+                from TaskRequestInfo tri
                 where tri.RequestId = {taskRequestId}",
                     commandTimeout: 60);
             }

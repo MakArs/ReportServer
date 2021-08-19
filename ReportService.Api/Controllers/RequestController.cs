@@ -25,11 +25,11 @@ namespace ReportService.Api.Controllers
         private readonly ILogic logic;
         private readonly IMapper mapper;
         private readonly IArchiver archiver;
-        private const string GetTaskStatusRoute = "status/{id}";
+        private const string GetTaskStatusRoute = "getStatus/";
         private const string RunTaskRoute = "runTask/";
         private const string GetTaskInfoRoute = "getTaskInfo/";
-        private const string DownloadOpersResultRoute = "downloadOpersResult/";
-        private const string StopTaskInstanceRoute = "stopTaskInstance/";
+        private const string DownloadResultRoute = "downloadResult/";
+        private const string CancelRequestRoute = "cancelRequest/";
 
         public RequestController(ILogic logic, IMapper mapper, IArchiver archiver)
         {
@@ -115,8 +115,8 @@ namespace ReportService.Api.Controllers
         }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.view")]
-        [HttpPost(DownloadOpersResultRoute)]
-        public ContentResult DownloadOpersResult(TaskRequestInfoFilter taskRequestInfoFilter)
+        [HttpPost(DownloadResultRoute)]
+        public ContentResult DownloadResult(TaskRequestInfoFilter taskRequestInfoFilter)
         {
             var currentTaskRequestInfo = logic.GetTaskRequestInfoById(taskRequestInfoFilter.TaskRequestInfoId);
 
@@ -141,7 +141,7 @@ namespace ReportService.Api.Controllers
         }
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.stoprun, reporting.edit")]
-        [HttpPost(StopTaskInstanceRoute)]
+        [HttpPost(CancelRequestRoute)]
         public async Task<ContentResult> CancelRequest([FromBody] TaskRequestInfoFilter taskRequestInfoFilter)
         {
             var currentTaskRequestInfo = logic.GetTaskRequestInfoById(taskRequestInfoFilter.TaskRequestInfoId);
@@ -167,6 +167,19 @@ namespace ReportService.Api.Controllers
             {
                 return GetInternalErrorResult();
             }
+        }
+
+        [HttpPost(GetTaskStatusRoute)]
+        public ContentResult GetTaskStatus([FromBody]  RequestStatusFilter requestStatusFilter)
+        {
+            var currentTaskRequestInfo = logic.GetListTaskRequestInfoByIds(requestStatusFilter.TaskRequestInfoIds);
+
+            if (currentTaskRequestInfo == null)
+                return GetNotFoundErrorResult(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["NotFoundError"] = new[] { $"The TaskRequestInfo with ID: {requestStatusFilter.TaskRequestInfoIds} was not found." } } })
+                    );
+
+            return GetSuccessfulResult(JsonConvert.SerializeObject(currentTaskRequestInfo));
         }
     }
 }

@@ -72,6 +72,7 @@ namespace ReportService.Interfaces.Core
         Task<bool> StopTaskInstanceAsync(long taskInstanceId);
 
         public long CreateRequestTaskInfo(TaskRequestInfo taskRequestInfo);
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestInfoIds);
         public TaskRequestInfo GetTaskRequestInfoById(long id);
         public void UpdateTaskRecord(DtoTask task);
 

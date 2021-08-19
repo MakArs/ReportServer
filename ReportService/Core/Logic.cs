@@ -411,6 +411,11 @@ namespace ReportService.Core
             return currentTasks;
         }
 
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestInfoIds)
+        {
+            return repository.GetListTaskRequestInfoByIds(taskRequestInfoIds);
+        }
+
         public TaskRequestInfo GetTaskRequestInfoById(long id)
         {
             return repository.GetTaskRequestInfoById(id);

@@ -455,6 +455,35 @@ namespace ReportService.Core
             return newTaskRequestInfoId;
         }
 
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.Query<TaskRequestInfo>
+                ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                where tri.RequestId in ({string.Join(",", taskRequestIds)})",
+                    commandTimeout: 60).ToList();
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task request info data: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
         public TaskRequestInfo GetTaskRequestInfoById(long taskRequestId)
         {
             using var connection = new SqlConnection(connectionString);

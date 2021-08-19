@@ -49,7 +49,8 @@ namespace ReportService.Interfaces.Core
         List<long> UpdateTaskInstancesAndGetIds();
 
         long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
-        void CreateBase(string baseConnStr);
+        List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds);
         TaskRequestInfo GetTaskRequestInfoById(long taskRequestId);
+        void CreateBase(string baseConnStr);
     }
 }
