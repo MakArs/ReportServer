@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using Newtonsoft.Json.Linq;
 
 namespace ReportService.Api.Controllers
 {
@@ -65,7 +66,6 @@ namespace ReportService.Api.Controllers
                 };
 
                 return GetBadRequestError(JsonConvert.SerializeObject(errors));
-
             }
 
             DateTime timeFrom = DateTime.MinValue;
@@ -73,9 +73,9 @@ namespace ReportService.Api.Controllers
             
             foreach (var parameter in mapParameters)
             {
-                if (parameter.ParameterInfo.Name.ToLower().Contains("repparfrom"))
+                if (parameter.ParameterInfo.Name.ToLower().Contains("repparfrom") && parameter.Value.GetType().Equals(typeof(DateTime)))
                     timeFrom = Convert.ToDateTime(parameter.UserValue.Value);
-                else if (parameter.ParameterInfo.Name.ToLower().Contains("repparto"))
+                else if (parameter.ParameterInfo.Name.ToLower().Contains("repparto") && parameter.Value.GetType().Equals(typeof(DateTime)))
                     timeTo = Convert.ToDateTime(parameter.UserValue.Value);
             }
 
@@ -155,13 +155,13 @@ namespace ReportService.Api.Controllers
             {
                 currentTaskRequestInfo.Status = (int)RequestStatus.Canceled;
                 logic.UpdateTaskRequestInfo(currentTaskRequestInfo);
-                return (GetSuccessfulResult(JsonConvert.SerializeObject(currentTaskRequestInfo)));
+                return (GetSuccessfulResult(JsonConvert.SerializeObject(mapper.Map<Models.TaskRequestInfo>(currentTaskRequestInfo))));
             }
             try
             {
                 var stopped = await logic.StopTaskInstanceAsync((long)currentTaskRequestInfo.TaskInstanceId);
-
-                return GetSuccessfulResult(JsonConvert.SerializeObject(currentTaskRequestInfo));
+                currentTaskRequestInfo.Status = (int)RequestStatus.Canceled;
+                return GetSuccessfulResult(JsonConvert.SerializeObject(mapper.Map<Models.TaskRequestInfo>(currentTaskRequestInfo)));
             }
             catch
             {
@@ -170,16 +170,29 @@ namespace ReportService.Api.Controllers
         }
 
         [HttpPost(GetTaskStatusRoute)]
-        public ContentResult GetTaskStatus([FromBody]  RequestStatusFilter requestStatusFilter)
+        public ContentResult GetTaskStatus([FromBody] RequestStatusFilter requestStatusFilter)
         {
-            var currentTaskRequestInfo = logic.GetListTaskRequestInfoByIds(requestStatusFilter.TaskRequestInfoIds);
+            requestStatusFilter.TimePeriod?.UpdateTimeDifferenc();
 
-            if (currentTaskRequestInfo == null)
-                return GetNotFoundErrorResult(JsonConvert.SerializeObject(
-                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["NotFoundError"] = new[] { $"The TaskRequestInfo with ID: {requestStatusFilter.TaskRequestInfoIds} was not found." } } })
-                    );
+            if (requestStatusFilter.TaskIds == null && requestStatusFilter.TaskRequestInfoIds == null)
+                return GetBadRequestError(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["BadRequestError"] = new[] { "Task Ids or TaskRequestInfoIds must be set." } } }
+                    ));
 
-            return GetSuccessfulResult(JsonConvert.SerializeObject(currentTaskRequestInfo));
+            if (requestStatusFilter.TimePeriod?.timeDifference < 0)
+                return GetBadRequestError(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["BadRequestError"] = new[] { "Wrong time period." } } }
+                    ));
+
+            if (requestStatusFilter.TimePeriod?.timeDifference > 90)
+                return GetBadRequestError(JsonConvert.SerializeObject(
+                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["BadRequestError"] = new[] { "The time period is too big." } } }
+                    ));
+
+            var currentTaskRequestInfoByFilter = logic.GetTaskRequestInfoByFilter(mapper.Map<Entities.Dto.RequestStatusFilter>(requestStatusFilter));
+            var taskRequestInfos = mapper.Map<Models.TaskRequestInfo[]>(currentTaskRequestInfoByFilter);
+            
+            return GetSuccessfulResult(JsonConvert.SerializeObject(taskRequestInfos));
         }
     }
 }
