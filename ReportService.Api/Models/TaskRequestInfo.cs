@@ -12,7 +12,10 @@ namespace ReportService.Api.Models
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
         public RequestStatus Status { get; set; }
-        
+
+        public TaskRequestInfo()
+        {
+        }
         public TaskRequestInfo(long taskId, TaskParameter[] taskParameters, RequestStatus status = RequestStatus.Pending)
         {
             this.TaskId = taskId;
