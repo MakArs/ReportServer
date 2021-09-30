@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace ReportService.Api.Models
+namespace ReportService.Entities.Dto
 {
     public class RequestStatusFilter
     {
         public long[] TaskIds { get; set; }
         public long[] TaskRequestInfoIds { get; set; }
-        public int? Status { get; set; }
+        public RequestStatus? Status { get; set; }
         public TimePeriod TimePeriod { get; set; }
     }
 }
