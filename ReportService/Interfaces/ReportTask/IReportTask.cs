@@ -16,7 +16,7 @@ namespace ReportService.Interfaces.ReportTask
         List<IOperation> Operations { get; set; }
         Dictionary<string, object> Parameters { get; set; }
         List<TaskDependency> DependsOn { get; set; }
-        public List<ParameterInfo> ParameterInfos { get; set; }
+        List<ParameterInfo> ParameterInfos { get; set; }
 
         IReportTaskRunContext GetCurrentContext(bool takeDefault);
         void Execute(IReportTaskRunContext context);
