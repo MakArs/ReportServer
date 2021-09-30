@@ -138,7 +138,7 @@ namespace ReportService.Core
             {
                 try
                 {
-                    if (isTaskNeedToRun(task)) 
+                    if (isTaskNeedToRun(task))
                     {
                         ExecuteTask(task);
                     }
@@ -233,8 +233,8 @@ namespace ReportService.Core
             var context = contextsInWork[taskInstanceId];
             context.CancelSource.Cancel();
 
-            context.TaskInstance.State = (int) InstanceState.Canceled;
-            if(context.TaskRequestInfo != null)
+            context.TaskInstance.State = (int)InstanceState.Canceled;
+            if (context.TaskRequestInfo != null)
                 context.TaskRequestInfo.Status = (int)RequestStatus.Canceled;
             repository.UpdateEntity(context.TaskInstance);
             contextsInWork.Remove(taskInstanceId);
@@ -254,8 +254,8 @@ namespace ReportService.Core
                     .IsAssignableFrom(r.Activator.LimitType))
                 .Where(r =>
                 {
-                    var serviceKey = ((KeyedService) r.Services.ToList().Last())?.ServiceKey;
-                    return serviceKey != null && ((Type) serviceKey).GetInterfaces().Contains(typeof(TU));
+                    var serviceKey = ((KeyedService)r.Services.ToList().Last())?.ServiceKey;
+                    return serviceKey != null && ((Type)serviceKey).GetInterfaces().Contains(typeof(TU));
                 })
                 .Select(r =>
                     new KeyValuePair<string, Type>(
@@ -333,7 +333,7 @@ namespace ReportService.Core
 
             lock (tasks)
                 currentTasks = tasks.ToList();
-            
+
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
@@ -419,6 +419,21 @@ namespace ReportService.Core
         public TaskRequestInfo GetTaskRequestInfoById(long id)
         {
             return repository.GetTaskRequestInfoById(id);
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter)
+        {
+            return repository.GetTaskRequestInfoByFilter(requestStatusFilter);
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo)
+        {
+            return repository.GetTaskRequestInfoByTimePeriod(timeFrom, timeTo);
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds)
+        {
+            return repository.GetTaskRequestInfoByTaskIds(taskIds);
         }
 
         public string GetEntitiesCountJson()

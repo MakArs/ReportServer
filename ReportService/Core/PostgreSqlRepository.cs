@@ -521,6 +521,21 @@ namespace ReportService.Core
             }
         }
 
+        public List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter)
+        {
+            return null;
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo)
+        { 
+            return null;
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds)
+        {
+            return null;
+        }
+
         public void CreateBase(string baseConnStr)
         {
             using var connection = new NpgsqlConnection(baseConnStr);

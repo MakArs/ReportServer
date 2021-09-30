@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ReportService.Entities;
@@ -51,6 +52,9 @@ namespace ReportService.Interfaces.Core
         long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
         List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds);
         TaskRequestInfo GetTaskRequestInfoById(long taskRequestId);
+        List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter);
+        List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo);
+        List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds);
         void CreateBase(string baseConnStr);
     }
 }
