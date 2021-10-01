@@ -428,7 +428,7 @@ BEGIN
 END";
                 await cmd.ExecuteNonQueryAsync();
                 var msCreator = new SqlServerRepository(null, null);
-                msCreator.CreateBase(TestDbConnStr);
+                msCreator.CreateSchema(TestDbConnStr);
 
                 connection.Execute(@"delete from [dbo].[OperInstance]");
                 connection.Execute(@"delete from [dbo].[OperTemplate];");

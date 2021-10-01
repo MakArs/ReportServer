@@ -15,51 +15,48 @@ namespace ReportService.Core
 {
     public class SqlServerRepository : IRepository
     {
-        private readonly IMonik monik;
-        private readonly string connectionString;
+        public int DtoPrefixLength => 3;
+
+        private readonly IMonik mMonik;
+        private readonly string mConnectionString;
 
         public SqlServerRepository(string connStr, IMonik monik)
         {
-            connectionString = connStr;
-
-            this.monik = monik;
+            mConnectionString = connStr;
+            mMonik = monik;
         }
 
         public async Task<object> GetBaseQueryResult(string query, CancellationToken token)
         {
 
-            await using var connection = new SqlConnection(connectionString);
+            await using var connection = new SqlConnection(mConnectionString);
 
-            dynamic result =
-                await connection.QueryFirstAsync<dynamic>(new CommandDefinition(query,
-                    commandTimeout: 30, cancellationToken: token));
+            dynamic result = await connection.QueryFirstAsync<dynamic>(new CommandDefinition(query, commandTimeout: 30, cancellationToken: token));
 
-            var value = (result as IDictionary<string, object>).First().Value;
+            object value = (result as IDictionary<string, object>)?.First().Value;
             return value;
         }
 
         public async Task<List<DtoTaskInstance>> GetAllTaskInstances(long taskId)
         {
-            await using var connection = new SqlConnection(connectionString);
+            await using var connection = new SqlConnection(mConnectionString);
 
             try
             {
-                return (await connection.QueryAsync<DtoTaskInstance>(
-                        $"select * from TaskInstance with(nolock) where TaskId={taskId}"))
+                return (await connection.QueryAsync<DtoTaskInstance>($"select * from TaskInstance with(nolock) where TaskId={taskId}"))
                     .ToList();
             }
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while getting task instances: " +
-                               $"{e.Message}");
+                SendAppWarning($"Error occurred while getting task instances: {e.Message}");
                 throw;
             }
         }
 
         public TaskState GetTaskStateById(long taskId)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -79,15 +76,14 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while getting task last time: " +
-                               $"{e.Message}");
+                SendAppWarning($"Error occurred while getting task last time: {e.Message}");
                 throw;
             }
         }
 
         public List<DtoOperInstance> GetTaskOperInstances(long taskInstanceId)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -100,8 +96,7 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while getting operation instances: " +
-                               $"{e.Message}");
+                SendAppWarning($"Error occurred while getting operation instances: {e.Message}");
                 throw;
             }
         }
@@ -129,7 +124,7 @@ namespace ReportService.Core
 
         public DtoOperInstance GetFullOperInstanceById(long operInstanceId)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -144,17 +139,16 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while getting operation instance data: " +
-                               $"{e.Message}");
+                SendAppWarning($"Error occurred while getting operation instance data: {e.Message}");
                 throw;
             }
         }
 
         public List<T> GetListEntitiesByDtoType<T>() where T : class, IDtoEntity
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
-            var tableName = typeof(T).Name.Remove(0, 3);
+            string tableName = typeof(T).Name.Remove(0, DtoPrefixLength);
 
             try
             {
@@ -163,57 +157,49 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while getting " +
-                               $"{tableName} list: {e.Message}");
+                SendAppWarning($"Error occurred while getting {tableName} list: {e.Message}");
                 return null;
             }
         }
 
         public long CreateEntity<T>(T entity) where T : class, IDtoEntity
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
-            var tableName = typeof(T).Name.Remove(0, 3);
+            string tableName = typeof(T).Name.Remove(0, DtoPrefixLength);
 
             try
             {
-                return connection.Insert(entity,
-                    commandTimeout: 60);
+                return connection.Insert(entity, commandTimeout: 60);
             }
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while creating new " +
-                               $"{tableName} record: {e.Message}");
+                SendAppWarning($"Error occurred while creating new {tableName} record: {e.Message}");
                 return default;
             }
         }
 
         public long CreateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
+            connection.Open();
 
             long newTaskId;
-
-            connection.Open();
 
             using (var transaction = connection.BeginTransaction())
             {
                 try
                 {
-                    newTaskId = connection.Insert(task,
-                        commandTimeout: 60, transaction: transaction);
+                    newTaskId = connection.Insert(task, commandTimeout: 60, transaction: transaction);
 
                     if (bindedOpers != null)
-
                         foreach (var oper in bindedOpers)
                         {
                             oper.TaskId = newTaskId;
                         }
 
-                    connection.Insert(bindedOpers,
-                        commandTimeout: 60, transaction: transaction);
-
+                    connection.Insert(bindedOpers, commandTimeout: 60, transaction: transaction);
                     transaction.Commit();
                 }
 
@@ -221,8 +207,7 @@ namespace ReportService.Core
                 {
                     transaction.Rollback();
 
-                    SendAppWarning("Error occured while creating new Task" +
-                                   $" record: {e.Message}");
+                    SendAppWarning($"Error occurred while creating new Task record: {e.Message}");
                     throw;
                 }
             }
@@ -232,9 +217,9 @@ namespace ReportService.Core
 
         public void UpdateEntity<T>(T entity) where T : class, IDtoEntity
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
-            var tableName = typeof(T).Name.Remove(0, 3);
+            string tableName = typeof(T).Name.Remove(0, DtoPrefixLength);
 
             try
             {
@@ -243,47 +228,38 @@ namespace ReportService.Core
 
             catch (Exception e)
             {
-                SendAppWarning("Error occured while updating " +
-                               $"{tableName} record: {e.Message}");
+                SendAppWarning($"Error occurred while updating {tableName} record: {e.Message}");
             }
         }
 
         public void UpdateTask(DtoTask task, params DtoOperation[] bindedOpers)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
+            connection.Open();
 
-            var currentOperIds = connection.Query<long>
+            long[] currentOperIds = connection.Query<long>
             ($@"select id from operation with(nolock) where taskid={task.Id}
                 and isDeleted=0",
-                commandTimeout: 60);
-
-            connection.Open();
+                commandTimeout: 60).ToArray();
 
             using var transaction = connection.BeginTransaction();
             try
             {
-                var newOperIds = bindedOpers.Select(oper => oper.Id);
+                long[] newOperIds = bindedOpers.Select(oper => oper.Id).ToArray();
 
-                var operIdsToDelete = currentOperIds.Except(newOperIds);
-
-                var opersToUpdate = bindedOpers.Where(oper =>
-                    newOperIds.Intersect(currentOperIds).Contains(oper.Id));
-
-                var opersToWrite = bindedOpers.Where(oper =>
-                    newOperIds.Except(currentOperIds).Contains(oper.Id));
+                long[] operIdsToDelete = currentOperIds.Except(newOperIds).ToArray();
+                IEnumerable<DtoOperation> opersToUpdate = bindedOpers.Where(oper => newOperIds.Intersect(currentOperIds).Contains(oper.Id));
+                IEnumerable<DtoOperation> opersToWrite = bindedOpers.Where(oper => newOperIds.Except(currentOperIds).Contains(oper.Id));
 
                 connection.Update(task, commandTimeout: 60, transaction: transaction);
 
                 if (operIdsToDelete.Any())
-                    connection.Execute(
-                        $@"Update Operation set isDeleted=1 where TaskId={task.Id} and
+                    connection.Execute($@"Update Operation set isDeleted=1 where TaskId={task.Id} and
                             id in ({string.Join(",", operIdsToDelete)})",
                         commandTimeout: 60, transaction: transaction);
 
                 connection.Update(opersToUpdate, commandTimeout: 60, transaction: transaction);
-
                 connection.Insert(opersToWrite, commandTimeout: 60, transaction: transaction);
-
                 transaction.Commit();
             }
 
@@ -291,18 +267,17 @@ namespace ReportService.Core
             {
                 transaction.Rollback();
 
-                SendAppWarning("Error occured while updating Task" +
-                               $" record: {e.Message}");
+                SendAppWarning($"Error occurred while updating Task record: {e.Message}");
                 throw;
             }
         }
 
         public void DeleteEntity<T, TKey>(TKey id) where T : IDtoEntity
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             var type = typeof(T);
-            var tableName = type.Name.Remove(0, 3);
+            string tableName = type.Name.Remove(0, DtoPrefixLength);
 
             connection.Open();
 
@@ -324,9 +299,9 @@ namespace ReportService.Core
 
                         catch (Exception e)
                         {
-                            SendAppWarning("Error occured while deleting Task instance" +
-                                           $" record: {e.Message}");
                             transaction.Rollback();
+
+                            SendAppWarning($"Error occurred while deleting Task instance record: {e.Message}");
                             throw;
                         }
                     }
@@ -358,8 +333,7 @@ namespace ReportService.Core
                         {
                             transaction.Rollback();
 
-                            SendAppWarning("Error occured while deleting Task" +
-                                           $" record: {e.Message}");
+                            SendAppWarning($"Error occurred while deleting Task record: {e.Message}");
                             throw;
                         }
                     }
@@ -375,8 +349,7 @@ namespace ReportService.Core
 
                     catch (Exception e)
                     {
-                        SendAppWarning($"Error occured while deleting {tableName}" +
-                                       $" record: {e.Message}");
+                        SendAppWarning($"Error occurred while deleting {tableName} record: {e.Message}");
                         throw;
                     }
 
@@ -399,9 +372,9 @@ namespace ReportService.Core
 
         public List<long> UpdateOperInstancesAndGetIds()
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
-            var ids = connection.Query<long>(@"UPDATE OperInstance
+            List<long> ids = connection.Query<long>(@"UPDATE OperInstance
             SET state=3,ErrorMessage='Unknown error.The service was probably stopped during the task execution.'
             OUTPUT INSERTED.id
             WHERE state=1").ToList();
@@ -411,9 +384,9 @@ namespace ReportService.Core
 
         public List<long> UpdateTaskInstancesAndGetIds()
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
-            var ids = connection.Query<long>(@"UPDATE TaskInstance
+            List<long> ids = connection.Query<long>(@"UPDATE TaskInstance
             SET state=3
             OUTPUT INSERTED.id
             WHERE state=1").ToList();
@@ -423,7 +396,7 @@ namespace ReportService.Core
 
         private void SendAppWarning(string msg)
         {
-            monik.ApplicationWarning(msg);
+            mMonik.ApplicationWarning(msg);
             Console.WriteLine(msg);
         }
 
@@ -624,7 +597,7 @@ namespace ReportService.Core
             }
         }
 
-        public void CreateBase(string baseConnStr)
+        public void CreateSchema(string baseConnStr)
         {
             using var connection = new SqlConnection(baseConnStr);
 

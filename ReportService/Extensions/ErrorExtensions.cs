@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ReportService.Extensions
 {
-    public static class ErrorExtensions //not error-only,but for errors
+    public static class ErrorExtensions //can be used not only for errors
     {
         public static IEnumerable<TSource> FromHierarchy<TSource>(
             this TSource source,

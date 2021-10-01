@@ -14,7 +14,6 @@ namespace ReportService.Interfaces.Protobuf
 
         OperationPackage GetPackage<T>(IEnumerable<T> values) where T : class;
 
-        OperationPackage GetPackage(ExcelPackage excelPackage,
-            ExcelReadingParameters excelParameters, string groupNumbers);
+        OperationPackage GetPackage(ExcelPackage excelPackage, ExcelReadingParameters excelParameters, string groupNumbers);
     }
 }

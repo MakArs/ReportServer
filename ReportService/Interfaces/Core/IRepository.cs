@@ -55,6 +55,9 @@ namespace ReportService.Interfaces.Core
         List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter);
         List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo);
         List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds);
-        void CreateBase(string baseConnStr);
+
+        void CreateSchema(string baseConnStr);
+
+        int DtoPrefixLength { get; }
     }
 }
