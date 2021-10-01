@@ -36,9 +36,7 @@ namespace ReportService.Core
             using ZipOutputStream zipStream = new ZipOutputStream(outputMemStream);
             zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
 
-
-            ZipEntry newEntry = new ZipEntry("OperationPackage")
-                {DateTime = DateTime.Now};
+            ZipEntry newEntry = new ZipEntry("OperationPackage") { DateTime = DateTime.Now };
 
             zipStream.PutNextEntry(newEntry);
             data.Position = 0;

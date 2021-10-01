@@ -48,6 +48,8 @@ namespace ReportService.Interfaces.Core
 
         List<long> UpdateTaskInstancesAndGetIds();
 
-        void CreateBase(string baseConnStr);
+        void CreateSchema(string baseConnStr);
+
+        int DtoPrefixLength { get; }
     }
 }
