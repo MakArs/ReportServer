@@ -42,6 +42,7 @@ namespace ReportService.Core
         private readonly List<IReportTask> tasks;
         private readonly List<DtoOperation> operations;
         private readonly Dictionary<long, IReportTaskRunContext> contextsInWork;
+        private readonly List<TaskRequestInfo> taskRequestInfos;
 
         public Dictionary<string, Type> RegisteredExporters { get; set; }
         public Dictionary<string, Type> RegisteredImporters { get; set; }
@@ -66,6 +67,7 @@ namespace ReportService.Core
             schedules = new List<DtoSchedule>();
             tasks = new List<IReportTask>();
             operations = new List<DtoOperation>();
+            taskRequestInfos = new List<TaskRequestInfo>();
 
             this.bot.OnUpdate += OnBotUpd;
         } //ctor
@@ -104,8 +106,8 @@ namespace ReportService.Core
                                 .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
                             new NamedParameter("opers", operations
                                 .Where(oper => oper.TaskId == dtoTask.Id)
-                                .Where(oper => !oper.IsDeleted).ToList()));
-                            //new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
+                                .Where(oper => !oper.IsDeleted).ToList()),
+                        new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
 
                         //todo: might be replaced with saved time from db
                         task.UpdateLastTime();
@@ -136,7 +138,7 @@ namespace ReportService.Core
             {
                 try
                 {
-                    if (isTaskNeedToRun(task)) 
+                    if (isTaskNeedToRun(task))
                     {
                         ExecuteTask(task);
                     }
@@ -146,6 +148,54 @@ namespace ReportService.Core
                     monik.ApplicationError($"CheckScheduleAndExecute error in task {task.Id} with schedule {task.Schedule?.Schedule}: {ex}");
                 }
             }
+
+            List<TaskRequestInfo> currentTasksInfos;
+            currentTasksInfos = taskRequestInfos.ToList();
+
+            foreach (var taskInfo in currentTasksInfos)
+            {
+                if (taskInfo.Status == (int)RequestStatus.Pending)
+                {
+                    var task = currentTasks.FirstOrDefault(x => x.Id == taskInfo.TaskId);
+
+                    try
+                    {
+                        var newTaskParams = JsonConvert.DeserializeObject<List<TaskParameter>>(taskInfo.Parameters).ToDictionary(x => x.Name, x => x.Value);
+                        RequestExecuteTask(task, newTaskParams, taskInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        taskInfo.Status = (int)RequestStatus.Failed;
+                        repository.UpdateEntity(taskInfo);
+                        monik.ApplicationError($"RequestExecute error in taskRequest {taskInfo.RequestId} with error: {ex}");
+                    }
+                }
+            }
+        }
+
+        private void RequestExecuteTask(IReportTask task, Dictionary<string, string> parameters, TaskRequestInfo taskRequestInfo)
+        {
+            SendServiceInfo($"Executing task {task.Id} (request)");
+
+            var context = task.GetCurrentContext(false);
+
+            if (context is null)
+                return;
+
+            foreach (var item in parameters)
+            {
+                context.Parameters[item.Key] = item.Value;
+            }
+
+            context.TaskRequestInfo = taskRequestInfo;
+
+            var instanceId = context.TaskInstance.Id;
+            contextsInWork.Add(instanceId, context);
+
+            Task.Factory.StartNew(() => task.Execute(context), context.CancelSource.Token)
+                .ContinueWith(_ => EndContextWork(instanceId));
+
+            task.UpdateLastTime();
         }
 
         private void ExecuteTask(IReportTask task)
@@ -183,7 +233,9 @@ namespace ReportService.Core
             var context = contextsInWork[taskInstanceId];
             context.CancelSource.Cancel();
 
-            context.TaskInstance.State = (int) InstanceState.Canceled;
+            context.TaskInstance.State = (int)InstanceState.Canceled;
+            if (context.TaskRequestInfo != null)
+                context.TaskRequestInfo.Status = (int)RequestStatus.Canceled;
             repository.UpdateEntity(context.TaskInstance);
             contextsInWork.Remove(taskInstanceId);
         }
@@ -202,8 +254,8 @@ namespace ReportService.Core
                     .IsAssignableFrom(r.Activator.LimitType))
                 .Where(r =>
                 {
-                    var serviceKey = ((KeyedService) r.Services.ToList().Last())?.ServiceKey;
-                    return serviceKey != null && ((Type) serviceKey).GetInterfaces().Contains(typeof(TU));
+                    var serviceKey = ((KeyedService)r.Services.ToList().Last())?.ServiceKey;
+                    return serviceKey != null && ((Type)serviceKey).GetInterfaces().Contains(typeof(TU));
                 })
                 .Select(r =>
                     new KeyValuePair<string, Type>(
@@ -226,6 +278,7 @@ namespace ReportService.Core
             UpdateDtoEntitiesList(telegramChannels);
             UpdateDtoEntitiesList(schedules);
             UpdateDtoEntitiesList(operations);
+            UpdateDtoEntitiesList(taskRequestInfos);
 
             UpdateTaskList();
 
@@ -280,7 +333,7 @@ namespace ReportService.Core
 
             lock (tasks)
                 currentTasks = tasks.ToList();
-            
+
             var task = currentTasks.FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return "No tasks with such Id found..";
@@ -356,6 +409,31 @@ namespace ReportService.Core
                 currentTasks = tasks
                     .ToList();
             return currentTasks;
+        }
+
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestInfoIds)
+        {
+            return repository.GetListTaskRequestInfoByIds(taskRequestInfoIds);
+        }
+
+        public TaskRequestInfo GetTaskRequestInfoById(long id)
+        {
+            return repository.GetTaskRequestInfoById(id);
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter)
+        {
+            return repository.GetTaskRequestInfoByFilter(requestStatusFilter);
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo)
+        {
+            return repository.GetTaskRequestInfoByTimePeriod(timeFrom, timeTo);
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds)
+        {
+            return repository.GetTaskRequestInfoByTaskIds(taskIds);
         }
 
         public string GetEntitiesCountJson()
@@ -623,6 +701,12 @@ namespace ReportService.Core
                 .GetTaskOperInstances(id);
         }
 
+        public List<DtoOperInstance> GetFullTaskOperInstances(long id)
+        {
+            return repository
+                .GetFullTaskOperInstances(id);
+        }
+
         public DtoOperInstance GetFullOperInstanceById(long id)
         {
             return repository.GetFullOperInstanceById(id);
@@ -751,6 +835,15 @@ namespace ReportService.Core
             Console.WriteLine(msg);
         }
 
+        public long CreateRequestTaskInfo(TaskRequestInfo taskRequestInfo)
+        {
+            var newTaskRequestInfoId = repository.CreateTaskRequestInfo(taskRequestInfo);
+
+            UpdateDtoEntitiesList(taskRequestInfos);
+            SendServiceInfo($"Created TaskRequestInfo {newTaskRequestInfoId}");
+            return newTaskRequestInfoId;
+        }
+
         private bool isTaskNeedToRun(IReportTask task)
         {
             string[] cronStrings =
@@ -776,6 +869,79 @@ namespace ReportService.Core
                 return true;
             }
             return false;
+        }
+
+        public void UpdateTaskRequestInfo(TaskRequestInfo taskRequestInfo)
+        {
+            repository.UpdateEntity(taskRequestInfo);
+            UpdateDtoEntitiesList(taskRequestInfos);
+        }
+
+        public ParameterMapping[] MapParameters(
+            TaskParameter[] userParameters,
+            ParameterInfo[] taskParameters)
+        {
+            var mapResult = new List<ParameterMapping>();
+
+            foreach (var param in taskParameters)
+            {
+                var userParameter = userParameters.FirstOrDefault(up => up.Name.Equals(param.Name, StringComparison.InvariantCultureIgnoreCase));
+
+                var mapParameter = new ParameterMapping(
+                    param,
+                    userParameter,
+                    new List<string>(),
+                    new object()
+                    );
+
+                if (userParameter == null)
+                {
+                    if (param.IsRequired)
+                    {
+                        mapParameter.Error.Add($"The required parameter with name:{param.Name} is missing.");
+                    }
+                    mapResult.Add(mapParameter);
+                    continue;
+                }
+
+                var paramType = param.Type;
+                switch (paramType)
+                {
+                    case "bigint":
+                        if (!long.TryParse(userParameter.Value, out _))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = Convert.ToInt64(userParameter.Value);
+                        break;
+
+                    case "int":
+                        if (!int.TryParse(userParameter.Value, out _))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = Convert.ToInt32(userParameter.Value);
+                        break;
+
+                    case "datetime":
+                        if (!DateTime.TryParse(userParameter.Value, out _))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = Convert.ToDateTime(userParameter.Value);
+                        break;
+
+                    case "string":
+                        if (userParameter.GetType() != typeof(string))
+                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
+                        else
+                            mapParameter.Value = userParameter.Value;
+                        break;
+
+                    default:
+                        mapParameter.Error.Add($"Wrong type of parameter: {param.Name}.");
+                        break;
+                }
+                mapResult.Add(mapParameter);
+            }
+            return mapResult.ToArray();
         }
     } //class
 }

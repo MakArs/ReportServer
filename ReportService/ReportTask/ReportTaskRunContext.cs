@@ -25,6 +25,7 @@ namespace ReportService.ReportTask
 
         public long TaskId { get; set; }
         public DtoTaskInstance TaskInstance { get; set; }
+        public TaskRequestInfo TaskRequestInfo { get; set; }
         public CancellationTokenSource CancelSource { get; set; }
         public string TaskName { get; set; }
         public IDefaultTaskExporter DefaultExporter { get; set; }

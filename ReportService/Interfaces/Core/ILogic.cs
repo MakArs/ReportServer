@@ -54,6 +54,7 @@ namespace ReportService.Interfaces.Core
         Task<string> GetAllTaskInstancesJson(long taskId);
         Task<string> GetFullInstanceList_HtmlPageAsync(long taskId);
 
+        List<DtoOperInstance> GetFullTaskOperInstances(long id);
         List<DtoOperInstance> GetOperInstancesByTaskInstanceId(long id);
         DtoOperInstance GetFullOperInstanceById(long id);
 
@@ -69,5 +70,16 @@ namespace ReportService.Interfaces.Core
 
         //int CreateTaskByTemplate(ApiTask newTask); 
         Task<bool> StopTaskInstanceAsync(long taskInstanceId);
+
+        public long CreateRequestTaskInfo(TaskRequestInfo taskRequestInfo);
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestInfoIds);
+        public TaskRequestInfo GetTaskRequestInfoById(long id);
+        List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter);
+        List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo);
+        List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds);
+        public void UpdateTaskRecord(DtoTask task);
+
+        void UpdateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
+        public ParameterMapping[] MapParameters(TaskParameter[] userParameters, ParameterInfo[] taskParameters);
     }
 }

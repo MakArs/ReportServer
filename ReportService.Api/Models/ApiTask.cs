@@ -11,5 +11,6 @@ namespace ReportService.Api.Models
         public TaskDependency[] DependsOn { get; set; }
         public int? ScheduleId { get; set; }
         public DtoOperation[] BindedOpers { get; set; }
+        public string ParameterInfos { get; set; }
     }
 }

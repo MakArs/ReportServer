@@ -14,6 +14,7 @@ namespace ReportService.Interfaces.ReportTask
         List<IOperation> OpersToExecute { get; set; }
         long TaskId { get; set; }
         DtoTaskInstance TaskInstance { get; set; }
+        TaskRequestInfo TaskRequestInfo { get; set; }
         CancellationTokenSource CancelSource { get; set; }
         string TaskName { get; set; }
         IDefaultTaskExporter DefaultExporter { get; set; }

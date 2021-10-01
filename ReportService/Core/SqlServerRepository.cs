@@ -101,6 +101,27 @@ namespace ReportService.Core
             }
         }
 
+        public List<DtoOperInstance> GetFullTaskOperInstances(long taskInstanceId)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.Query<DtoOperInstance>
+                    ($@"select Id,TaskInstanceId,OperationId,StartTime,Duration,State,DataSet,
+                        ErrorMessage from OperInstance with(nolock) where TaskInstanceId={taskInstanceId}",
+                        commandTimeout: 60)
+                    .ToList();
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting operation instances: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
         public DtoOperInstance GetFullOperInstanceById(long operInstanceId)
         {
             using var connection = new SqlConnection(mConnectionString);
@@ -377,6 +398,203 @@ namespace ReportService.Core
         {
             mMonik.ApplicationWarning(msg);
             Console.WriteLine(msg);
+        }
+
+        public long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            long newTaskRequestInfoId;
+
+            connection.Open();
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    newTaskRequestInfoId = connection.Insert(taskRequestInfo,
+                        commandTimeout: 60, transaction: transaction);
+
+                    transaction.Commit();
+                }
+
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return newTaskRequestInfoId;
+        }
+
+        public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.Query<TaskRequestInfo>
+                ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                where tri.RequestId in ({string.Join(",", taskRequestIds)})",
+                    commandTimeout: 60).ToList();
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task request info data: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
+        public TaskRequestInfo GetTaskRequestInfoById(long taskRequestId)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.QueryFirst<TaskRequestInfo>
+                ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                where tri.RequestId = {taskRequestId}",
+                    commandTimeout: 60);
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task request info data: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter )
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            var builder = new Dapper.SqlBuilder();
+            var selector = builder.AddTemplate
+                ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                /**where**/"
+                );
+
+            if (requestStatusFilter.TaskIds != null && requestStatusFilter.TaskIds.Any())
+            {
+                builder.Where(
+                        "tri.TaskId in @taskIds",
+                        new { taskIds = requestStatusFilter.TaskIds }
+                    );
+            }
+
+            if (requestStatusFilter.TaskRequestInfoIds != null &&  requestStatusFilter.TaskRequestInfoIds.Any())
+            {
+                builder.Where(
+                        "tri.RequestId in @taskRequestInfoIds",
+                        new { taskRequestInfoIds = requestStatusFilter.TaskRequestInfoIds }
+                    );
+            }
+
+            if (requestStatusFilter.TimePeriod != null)
+            {
+                builder.Where(
+                       "tri.CreateTime between @dateFrom and @dateTo",
+                       new { dateFrom = requestStatusFilter.TimePeriod.DateFrom, dateTo = requestStatusFilter.TimePeriod.DateTo }
+                    );
+            }
+
+            if (requestStatusFilter.Status != null)
+            {
+                builder.Where(
+                        "tri.Status = @status",
+                        new { status = requestStatusFilter.Status }
+                    );
+            }
+
+            return connection.Query<TaskRequestInfo>(selector.RawSql, selector.Parameters).ToList();
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.Query<TaskRequestInfo>
+            ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                where tri.CreateTime between '{timeFrom.ToString("yyyy-MM-dd HH:mm:ss")}' and '{timeTo.ToString("yyyy-MM-dd HH:mm:ss")}'",
+                    commandTimeout: 60).ToList();
+            }
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task request info data: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
+        public List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            try
+            {
+                return connection.Query<TaskRequestInfo>
+                ($@"
+                select
+                    tri.RequestId,
+                    tri.TaskId,
+                    tri.Parameters,
+                    tri.TaskInstanceId,
+                    tri.CreateTime,
+                    tri.UpdateTime,
+                    tri.Status
+                from TaskRequestInfo tri with(nolock)
+                where tri.TaskId in ({string.Join(",", taskIds)})",
+                    commandTimeout: 60).ToList();
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting task request info data: " +
+                               $"{e.Message}");
+                throw;
+            }
         }
 
         public void CreateSchema(string baseConnStr)

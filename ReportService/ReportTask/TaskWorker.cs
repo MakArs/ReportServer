@@ -140,6 +140,7 @@ namespace ReportService.ReportTask
         {
             Stopwatch duration = new Stopwatch();
 
+
             duration.Start();
 
             bool deleteFolder = false;
@@ -155,8 +156,18 @@ namespace ReportService.ReportTask
 
             var dtoTaskInstance = taskContext.TaskInstance;
 
+            var taskRequestInfo = taskContext.TaskRequestInfo;
+
             var success = true;
             var exceptions = new List<Tuple<Exception, string>>();
+
+            if (taskRequestInfo != null)
+            {
+                taskRequestInfo.Status = (int)RequestStatus.InProgress;
+                taskRequestInfo.TaskInstanceId = dtoTaskInstance.Id;
+                taskRequestInfo.UpdateTime = DateTime.UtcNow;
+                repository.UpdateEntity(taskRequestInfo);
+            }
 
             if (!CheckIfDependenciesCompleted(taskContext, exceptions))
                 return;
@@ -216,6 +227,18 @@ namespace ReportService.ReportTask
                 : (int)InstanceState.Failed;
 
             repository.UpdateEntity(dtoTaskInstance);
+
+            if (taskRequestInfo != null)
+            {
+                taskRequestInfo.Status =
+                    success ? (int)RequestStatus.Completed
+                    : taskRequestInfo.Status == (int)RequestStatus.Canceled ? (int)RequestStatus.Canceled
+                    : (int)RequestStatus.Failed;
+
+                taskRequestInfo.UpdateTime = DateTime.UtcNow;
+
+                repository.UpdateEntity(taskRequestInfo);
+            }
         }
 
         private void RunOperation(IReportTaskRunContext taskContext, IOperation oper,

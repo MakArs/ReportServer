@@ -71,14 +71,13 @@ namespace ReportService
             var config = GetConfiguration();
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>(config);
 
-            RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>(builder, "PackageDataConsumer");
+            //RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>(builder, "PackageDataConsumer");
             RegisterNamedDataImporter<DbImporter, DbImporterConfig>(builder, "CommonDbImporter");
             RegisterNamedDataImporter<PostgresDbImporter, DbImporterConfig>(builder, "PostgresDbImporter");
             RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>(builder, "CommonExcelImporter");
             RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>(builder, "CommonCsvImporter");
             RegisterNamedDataImporter<SshImporter, SshImporterConfig>(builder, "CommonSshImporter");
             RegisterNamedDataImporter<EmailAttachementImporter, EmailImporterConfig>(builder, "CommonEmailImporter");
-
             RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>(builder, "CommonEmailSender");
             RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>(builder, "CommonTelegramSender");
             RegisterNamedDataExporter<DbExporter, DbExporterConfig>(builder, "CommonDbExporter");

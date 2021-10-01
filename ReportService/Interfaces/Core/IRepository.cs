@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ReportService.Entities;
@@ -12,6 +13,7 @@ namespace ReportService.Interfaces.Core
         TaskState GetTaskStateById(long taskId);
         Task<List<DtoTaskInstance>> GetAllTaskInstances(long taskId);
         List<DtoOperInstance> GetTaskOperInstances(long taskInstanceId);
+        List<DtoOperInstance> GetFullTaskOperInstances(long taskInstanceId);
         DtoOperInstance GetFullOperInstanceById(long operInstanceId);
 
         /// <summary>
@@ -28,7 +30,6 @@ namespace ReportService.Interfaces.Core
         long CreateEntity<T>(T entity) where T : class, IDtoEntity;
 
         long CreateTask(DtoTask task, params DtoOperation[] bindedOpers);
-
         /// <summary>
         /// Updates generic-type entity in repository.
         /// WARNING: generic type name must be database table name with "Dto" prefix
@@ -47,6 +48,13 @@ namespace ReportService.Interfaces.Core
         List<long> UpdateOperInstancesAndGetIds();
 
         List<long> UpdateTaskInstancesAndGetIds();
+
+        long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo);
+        List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds);
+        TaskRequestInfo GetTaskRequestInfoById(long taskRequestId);
+        List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter);
+        List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo);
+        List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds);
 
         void CreateSchema(string baseConnStr);
 
