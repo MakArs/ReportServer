@@ -103,7 +103,7 @@ namespace ReportService.Core
 
         public List<DtoOperInstance> GetFullTaskOperInstances(long taskInstanceId)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -402,7 +402,7 @@ namespace ReportService.Core
 
         public long CreateTaskRequestInfo(TaskRequestInfo taskRequestInfo)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             long newTaskRequestInfoId;
 
@@ -430,7 +430,7 @@ namespace ReportService.Core
 
         public List<TaskRequestInfo> GetListTaskRequestInfoByIds(long[] taskRequestIds)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -459,7 +459,7 @@ namespace ReportService.Core
 
         public TaskRequestInfo GetTaskRequestInfoById(long taskRequestId)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -488,7 +488,7 @@ namespace ReportService.Core
 
         public List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter )
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             var builder = new Dapper.SqlBuilder();
             var selector = builder.AddTemplate
@@ -542,7 +542,7 @@ namespace ReportService.Core
 
         public List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {
@@ -570,7 +570,7 @@ namespace ReportService.Core
 
         public List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(mConnectionString);
 
             try
             {

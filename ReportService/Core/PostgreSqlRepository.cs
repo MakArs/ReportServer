@@ -104,7 +104,7 @@ namespace ReportService.Core
 
         public List<DtoOperInstance> GetFullTaskOperInstances(long taskInstanceId)
         {
-            using var connection = new NpgsqlConnection(connectionString);
+            using var connection = new NpgsqlConnection(mConnectionString);
 
             try
             {
@@ -465,7 +465,7 @@ namespace ReportService.Core
 
         public TaskRequestInfo GetTaskRequestInfoById(long taskRequestId)
         {
-            using var connection = new NpgsqlConnection(connectionString);
+            using var connection = new NpgsqlConnection(mConnectionString);
 
             try
             {
