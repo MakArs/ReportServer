@@ -53,7 +53,7 @@ namespace ReportService
 
                 if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
                 {
-                    using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
+                    var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
                     configBuilder.AddJsonStream(jsonStream);
                 }
             }
