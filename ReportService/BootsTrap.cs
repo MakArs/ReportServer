@@ -41,9 +41,9 @@ namespace ReportService
             var configBuilder = new ConfigurationBuilder().AddJsonFile("ConsulSettings.json");
             IConfigurationRoot config = configBuilder.Build();
 
-            var store = new ConsulConfigurationStore(config["Url"], config["Token"]);
+            var store = new ConsulConfigurationStore(config["Consul:Url"], config["Consul:Token"]);
             IExternalConfigurationProvider provider = new ExternalConfigurationProvider(store, config["Environment"]);
-            Task<Dictionary<string, string>> getConsulSettingsTask = provider.GetServiceSettingsAsync(config["ServiceName"]);
+            Task<Dictionary<string, string>> getConsulSettingsTask = provider.GetServiceSettingsAsync("ReportService");
 
             configBuilder.Sources.Clear();
 
