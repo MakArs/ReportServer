@@ -1,6 +1,7 @@
 using Domain0.Auth.AspNet;
 using Domain0.Tokens;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,10 +71,7 @@ namespace ReportService.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            app.UseExceptionHandler("/error");
 
             //app.UseHttpsRedirection(); //TODO: client redirection
 
