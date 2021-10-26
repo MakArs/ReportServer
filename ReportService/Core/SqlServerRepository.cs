@@ -597,6 +597,66 @@ namespace ReportService.Core
             }
         }
 
+        public List<DtoTask> GetTasksFromDb(long[] taskIds)
+        {
+            using var connection = new SqlConnection(mConnectionString);
+
+            try
+            {
+                return connection.Query<DtoTask>
+                (
+                    $@"
+                        select
+                            t.Id,
+                            t.Name,
+                            t.ScheduleId,
+                            t.Parameters,
+                            t.DependsOn,
+                            t.UpdateDateTime,
+                            t.ParameterInfos
+                        from Task t with(nolock)
+                        where t.Id in ({string.Join(",", taskIds)})",
+                    commandTimeout: 60).ToList();
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting tasks info data: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
+        public DtoTask GetTaskFromDb(long taskId)
+        {
+            using var connection = new SqlConnection(mConnectionString);
+
+            try
+            {
+                return connection.QueryFirst<DtoTask>
+                (
+                    $@"
+                        select
+                            t.Id,
+                            t.Name,
+                            t.ScheduleId,
+                            t.Parameters,
+                            t.DependsOn,
+                            t.UpdateDateTime,
+                            t.ParameterInfos
+                        from Task t with(nolock)
+                        where t.Id = {taskId}",
+                    commandTimeout: 60);
+            }
+
+            catch (Exception e)
+            {
+                SendAppWarning("Error occured while getting tasks info data: " +
+                               $"{e.Message}");
+                throw;
+            }
+        }
+
         public void CreateSchema(string baseConnStr)
         {
             using var connection = new SqlConnection(baseConnStr);

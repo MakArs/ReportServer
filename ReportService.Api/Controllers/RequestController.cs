@@ -41,9 +41,10 @@ namespace ReportService.Api.Controllers
 
         [Authorize(Domain0Auth.Policy, Roles = "reporting.stoprun, reporting.edit")]
         [HttpPost(RunTaskRoute)]
-        public ContentResult RunTask([FromBody] RunTaskParameters newParameters) 
+        public ContentResult RunTask([FromBody] RunTaskParameters newParameters)
         {
-            var currentTask = logic.GetAllTasksJson().SingleOrDefault(t => t.Id == newParameters.TaskId);
+            var currentTask = logic.GetTaskFromDb(newParameters.TaskId);
+
             if (currentTask == null)
             {
                 return GetNotFoundErrorResult(JsonConvert.SerializeObject(new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Task Error"] = new[] { $"Task with id {newParameters.TaskId} doesn't exist." } } }));
@@ -105,7 +106,7 @@ namespace ReportService.Api.Controllers
         [HttpPost(GetTaskInfoRoute)]
         public TaskInfo[] GetTaskInfo([FromBody] TaskInfoFilter filter)
         {
-            var currentTasks = logic.GetAllTasksJson();
+            var currentTasks = logic.GetAllTaskFromDb();
             var tasksByTaskIds = new HashSet<long>(filter.TaskIds);
 
             return currentTasks
