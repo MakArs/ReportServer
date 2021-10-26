@@ -77,6 +77,9 @@ namespace ReportService.Interfaces.Core
         List<TaskRequestInfo> GetTaskRequestInfoByFilter(RequestStatusFilter requestStatusFilter);
         List<TaskRequestInfo> GetTaskRequestInfoByTimePeriod(DateTime timeFrom, DateTime timeTo);
         List<TaskRequestInfo> GetTaskRequestInfoByTaskIds(long[] taskIds);
+        public List<IReportTask> GetTasksFromDb(long[] taskIds);
+        public IReportTask GetTaskFromDb(long taskIds);
+        public List<IReportTask> GetAllTaskFromDb();
         public void UpdateTaskRecord(DtoTask task);
 
         void UpdateTaskRequestInfo(TaskRequestInfo taskRequestInfo);

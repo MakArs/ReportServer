@@ -943,5 +943,71 @@ namespace ReportService.Core
             }
             return mapResult.ToArray();
         }
+
+        public List<IReportTask> GetTasksFromDb(long[] taskIds)
+        {
+            var dtoTasks = repository.GetTasksFromDb(taskIds);
+            var curTasks = new List<IReportTask>();
+            
+            foreach (var dtoTask in dtoTasks)
+            {
+                var task = autofac.Resolve<IReportTask>(
+                    new NamedParameter("id", dtoTask.Id),
+                    new NamedParameter("name", dtoTask.Name),
+                    new NamedParameter("parameters", dtoTask.Parameters),
+                    new NamedParameter("dependsOn", dtoTask.DependsOn),
+                    new NamedParameter("schedule", schedules
+                        .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
+                    new NamedParameter("opers", operations
+                        .Where(oper => oper.TaskId == dtoTask.Id)
+                        .Where(oper => !oper.IsDeleted).ToList()),
+                    new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
+                
+                curTasks.Add(task);
+            }
+            return curTasks;
+        }
+
+        public IReportTask GetTaskFromDb(long taskId)
+        {
+            var dtoTask = repository.GetTaskFromDb(taskId);
+            var curTask = autofac.Resolve<IReportTask>(
+                new NamedParameter("id", dtoTask.Id),
+                new NamedParameter("name", dtoTask.Name),
+                new NamedParameter("parameters", dtoTask.Parameters),
+                new NamedParameter("dependsOn", dtoTask.DependsOn),
+                new NamedParameter("schedule", schedules
+                    .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
+                new NamedParameter("opers", operations
+                    .Where(oper => oper.TaskId == dtoTask.Id)
+                    .Where(oper => !oper.IsDeleted).ToList()),
+                new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
+
+            return curTask;
+        }
+
+        public List<IReportTask> GetAllTaskFromDb()
+        {
+            var dtoTasks = repository.GetListEntitiesByDtoType<DtoTask>();
+            var curTasks = new List<IReportTask>();
+            
+            foreach (var dtoTask in dtoTasks)
+            {
+                var task = autofac.Resolve<IReportTask>(
+                    new NamedParameter("id", dtoTask.Id),
+                    new NamedParameter("name", dtoTask.Name),
+                    new NamedParameter("parameters", dtoTask.Parameters),
+                    new NamedParameter("dependsOn", dtoTask.DependsOn),
+                    new NamedParameter("schedule", schedules
+                        .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
+                    new NamedParameter("opers", operations
+                        .Where(oper => oper.TaskId == dtoTask.Id)
+                        .Where(oper => !oper.IsDeleted).ToList()),
+                    new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
+                
+                curTasks.Add(task);
+            }
+            return curTasks;
+        }
     } //class
 }

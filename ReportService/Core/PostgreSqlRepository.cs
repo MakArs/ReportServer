@@ -507,6 +507,16 @@ namespace ReportService.Core
             return null;
         }
 
+        public List<DtoTask> GetTasksFromDb(long[] taskIds)
+        {
+            return null;
+        }
+
+        public DtoTask GetTaskFromDb(long taskId) 
+        {
+            return null;
+        }
+
         public void CreateSchema(string baseConnStr)
         {
             using var connection = new NpgsqlConnection(baseConnStr);
