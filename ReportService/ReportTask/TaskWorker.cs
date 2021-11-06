@@ -293,7 +293,7 @@ namespace ReportService.ReportTask
 
                         else
                         {
-                            var allExceptions = e.FromHierarchy(ex => ex.InnerException).ToList();
+                            var allExceptions = e.GetExceptionTree().ToList();
 
                             exceptions.AddRange(allExceptions
                                 .Select(exx => new Tuple<Exception, string>(exx, oper.Properties.Name)));

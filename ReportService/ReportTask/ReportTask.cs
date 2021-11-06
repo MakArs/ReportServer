@@ -134,7 +134,7 @@ namespace ReportService.ReportTask
             catch (Exception ex)
             {
                 var exceptions = new List<Tuple<Exception, string>>();
-                var allExceptions = ex.FromHierarchy(e => e.InnerException).ToList();
+                var allExceptions = ex.GetExceptionTree().ToList();
 
                 exceptions.AddRange(allExceptions.Select(exx => new Tuple<Exception, string>(exx, context.TaskName)));
                 context.DefaultExporter.SendError(exceptions, context.TaskName, context.TaskId);
