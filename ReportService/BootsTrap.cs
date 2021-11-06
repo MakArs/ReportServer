@@ -47,13 +47,15 @@ namespace ReportService
 
             configBuilder.Sources.Clear();
 
+            MemoryStream jsonStream = null;
+
             try
             {
                 Dictionary<string, string> serviceSettings = getConsulSettingsTask.Result;
 
                 if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
                 {
-                    var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
+                    jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
                     configBuilder.AddJsonStream(jsonStream);
                 }
             }
@@ -63,6 +65,9 @@ namespace ReportService
             }
 
             config = configBuilder.Build();
+            
+            jsonStream?.Dispose();
+
             return config;
         }
 
