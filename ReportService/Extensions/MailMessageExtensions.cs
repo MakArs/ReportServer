@@ -30,38 +30,43 @@ namespace ReportService.Extensions
         {
             Guard.Against.Null(package, nameof(package));
 
-            List<string> to = new List<string>();
-            List<string> bcc = new List<string>();
-
-            var set = package.DataSets.FirstOrDefault();
-            if (set == null) 
+            DataSet dataset = package.DataSets.FirstOrDefault();
+            if (dataset == null) 
                 return;
 
-            var addressIndex = set.Columns.IndexOf(set.Columns.FirstOrDefault(col => col.Name == "Address"));
-            var recTypeIndex = set.Columns.IndexOf(set.Columns.FirstOrDefault(col => col.Name == "RecType"));
+            List<string> toAddresses = new List<string>();
+            List<string> bccAddresses = new List<string>();
+
+            ParseDataSet(dataset, toAddresses, bccAddresses);
+
+            AddAddressesToCollection(toAddresses, msg.To);
+            AddAddressesToCollection(bccAddresses, msg.Bcc);
+        }
+
+        private static void ParseDataSet(DataSet dataset, List<string> toAddresses, List<string> bccAddresses)
+        {
+            var addressIndex = dataset.Columns.IndexOf(dataset.Columns.FirstOrDefault(col => col.Name == "Address"));
+            var recTypeIndex = dataset.Columns.IndexOf(dataset.Columns.FirstOrDefault(col => col.Name == "RecType"));
 
             if (addressIndex == -1 || recTypeIndex == -1)
                 return;
 
-            foreach (var row in set.Rows)
+            foreach (var row in dataset.Rows)
             {
                 var newAddrs = row.Values[addressIndex].StringValue
-                    .Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
                     .ToList();
 
-                if (newAddrs.Count == 0) 
+                if (newAddrs.Count == 0)
                     continue;
 
                 var recType = row.Values[recTypeIndex].StringValue;
 
                 if (recType == "To")
-                    to.AddRange(newAddrs);
+                    toAddresses.AddRange(newAddrs);
                 else if (recType == "Bcc")
-                    bcc.AddRange(newAddrs);
+                    bccAddresses.AddRange(newAddrs);
             }
-
-            AddAddressesToCollection(to, msg.To);
-            AddAddressesToCollection(bcc, msg.Bcc);
         }
     }
 }
