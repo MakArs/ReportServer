@@ -110,7 +110,7 @@ namespace ReportService.Core
                         new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
 
                         //todo: might be replaced with saved time from db
-                        task.UpdateLastTime();
+                        task.UpdateLastExecutionTime();
                         tasks.Add(task);
                     }
                 } //lock
@@ -195,7 +195,7 @@ namespace ReportService.Core
             Task.Factory.StartNew(() => task.Execute(context), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
 
-            task.UpdateLastTime();
+            task.UpdateLastExecutionTime();
         }
 
         private void ExecuteTask(IReportTask task)
@@ -214,7 +214,7 @@ namespace ReportService.Core
             Task.Factory.StartNew(() => task.Execute(context), context.CancelSource.Token)
                 .ContinueWith(_ => EndContextWork(instanceId));
 
-            task.UpdateLastTime();
+            task.UpdateLastExecutionTime();
         }
 
         private void EndContextWork(long taskInstanceId)
