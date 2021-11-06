@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using OfficeOpenXml;
 using ReportService.Extensions;
@@ -17,6 +16,7 @@ namespace ReportService.Tests
         [TestCase(9223372036854775807, 9223372036854775807, TestName = "LongValue")]
         [TestCase(true, true, TestName = "BoolValue")]
         [TestCase("FooBar", "FooBar", TestName = "StringValue")]
+        [TestCase(null, null, TestName = "NullValue")]
         public void ShouldSetValue(object value, object expectedValue)
         {
             //Arrange

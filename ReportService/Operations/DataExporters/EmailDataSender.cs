@@ -75,7 +75,7 @@ namespace ReportService.Operations.DataExporters
                 Subject = filename
             };
 
-            msg.AddRecipientsFromGroup(addresses);
+            msg.AddRecipientsFromRecipientAddresses(addresses);
 
             if (!string.IsNullOrEmpty(RecepientsDatasetName))
                 msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);

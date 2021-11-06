@@ -25,6 +25,19 @@ namespace ReportService.Tests
         }
 
         [Test]
+        public void ShouldParseNullProperly()
+        {
+            //Arrange
+            Exception exception = null;
+
+            //Act
+            IEnumerable<Exception> exceptionTree = exception.GetExceptionTree();
+
+            //Assert
+            exceptionTree.ShouldBeEmpty();
+        }
+
+        [Test]
         public void ShouldParseComplexExceptionProperly()
         {
             //Arrange

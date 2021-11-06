@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using Ardalis.GuardClauses;
 using ReportService.Entities;
 
 namespace ReportService.Extensions
 {
     public static class MailMessageExtensions
     {
-        public static void AddRecipientsFromGroup(this MailMessage msg, RecipientAddresses addresses)
+        public static void AddRecipientsFromRecipientAddresses(this MailMessage msg, RecipientAddresses addresses)
         {
+            Guard.Against.Null(addresses, nameof(addresses));
+
             AddAddressesToCollection(addresses.To, msg.To);
             AddAddressesToCollection(addresses.Bcc, msg.Bcc);
         }
@@ -25,6 +28,8 @@ namespace ReportService.Extensions
 
         public static void AddRecipientsFromPackage(this MailMessage msg, OperationPackage package)
         {
+            Guard.Against.Null(package, nameof(package));
+
             List<string> to = new List<string>();
             List<string> bcc = new List<string>();
 
