@@ -8,7 +8,7 @@ using ReportService.Extensions;
 using ReportService.Protobuf;
 using Shouldly;
 
-namespace ReportService.Tests
+namespace ReportService.Tests.Extensions
 {
     [TestFixture]
     public class MailMessageExtensionsTests

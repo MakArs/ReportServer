@@ -27,10 +27,10 @@ namespace ReportService.ReportTask
         public List<TaskDependency> DependsOn { get; set; } = new List<TaskDependency>();
 
         private readonly IMonik mMonik;
-        private readonly ILifetimeScope mAutofac;
+        private readonly ILifetimeScope mContainer;
         private readonly IRepository mRepository;
 
-        public ReportTask(ILogic logic, ILifetimeScope autofac, IRepository repository, IMonik monik, int id,
+        public ReportTask(ILogic logic, ILifetimeScope container, IRepository repository, IMonik monik, int id,
             string name, string parameters, string dependsOn, DtoSchedule schedule, List<DtoOperation> operations, string parameterInfos)
         {
             mMonik = monik;
@@ -48,7 +48,7 @@ namespace ReportService.ReportTask
             if (!string.IsNullOrEmpty(parameterInfos))
                 ParameterInfos = JsonConvert.DeserializeObject<List<ParameterInfo>>(parameterInfos);
 
-            mAutofac = autofac;
+            mContainer = container;
 
             ParseDtoOperations(logic, operations);
         } //ctor
@@ -63,13 +63,13 @@ namespace ReportService.ReportTask
 
                 if (logic.RegisteredImporters.ContainsKey(operationType))
                 {
-                    operation = mAutofac.ResolveNamed<IOperation>(operationType, new NamedParameter("config",
+                    operation = mContainer.ResolveNamed<IOperation>(operationType, new NamedParameter("config",
                         JsonConvert.DeserializeObject(dtoOperation.Config, logic.RegisteredImporters[operationType])));
                 }
 
                 else
                 {
-                    operation = mAutofac.ResolveNamed<IOperation>(operationType, new NamedParameter("config",
+                    operation = mContainer.ResolveNamed<IOperation>(operationType, new NamedParameter("config",
                             JsonConvert.DeserializeObject(dtoOperation.Config, logic.RegisteredExporters[operationType])));
                 }
 
@@ -86,7 +86,7 @@ namespace ReportService.ReportTask
 
         public IReportTaskRunContext GetCurrentContext(bool takeDefault)
         {
-            var context = mAutofac.Resolve<IReportTaskRunContext>();
+            var context = mContainer.Resolve<IReportTaskRunContext>();
 
             try
             {
@@ -102,7 +102,7 @@ namespace ReportService.ReportTask
                     return null;
                 }
 
-                context.DefaultExporter = mAutofac.Resolve<IDefaultTaskExporter>();
+                context.DefaultExporter = mContainer.Resolve<IDefaultTaskExporter>();
                 context.TaskId = Id;
                 context.TaskName = Name;
                 context.DependsOn = DependsOn;
@@ -143,13 +143,13 @@ namespace ReportService.ReportTask
         }
         public void Execute(IReportTaskRunContext context)
         {
-            var taskWorker = mAutofac.Resolve<ITaskWorker>();
+            var taskWorker = mContainer.Resolve<ITaskWorker>();
             taskWorker.RunTask(context);
         }
 
         public async Task<string> GetCurrentViewAsync(IReportTaskRunContext context)
         {
-            var taskWorker = mAutofac.Resolve<ITaskWorker>();
+            var taskWorker = mContainer.Resolve<ITaskWorker>();
 
             var defaultView = await taskWorker.RunTaskAndGetLastViewAsync(context);
 
@@ -160,7 +160,7 @@ namespace ReportService.ReportTask
 
         public void SendDefault(IReportTaskRunContext context, string mailAddress)
         {
-            var taskWorker = mAutofac.Resolve<ITaskWorker>();
+            var taskWorker = mContainer.Resolve<ITaskWorker>();
 
             taskWorker.RunTaskAndSendLastViewAsync(context, mailAddress);
         }

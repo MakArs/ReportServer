@@ -5,7 +5,7 @@ using NUnit.Framework;
 using ReportService.Extensions;
 using Shouldly;
 
-namespace ReportService.Tests
+namespace ReportService.Tests.Extensions
 {
     [TestFixture]
     public class ExceptionExtensionsTests

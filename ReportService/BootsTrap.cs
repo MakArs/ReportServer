@@ -14,7 +14,6 @@ using ReportService.Core;
 using ReportService.Entities;
 using ReportService.Extensions;
 using ReportService.Interfaces.Core;
-using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataExporters;
@@ -75,26 +74,25 @@ namespace ReportService
         {
             var config = GetConfiguration();
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>(config);
+            
+            builder.RegisterNamedDataImporter<DbImporter, DbImporterConfig>("CommonDbImporter");
+            builder.RegisterNamedDataImporter<PostgresDbImporter, DbImporterConfig>("PostgresDbImporter");
+            builder.RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>("CommonExcelImporter");
+            builder.RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>("CommonCsvImporter");
+            builder.RegisterNamedDataImporter<SshImporter, SshImporterConfig>("CommonSshImporter");
+            builder.RegisterNamedDataImporter<EmailAttachementImporter, EmailImporterConfig>("CommonEmailImporter");
+            builder.RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>("CommonEmailSender");
+            builder.RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>("CommonTelegramSender");
+            builder.RegisterNamedDataExporter<DbExporter, DbExporterConfig>("CommonDbExporter");
+            builder.RegisterNamedDataExporter<PostgresDbExporter, DbExporterConfig>("PostgresDbExporter");
+            builder.RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>("CommonB2BExporter");
+            builder.RegisterNamedDataExporter<PostgresB2BExporter, B2BExporterConfig>("PostgresB2BExporter");
+            builder.RegisterNamedDataExporter<SshExporter, SshExporterConfig>("CommonSshExporter");
+            builder.RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>("CommonFtpExporter");
 
-            //RegisterNamedDataImporter<DbPackageDataConsumer, DbImporterConfig>(builder, "PackageDataConsumer");
-            RegisterNamedDataImporter<DbImporter, DbImporterConfig>(builder, "CommonDbImporter");
-            RegisterNamedDataImporter<PostgresDbImporter, DbImporterConfig>(builder, "PostgresDbImporter");
-            RegisterNamedDataImporter<ExcelImporter, ExcelImporterConfig>(builder, "CommonExcelImporter");
-            RegisterNamedDataImporter<CsvImporter, CsvImporterConfig>(builder, "CommonCsvImporter");
-            RegisterNamedDataImporter<SshImporter, SshImporterConfig>(builder, "CommonSshImporter");
-            RegisterNamedDataImporter<EmailAttachementImporter, EmailImporterConfig>(builder, "CommonEmailImporter");
-            RegisterNamedDataExporter<EmailDataSender, EmailExporterConfig>(builder, "CommonEmailSender");
-            RegisterNamedDataExporter<TelegramDataSender, TelegramExporterConfig>(builder, "CommonTelegramSender");
-            RegisterNamedDataExporter<DbExporter, DbExporterConfig>(builder, "CommonDbExporter");
-            RegisterNamedDataExporter<PostgresDbExporter, DbExporterConfig>(builder, "PostgresDbExporter");
-            RegisterNamedDataExporter<B2BExporter, B2BExporterConfig>(builder, "CommonB2BExporter");
-            RegisterNamedDataExporter<PostgresB2BExporter, B2BExporterConfig>(builder, "PostgresB2BExporter");
-            RegisterNamedDataExporter<SshExporter, SshExporterConfig>(builder, "CommonSshExporter");
-            RegisterNamedDataExporter<FtpExporter, FtpExporterConfig>(builder, "CommonFtpExporter");
-
-            RegisterNamedViewExecutor<CommonViewExecutor>(builder, "commonviewex");
-            RegisterNamedViewExecutor<GroupedViewExecutor>(builder, "GroupedViewex");
-            RegisterNamedViewExecutor<CommonTableViewExecutor>(builder, "CommonTableViewEx");
+            builder.RegisterNamedViewExecutor<CommonViewExecutor>("commonviewex");
+            builder.RegisterNamedViewExecutor<GroupedViewExecutor>("GroupedViewex");
+            builder.RegisterNamedViewExecutor<CommonTableViewExecutor>("CommonTableViewEx");
 
             builder.RegisterImplementationSingleton<ILogic, Logic>();
 
@@ -211,34 +209,6 @@ namespace ReportService
             builder.RegisterInstance<IMonikSettings, ClientSettings>(monikSettings);
 
             builder.RegisterImplementationSingleton<IMonik, MonikClient>();
-        }
-
-
-        private static void RegisterNamedDataExporter<TImplementation, TConfigType>
-            (ContainerBuilder builder, string name)
-            where TImplementation : IOperation
-            where TConfigType : IExporterConfig
-        {
-            builder.RegisterType<TImplementation>()
-                .Named<IOperation>(name)
-                .Keyed<IOperation>(typeof(TConfigType));
-        }
-
-        private static void RegisterNamedDataImporter<TImplementation, TConfigType>
-            (ContainerBuilder builder, string name)
-            where TImplementation : IOperation
-            where TConfigType : IImporterConfig
-        {
-            builder.RegisterType<TImplementation>()
-                .Named<IOperation>(name)
-                .Keyed<IOperation>(typeof(TConfigType));
-        }
-
-        private static void RegisterNamedViewExecutor<TImplementation>
-            (ContainerBuilder builder, string name) where TImplementation : IViewExecutor
-        {
-            builder.RegisterType<TImplementation>()
-                .Named<IViewExecutor>(name);
         }
     }
 }

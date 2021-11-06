@@ -5,7 +5,7 @@ using OfficeOpenXml;
 using ReportService.Extensions;
 using Shouldly;
 
-namespace ReportService.Tests
+namespace ReportService.Tests.Extensions
 {
     [TestFixture]
     public class ExcelRangeExtensionsTests
@@ -106,7 +106,7 @@ namespace ReportService.Tests
         {
             //Arrange
             var value = new DummyClass();
-            var expectedValue = "ReportService.Tests.ExcelRangeExtensionsTests+DummyClass";
+            var expectedValue = "ReportService.Tests.Extensions.ExcelRangeExtensionsTests+DummyClass";
             ExcelRange excelRange = GetExcelRangeForTest();
 
             //Act
