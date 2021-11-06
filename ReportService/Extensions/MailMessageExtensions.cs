@@ -6,7 +6,7 @@ using ReportService.Entities;
 
 namespace ReportService.Extensions
 {
-    public static class MailMessageExtension
+    public static class MailMessageExtensions
     {
         public static void AddRecipientsFromGroup(this MailMessage msg, RecipientAddresses addresses)
         {

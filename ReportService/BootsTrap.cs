@@ -59,7 +59,7 @@ namespace ReportService
                     configBuilder.AddJsonStream(jsonStream);
                 }
             }
-            catch (AggregateException _)
+            catch (AggregateException)
             {
                 configBuilder.AddJsonFile("appsettings.json");
             }

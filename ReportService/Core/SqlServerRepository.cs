@@ -418,7 +418,7 @@ namespace ReportService.Core
                     transaction.Commit();
                 }
 
-                catch (Exception e)
+                catch (Exception)
                 {
                     transaction.Rollback();
                     throw;

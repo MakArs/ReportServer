@@ -228,7 +228,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
             {
                 var span = group.Key.SpanCount;
 
-                ws.Cells[startRow, column].SetObjValue(group.Key.Value, "");
+                ws.Cells[startRow, column].SetFromObject(group.Key.Value);
                 ws.Cells[startRow, startRow + span].Merge = true;
 
                 if (group.Value is Dictionary<MergedRow, object> dict)
@@ -245,7 +245,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                         foreach (var value in row)
                         {
                             j++;
-                            ws.Cells[nonGroupedStartRow, j].SetObjValue(value, "");
+                            ws.Cells[nonGroupedStartRow, j].SetFromObject(value);
                         }
 
                         nonGroupedStartRow++;

@@ -4,9 +4,9 @@ using System;
 
 namespace ReportService.Extensions
 {
-    public static class ExcelRangeExtension
+    public static class ExcelRangeExtensions
     {
-        public static void SetJValue(this ExcelRange rng, JToken token)
+        public static void SetFromJToken(this ExcelRange rng, JToken token) //todo: check if needed
         {
             switch (token.Type)
             {
@@ -26,7 +26,7 @@ namespace ReportService.Extensions
             }
         }
 
-        public static void SetObjValue(this ExcelRange rng, object value, string dateFormat)
+        public static void SetFromObject(this ExcelRange rng, object value)
         {
             switch (value)
             {
@@ -39,8 +39,8 @@ namespace ReportService.Extensions
                 case byte byteValue:
                     rng.Value = byteValue;
                     break;
-                case double doublevValue:
-                    rng.Value = doublevValue;
+                case double doubleValue:
+                    rng.Value = doubleValue;
                     break;
                 case decimal decimalValue:
                     rng.Value = decimalValue;
