@@ -178,7 +178,7 @@ namespace ReportService.Core
             {
                 "OperInstance" => cOperInstanceInsertString,
                 "OperTemplate" => cOperTemplateInsertString,
-                "RecepientGroup" => cRecepientGroupInsertString,
+                "RecepientGroup" => cRecipientGroupInsertString,
                 "Schedule" => cScheduleInsertString,
                 "TaskInstance" => cTaskInstanceInsertString,
                 "TelegramChannel" => cTelegramChannelInsertString,
@@ -208,7 +208,7 @@ namespace ReportService.Core
             VALUES(@ImplementationType, @Name, @ConfigTemplate)
             RETURNING ""Id""; ";
 
-        private const string cRecepientGroupInsertString = @"INSERT INTO ""RecepientGroup""
+        private const string cRecipientGroupInsertString = @"INSERT INTO ""RecepientGroup""
             (""Name"",""Addresses"",""AddressesBcc"")
             VALUES(@Name, @Addresses, @AddressesBcc)
             RETURNING ""Id""; ";

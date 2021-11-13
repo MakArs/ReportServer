@@ -6,7 +6,7 @@ using ReportService.Entities;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataImporters.Configurations;
-using ReportService.Operations.Helpers;
+using ReportService.Operations.DataImporters.Helpers;
 
 namespace ReportService.Operations.DataImporters
 {

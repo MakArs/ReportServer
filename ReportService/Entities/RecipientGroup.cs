@@ -14,7 +14,7 @@ namespace ReportService.Entities
         {
             return new RecipientAddresses
             {
-                To = Addresses.Split(new[] {';'},
+                To = Addresses?.Split(new[] {';'},
                     StringSplitOptions.RemoveEmptyEntries).ToList(),
                 Bcc = AddressesBcc?.Split(new[] {';'},
                     StringSplitOptions.RemoveEmptyEntries).ToList()

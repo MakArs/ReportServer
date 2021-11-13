@@ -6,7 +6,7 @@ namespace ReportService.Extensions
 {
     public static class ExcelRangeExtensions
     {
-        public static void SetFromJToken(this ExcelRange rng, JToken token) //todo: check if needed
+        public static void SetFromJToken(this ExcelRange rng, JToken token) //todo ArsMak: check if needed
         {
             switch (token.Type)
             {

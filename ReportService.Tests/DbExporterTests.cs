@@ -19,7 +19,6 @@ using ReportService.Operations.DataExporters.Dependencies;
 using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters;
 using ReportService.Operations.DataImporters.Configurations;
-using ReportService.Operations.Helpers;
 using ReportService.Protobuf;
 using ReportService.ReportTask;
 using ReportService.Tests.App.API.Tests.Integration;

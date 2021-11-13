@@ -58,7 +58,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldSetAddressesFromOnlyBccAddresses()
+        public void ShouldSetAddressesFromOnlyBccAddresses() //todo ArsMak: Check if message can be sent without To section filled (most probably is not case). If not - add error during parsing (RecipientGroup?)
         {
             //Arrange
             var expectedBccAddresses = new List<string> { "TestFooBcc@Foo.com", "TestBarBcc@Bar.Com" };
