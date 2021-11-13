@@ -2,16 +2,16 @@
 using Google.Protobuf.Collections;
 using ReportService.Interfaces.Protobuf;
 
-namespace ReportService.Operations.Helpers
+namespace ReportService.Operations.DataImporters.Helpers
 {
     public class DbPackageExportScriptCreator : BasePackageExportScriptCreator
     {
-        protected override Dictionary<ScalarType, string> ScalarTypesToSqlTypes { get; set; }
+        protected sealed override Dictionary<ScalarType, string> ScalarTypesToSqlTypes { get; set; }
+
         public DbPackageExportScriptCreator(IPackageParser packageParser) : base(packageParser)
         {
 
-            ScalarTypesToSqlTypes =
-                   new Dictionary<ScalarType, string>
+            ScalarTypesToSqlTypes = new Dictionary<ScalarType, string>
                    {
                         {ScalarType.Int32, "INT"},
                         {ScalarType.Double, "FLOAT"},
@@ -39,6 +39,7 @@ namespace ReportService.Operations.Helpers
                 var nullable = col.Nullable ? "NULL" : "NOT NULL";
                 commandBuilder.AppendQueryString(@$"[{col.Name ?? $"NoNameColumn{i++}"}] {ScalarTypesToSqlTypes[col.Type]} {nullable},");
             }
+
             commandBuilder.HandleClosingBracket();
         }
     }

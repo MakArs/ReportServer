@@ -10,17 +10,12 @@ namespace ReportService.Entities
         public List<string> Error { get; set; }
         public object Value { get; set; }
 
-        public ParameterMapping(
-            ParameterInfo parameterInfo, 
-            TaskParameter taskParameter,
-            List<string> error,
-            object value
-            )
+        public ParameterMapping(ParameterInfo parameterInfo, TaskParameter taskParameter, List<string> error, object value)
         {
-            this.ParameterInfo = parameterInfo;
-            this.UserValue = taskParameter;
-            this.Error = error;
-            this.Value = value;
+            ParameterInfo = parameterInfo;
+            UserValue = taskParameter;
+            Error = error;
+            Value = value;
         }
     }
 }

@@ -1,4 +1,4 @@
-using Autofac;
+﻿using Autofac;
 using AutoMapper;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +30,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using ReportService.Operations.DataImporters.Helpers;
 using Telegram.Bot;
 using Xunit;
 
