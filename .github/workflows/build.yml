@@ -6,10 +6,7 @@ on:
 
 jobs:
   build-n-test-ubuntu:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
     #- uses: actions/setup-dotnet@v1
@@ -24,4 +21,11 @@ jobs:
 
     - run: dotnet build
     - run: docker-compose -f ./ReportService.Tests/docker-compose.yml up -d
+    - run: dotnet test
+  build-n-test-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@master
+    - run: dotnet build
+    - run: docker-compose -f ./ReportService.Tests/docker-compose-windows.yml up -d
     - run: dotnet test
