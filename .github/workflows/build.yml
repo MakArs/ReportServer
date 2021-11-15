@@ -5,8 +5,8 @@ on:
       - "*"
 
 jobs:
-  build-n-test:
-    runs-on: ubuntu-latest
+  build-n-test-ubuntu:
+    runs-on: [ubuntu-latest, windows-latest]
     steps:
     - uses: actions/checkout@master
     #- uses: actions/setup-dotnet@v1
