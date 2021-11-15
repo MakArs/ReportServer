@@ -1,12 +1,11 @@
 ﻿using Dapper;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace ReportService.Operations.DataExporters.Dependencies
 {
-    public class B2BDbStructureChecker : DBStructureChecker, IDBStructureChecker
+    public class B2BDbStructureChecker : DBStructureChecker
     {
         
         #region private props

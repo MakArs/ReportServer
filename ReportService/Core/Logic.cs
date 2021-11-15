@@ -104,7 +104,7 @@ namespace ReportService.Core
                             new NamedParameter("dependsOn", dtoTask.DependsOn),
                             new NamedParameter("schedule", schedules
                                 .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                            new NamedParameter("opers", operations
+                            new NamedParameter("operations", operations
                                 .Where(oper => oper.TaskId == dtoTask.Id)
                                 .Where(oper => !oper.IsDeleted).ToList()),
                         new NamedParameter("parameterInfos", dtoTask.ParameterInfos));

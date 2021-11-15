@@ -1,12 +1,11 @@
 ﻿using Dapper;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace ReportService.Operations.DataExporters.Dependencies
 {
-    public class PostrgressDBStructureChecker : DBStructureChecker, IDBStructureChecker
+    public class PostrgressDBStructureChecker : DBStructureChecker
     {
 
         #region private props
