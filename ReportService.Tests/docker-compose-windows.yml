@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  sqlserver:
+  
+    image: microsoft/mssql-server-windows-developer:2017-latest
+    container_name: mssql
+    ports:
+      - "1438:1433"
+    environment:
+      - "ACCEPT_EULA=Y"
+      - "SA_PASSWORD=P@55w0rd"
+      - "MSSQL_PID=Developer"
