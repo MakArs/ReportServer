@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/35gwill04wqfo53y/branch/master?svg=true)](https://ci.appveyor.com/project/MakArs/reportserver/branch/master)
+[![build](https://github.com/MakArs/ReportServer/actions/workflows/build.yml/badge.svg)](https://github.com/MakArs/ReportServer/actions/workflows/build.yml)
 
 # ReportServer
 ETL solution(windows service) for scheduled reports compilation and sending
