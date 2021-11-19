@@ -227,7 +227,7 @@ namespace ReportService.Tests.Extensions
                 throw new System.NotImplementedException();
             }
 
-            public string ExecuteTelegramView(OperationPackage package, string reportName = "Отчёт", bool useAllSets = false)
+            public string ExecuteTelegramView(OperationPackage package, string reportName = "Report", bool useAllSets = false)
             {
                 throw new System.NotImplementedException();
             }

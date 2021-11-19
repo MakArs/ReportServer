@@ -24,7 +24,7 @@ namespace ReportService.Operations.DataImporters
         {
         }
 
-        protected async override Task ExecuteCommand(IReportTaskRunContext taskContext)
+        protected override async Task ExecuteCommand(IReportTaskRunContext taskContext)
         {
             var token = taskContext.CancelSource.Token;
             for (int i = 0; i < TriesCount; i++)
