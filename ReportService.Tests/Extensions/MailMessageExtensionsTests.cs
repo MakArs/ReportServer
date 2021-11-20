@@ -14,7 +14,7 @@ namespace ReportService.Tests.Extensions
     public class MailMessageExtensionsTests
     {
         [Test]
-        public void ShouldSetAddressesFromRecipientAddresses()
+        public void ShouldSetAddresses_FromRecipientAddresses()
         {
             //Arrange
             var expectedBccAddresses = new List<string> { "TestFooBcc@Foo.com", "TestBarBcc@Bar.Com" };
@@ -37,7 +37,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldSetAddressesFromOnlyToAddresses()
+        public void ShouldSetAddresses_FromOnlyToAddresses()
         {
             //Arrange
             var expectedToAddresses = new List<string> { "TestFooTo@Foo.com", "TestBarTo@Bar.Com" };
@@ -58,7 +58,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldSetAddressesFromOnlyBccAddresses() //todo ArsMak: Check if message can be sent without To section filled (most probably is not case). If not - add error during parsing (RecipientGroup?)
+        public void ShouldSetAddresses_FromOnlyBccAddresses() //todo ArsMak: Check if message can be sent without To section filled (most probably is not case). If not - add error during parsing (RecipientGroup?)
         {
             //Arrange
             var expectedBccAddresses = new List<string> { "TestFooBcc@Foo.com", "TestBarBcc@Bar.Com" };
@@ -79,7 +79,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldThrowExceptionIfNullAddressesProvided()
+        public void ShouldThrowException_IfNullAddresses_Provided()
         {
             //Arrange
             var expectedExceptionPart = "Value cannot be null.";
@@ -90,7 +90,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldSetAddressesFromOperationPackage()
+        public void ShouldSetAddresses_FromOperationPackage()
         {
             //Arrange
             var expectedBccAddresses = new List<string> { "TestFooBcc@Foo.com", "TestBarBcc@Bar.Com" };
@@ -110,7 +110,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldSetAddressesFromOperationPackageWithEmptyBccAddresses()
+        public void ShouldSetAddresses_FromOperationPackage_WithEmptyBccAddresses()
         {
             //Arrange
             var expectedToAddresses = new List<string> { "TestFooTo@Foo.com", "TestBarTo@Bar.Com" };
@@ -128,7 +128,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldSetAddressesFromOperationPackageWithEmptyToAddresses()
+        public void ShouldSetAddresses_FromOperationPackage_WithEmptyToAddresses()
         {
             //Arrange
             var expectedBccAddresses = new List<string> { "TestFooBcc@Foo.com", "TestBarBcc@Bar.Com" };
@@ -146,7 +146,7 @@ namespace ReportService.Tests.Extensions
         }
         
         [Test]
-        public void ShouldSetAddressesFromOperationPackageWithEmptyAddresses()
+        public void ShouldSetAddresses_FromOperationPackage_WithEmptyAddresses()
         {
             //Arrange
             var message = new MailMessage();
@@ -161,7 +161,7 @@ namespace ReportService.Tests.Extensions
         }
         
         [Test]
-        public void ShouldSetAddressesFromOperationPackageWithoutAddresses()
+        public void ShouldSetAddresses_FromOperationPackage_WithoutAddresses()
         {
             //Arrange
             var message = new MailMessage();
@@ -176,7 +176,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldThrowExceptionIfNullOperationPackage()
+        public void ShouldThrowException_IfNullOperationPackage_Provided()
         {
             //Arrange
             var expectedExceptionPart = "Value cannot be null.";

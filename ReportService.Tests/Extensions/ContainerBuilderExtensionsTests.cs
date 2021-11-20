@@ -17,7 +17,7 @@ namespace ReportService.Tests.Extensions
     public class ContainerBuilderExtensionsTests
     {
         [Test]
-        public void RegisterImplementationSingletonShouldWorkProperly()
+        public void RegisterImplementationSingleton_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -34,7 +34,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterImplementationShouldWorkProperly()
+        public void RegisterImplementation_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -51,7 +51,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterInstanceShouldWorkProperly()
+        public void RegisterInstance_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -70,7 +70,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterSingleInstanceShouldWorkProperly()
+        public void RegisterSingleInstance_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -89,7 +89,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterNamedSingletonShouldWorkProperly()
+        public void RegisterNamedSingleton_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -110,7 +110,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterNamedImplementationShouldWorkProperly()
+        public void RegisterNamedImplementation_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -131,7 +131,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterNamedDataExporterShouldWorkProperly()
+        public void RegisterNamedDataExporter_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -153,7 +153,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterNamedDataImporterShouldWorkProperly()
+        public void RegisterNamedDataImporter_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
@@ -175,7 +175,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void RegisterNamedViewExecutorShouldWorkProperly()
+        public void RegisterNamedViewExecutor_ShouldWorkProperly()
         {
             //Arrange
             var builder = new ContainerBuilder();
