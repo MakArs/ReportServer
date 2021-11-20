@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 
 namespace ReportService.Operations.DataExporters.Dependencies
 {
-    public class PostrgressDBStructureChecker : DBStructureChecker
+    public class PostrgresDBStructureChecker : DbStructureChecker
     {
-
-        #region private props
-        
         private string DbStructureCheckQuery => $@"SELECT 
 		  CASE WHEN 
 		  ((SELECT EXISTS(SELECT * 
@@ -35,10 +32,6 @@ namespace ReportService.Operations.DataExporters.Dependencies
 						FROM ""{ExportTableName}""
 						WHERE ""Id"" =@TaskId
 						)";
-        #endregion
-
-
-        #region overrides
 
         public override async Task<bool> CheckIfDbStructureExists(DbConnection connection, IReportTaskRunContext taskContext)
         {
@@ -54,6 +47,5 @@ namespace ReportService.Operations.DataExporters.Dependencies
 
             return result;
         }
-        #endregion
     }
 }

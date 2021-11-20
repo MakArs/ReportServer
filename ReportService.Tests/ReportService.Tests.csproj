@@ -21,4 +21,8 @@
     <ProjectReference Include="..\ReportService\ReportService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Core\" />
+  </ItemGroup>
+
 </Project>

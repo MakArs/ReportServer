@@ -330,7 +330,7 @@ namespace ReportService.Tests
 
         private void RegisterDbStructureChecker()
         {
-            var structureChecker = new Mock<B2BDbStructureChecker>();
+            var structureChecker = new Mock<B2BDBStructureChecker>();
             structureChecker
                 .Setup(checker => checker.CheckIfDbStructureExists(null, null))
                 .ReturnsAsync(false);

@@ -105,7 +105,7 @@ namespace ReportService
 
             builder.RegisterNamedImplementation<IRepository, SqlServerRepository>("SQLServer");
             builder.RegisterNamedImplementation<IRepository, PostgreSqlRepository>("PostgreSQL");
-            builder.RegisterImplementation<IDBStructureChecker, B2BDbStructureChecker>();
+            builder.RegisterImplementation<IDBStructureChecker, B2BDBStructureChecker>();
             //TODO implement cross support for MSql server and PostgreSql
             //builder.RegisterImplementation<IDBStructureChecker, PostgresDBStructureChecker>();
 

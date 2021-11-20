@@ -79,7 +79,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldThrowException_IfNullAddresses_Provided()
+        public void ShouldThrowException_GivenNullAddresses_Provided()
         {
             //Arrange
             var expectedExceptionPart = "Value cannot be null.";
@@ -176,7 +176,7 @@ namespace ReportService.Tests.Extensions
         }
 
         [Test]
-        public void ShouldThrowException_IfNullOperationPackage_Provided()
+        public void ShouldThrowException_GivenNullOperationPackage_Provided()
         {
             //Arrange
             var expectedExceptionPart = "Value cannot be null.";

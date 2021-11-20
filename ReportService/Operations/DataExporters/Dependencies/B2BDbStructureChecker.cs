@@ -2,17 +2,15 @@
 using ReportService.Interfaces.ReportTask;
 using System.Data.Common;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 
 namespace ReportService.Operations.DataExporters.Dependencies
 {
-    public class B2BDbStructureChecker : DBStructureChecker
+    public class B2BDBStructureChecker : DbStructureChecker
     {
-        
-        #region private props
-
         private string DbStructureCheckQuery => $@"
                 IF OBJECT_ID('{ExportTableName}') IS NOT NULL
-                IF EXISTS(  SELECT * FROM {ExportTableName} 
+                IF EXISTS( SELECT * FROM {ExportTableName} 
                             WHERE id = @taskId)
 				            AND OBJECT_ID('{ExportInstanceTableName}') IS NOT NULL
                 AND EXISTS( SELECT 1 FROM sys.columns 
@@ -28,19 +26,15 @@ namespace ReportService.Operations.DataExporters.Dependencies
 				                        AND Object_ID = Object_ID('{ExportInstanceTableName}'))  
                 SELECT 1
                 ELSE SELECT 0";
-        #endregion
-
-
-        #region overrides
 
         public override async Task<bool> CheckIfDbStructureExists(DbConnection connection, IReportTaskRunContext taskContext)
         {
-            var result = await connection.QueryFirstOrDefaultAsync<int>(new CommandDefinition(DbStructureCheckQuery,
-                     new { taskId = taskContext.TaskId }, commandTimeout: DbTimeOut,
-                     cancellationToken: taskContext.CancelSource.Token));
+            Guard.Against.Null(taskContext, nameof(taskContext));
+
+            var result = await connection.QueryFirstOrDefaultAsync<int>(new CommandDefinition(DbStructureCheckQuery, new { taskId = taskContext.TaskId }, 
+                commandTimeout: DbTimeOut, cancellationToken: taskContext.CancelSource.Token));
 
             return result == 1;
         }
-        #endregion
     }
 }
