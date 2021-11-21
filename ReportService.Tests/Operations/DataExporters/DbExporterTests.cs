@@ -1,10 +1,17 @@
-﻿using Autofac;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Autofac;
 using AutoMapper;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Monik.Common;
 using Moq;
 using Newtonsoft.Json;
+using NUnit.Framework;
 using ReportService.Core;
 using ReportService.Entities;
 using ReportService.Entities.Dto;
@@ -19,21 +26,13 @@ using ReportService.Operations.DataExporters.Dependencies;
 using ReportService.Operations.DataExporters.ViewExecutors;
 using ReportService.Operations.DataImporters;
 using ReportService.Operations.DataImporters.Configurations;
+using ReportService.Operations.DataImporters.Helpers;
 using ReportService.Protobuf;
 using ReportService.ReportTask;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using ReportService.Operations.DataImporters.Helpers;
 using Telegram.Bot;
-
 using IConfigurationProvider = Microsoft.Extensions.Configuration.IConfigurationProvider;
 
-namespace ReportService.Tests
+namespace ReportService.Tests.Operations.DataExporters
 {
     [TestFixture]
     [NonParallelizable]
@@ -397,8 +396,9 @@ namespace ReportService.Tests
                             CREATE DATABASE[{cReportServerTestDbName}]
                         END";
                 await cmd.ExecuteNonQueryAsync();
-                var msCreator = new SqlServerRepository(null, null);
-                msCreator.CreateSchema(cTestDbConnStr);
+                var msCreator = new SqlServerRepository(cTestDbConnStr, new Mock<IMonik>().Object);
+
+                msCreator.CreateSchema();
 
                 await connection.ExecuteAsync(@"delete from [dbo].[OperInstance]");
                 await connection.ExecuteAsync(@"delete from [dbo].[OperTemplate];");

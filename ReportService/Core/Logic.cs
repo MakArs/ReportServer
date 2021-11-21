@@ -240,9 +240,9 @@ namespace ReportService.Core
             contextsInWork.Remove(taskInstanceId);
         }
 
-        private void CreateBase(string connStr)
+        private void CreateBase()
         {
-            repository.CreateSchema(connStr);
+            repository.CreateSchema();
         }
 
         private Dictionary<string, Type> GetRegistrationsByTypeAndKeyType<T, TU>()

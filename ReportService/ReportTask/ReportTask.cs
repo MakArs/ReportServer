@@ -109,7 +109,6 @@ namespace ReportService.ReportTask
 
                 context.CancelSource = new CancellationTokenSource();
 
-
                 var pairsTask = Task.Run(async () => await Task.WhenAll(Parameters.Select
                     (async pair => new KeyValuePair<string, object>(pair.Key, await mRepository.GetBaseQueryResult("select " + pair.Value, context.CancelSource.Token)))));
 

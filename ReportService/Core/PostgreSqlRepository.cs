@@ -517,9 +517,9 @@ namespace ReportService.Core
             return null;
         }
 
-        public void CreateSchema(string baseConnStr)
+        public void CreateSchema()
         {
-            using var connection = new NpgsqlConnection(baseConnStr);
+            using var connection = new NpgsqlConnection(mConnectionString);
             
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""OperTemplate""

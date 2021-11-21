@@ -18,6 +18,14 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
     [TestFixture]
     public class B2BDBStructureCheckerTests
     {
+        [TearDown]
+        public async Task TearDown()
+        {
+            await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
+
+            await SqlTestDBHelper.DropAllConstraintsAndTables(connection);
+        }
+
         [Test]
         public void ShouldThrowException_GivenNullExporterConfig_Provided()
         {
@@ -53,7 +61,6 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
             //Act
             await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
 
-            await PrepareDB(connection, sut.ExportTableName, sut.ExportInstanceTableName);
             await CreateExportInstanceTable(connection, sut.ExportInstanceTableName);
 
             sut.StructureChecker.Initialize(sut.B2BExporterConfig);
@@ -73,7 +80,6 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
             //Act
             await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
 
-            await PrepareDB(connection, sut.ExportTableName, sut.ExportInstanceTableName);
             await CreateExportTable(connection, sut.ExportTableName);
 
             sut.StructureChecker.Initialize(sut.B2BExporterConfig);
@@ -93,7 +99,6 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
             //Act
             await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
 
-            await PrepareDB(connection, sut.ExportTableName, sut.ExportInstanceTableName);
             await CreateExportTable(connection, sut.ExportTableName);
             await CreateExportInstanceTable(connection, sut.ExportInstanceTableName);
 
@@ -114,7 +119,6 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
             //Act
             await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
 
-            await PrepareDB(connection, sut.ExportTableName, sut.ExportInstanceTableName);
             await CreateExportTable(connection, sut.ExportTableName);
             await CreateExportInstanceTable(connection, sut.ExportInstanceTableName);
             await CreateEntryInExportTable(connection, sut.ExportTableName, sut.TaskContext.TaskId);
@@ -125,13 +129,6 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
 
             //Assert
             exists.ShouldBeTrue();
-        }
-
-        private async Task PrepareDB(SqlConnection connection, string exportTableName, string exportInstanceTableName)
-        {
-            await SqlTestDBHelper.CreateDB(connection);
-            await connection.ExecuteAsync($"IF OBJECT_ID('{exportTableName}') IS NOT NULL DROP TABLE {exportTableName}");
-            await connection.ExecuteAsync($"IF OBJECT_ID('{exportInstanceTableName}') IS NOT NULL DROP TABLE {exportInstanceTableName}");
         }
 
         private async Task CreateExportTable(SqlConnection connection, string exportTableName)

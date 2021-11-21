@@ -31,7 +31,7 @@ namespace ReportService.Operations.DataExporters.Dependencies
         {
             Guard.Against.Null(taskContext, nameof(taskContext));
 
-            var result = await connection.QueryFirstOrDefaultAsync<int>(new CommandDefinition(DbStructureCheckQuery, new { taskId = taskContext.TaskId }, 
+            int result = await connection.QueryFirstOrDefaultAsync<int>(new CommandDefinition(DbStructureCheckQuery, new { taskId = taskContext.TaskId }, 
                 commandTimeout: DbTimeOut, cancellationToken: taskContext.CancelSource.Token));
 
             return result == 1;

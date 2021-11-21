@@ -59,7 +59,7 @@ namespace ReportService.Interfaces.Core
         List<DtoTask> GetTasksFromDb(long[] taskIds);
         DtoTask GetTaskFromDb(long taskId);
         
-        void CreateSchema(string baseConnStr);
+        void CreateSchema();
 
         int DtoPrefixLength { get; }
     }
