@@ -65,7 +65,7 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
 
             sut.StructureChecker.Initialize(sut.B2BExporterConfig);
 
-            var exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
+            bool exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
 
             //Assert
             exists.ShouldBeFalse();
@@ -84,7 +84,7 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
 
             sut.StructureChecker.Initialize(sut.B2BExporterConfig);
 
-            var exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
+            bool exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
 
             //Assert
             exists.ShouldBeFalse();
@@ -104,7 +104,7 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
 
             sut.StructureChecker.Initialize(sut.B2BExporterConfig);
 
-            var exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
+            bool exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
 
             //Assert
             exists.ShouldBeFalse();
@@ -125,7 +125,7 @@ namespace ReportService.Tests.Operations.DataExporters.Dependencies
 
             sut.StructureChecker.Initialize(sut.B2BExporterConfig);
 
-            var exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
+            bool exists = await sut.StructureChecker.CheckIfDbStructureExists(connection, sut.TaskContext);
 
             //Assert
             exists.ShouldBeTrue();

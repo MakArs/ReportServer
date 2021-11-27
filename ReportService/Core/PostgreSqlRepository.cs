@@ -563,6 +563,7 @@ namespace ReportService.Core
                 ""Name"" VARCHAR(127) NOT NULL,
                 ""ScheduleId"" INT NULL,
                 ""Parameters"" VARCHAR(1023) NULL,
+                ""ParameterInfos"" VARCHAR(1023) NULL,
                 ""DependsOn"" VARCHAR(1023) NULL,
                 ""UpdateDateTime"" TIMESTAMP(3) NOT NULL,
                 CONSTRAINT ""PK_Task_Id"" PRIMARY KEY(""Id""),

@@ -57,7 +57,7 @@ namespace ReportService.Core
             }
         }
 
-        public TaskState GetTaskStateById(long taskId)
+        public TaskState GetTaskStateById(long taskId) //todo: check why dateadd in SQL returns a bit different result for some values of argument(ms)
         {
             using var connection = new SqlConnection(mConnectionString);
 

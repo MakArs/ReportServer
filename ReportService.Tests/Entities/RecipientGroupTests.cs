@@ -22,7 +22,7 @@ namespace ReportService.Tests.Entities
             };
 
             //Act
-            var addresses = group.GetAddresses();
+            RecipientAddresses addresses = group.GetAddresses();
 
             //Assert
             addresses.To.ShouldBeEquivalentTo(expectedToAddressesList);
@@ -41,7 +41,7 @@ namespace ReportService.Tests.Entities
             };
 
             //Act
-            var addresses = group.GetAddresses();
+            RecipientAddresses addresses = group.GetAddresses();
 
             //Assert
             addresses.To.ShouldBeEquivalentTo(expectedToAddressesList);
@@ -61,7 +61,7 @@ namespace ReportService.Tests.Entities
             };
 
             //Act
-            var addresses = group.GetAddresses();
+            RecipientAddresses addresses = group.GetAddresses();
 
             //Assert
             addresses.To.ShouldBeEquivalentTo(expectedToAddressesList);
@@ -80,7 +80,7 @@ namespace ReportService.Tests.Entities
             };
 
             //Act
-            var addresses = group.GetAddresses();
+            RecipientAddresses addresses = group.GetAddresses();
 
             //Assert
             addresses.To.ShouldBeNull();

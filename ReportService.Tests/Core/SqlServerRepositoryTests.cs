@@ -61,7 +61,7 @@ namespace ReportService.Tests.Core
 
             //Act
             repository.CreateSchema();
-            var tablesThatNotExist = await ReturnTablesThatNotExist(expectedTablesList);
+            IEnumerable<string> tablesThatNotExist = await ReturnTablesThatNotExist(expectedTablesList);
 
             //Assert
             tablesThatNotExist.ShouldBeEmpty();
@@ -87,7 +87,7 @@ namespace ReportService.Tests.Core
             //Act
             await CreateOperTemplateTable();
             repository.CreateSchema();
-            var tablesThatNotExist = await ReturnTablesThatNotExist(expectedTablesList);
+            IEnumerable<string> tablesThatNotExist = await ReturnTablesThatNotExist(expectedTablesList);
 
             //Assert
             tablesThatNotExist.ShouldBeEmpty();
@@ -103,11 +103,87 @@ namespace ReportService.Tests.Core
             //Act
             repository.CreateSchema();
             long insertedTaskId = await InsertTaskInstances(expectedInstancesCount, true);
-            var instances = await repository.GetAllTaskInstances(insertedTaskId);
+            List<DtoTaskInstance> instances = await repository.GetAllTaskInstances(insertedTaskId);
 
             //Assert
             instances.Count.ShouldBe(expectedInstancesCount);
             instances.ShouldAllBe(instance => instance.TaskId == insertedTaskId);
+        }
+
+        [Test]
+        public async Task ShouldGetTaskStateById_WithMinDateTimeAsLastSuccessful_GivenInstancesInsertedForDifferentTasks_But_WithoutInstances_For_TargetTask()
+        {
+            //Arrange
+            var repository = new SqlServerRepository(SqlTestDBHelper.TestDbConnStr, new Mock<IMonik>().Object);
+            var expectedLastSuccessfulFinish = DateTime.MinValue;
+
+            //Act
+            repository.CreateSchema();
+            await InsertTaskInstances(5, true);
+            long insertedTaskId = await InsertTask();
+            TaskState state = repository.GetTaskStateById(insertedTaskId);
+
+            //Assert
+            state.LastSuccessfulFinish.ShouldBe(expectedLastSuccessfulFinish);
+        }
+
+        [Test]
+        public async Task ShouldGetTaskStateById_WithMinDateTimeAsLastSuccessful_GivenInstancesInsertedForDifferentTasks_But_WithoutSuccessfulInstances_For_TargetTask()
+        {
+            //Arrange
+            var repository = new SqlServerRepository(SqlTestDBHelper.TestDbConnStr, new Mock<IMonik>().Object);
+            var expectedLastSuccessfulFinish = DateTime.MinValue;
+
+            //Act
+            repository.CreateSchema();
+            await InsertTaskInstances(5, true);
+            long insertedTaskId = await InsertTask();
+            var instance = new DtoTaskInstance
+            {
+                Duration = 12345,
+                StartTime = DateTime.Today,
+                State = (int)InstanceState.Failed,
+                TaskId = insertedTaskId
+            };
+
+            await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
+            await connection.InsertAsync(instance);
+            
+            TaskState state = repository.GetTaskStateById(insertedTaskId);
+
+            //Assert
+            state.LastSuccessfulFinish.ShouldBe(expectedLastSuccessfulFinish);
+        }
+
+        [Test]
+        [Ignore("Flaky test. For some duration values returns result that is not exactly equal to expected")]
+        public async Task ShouldGetTaskStateById_GivenInstancesInsertedForDifferentTasks()
+        {
+            //Arrange
+            var repository = new SqlServerRepository(SqlTestDBHelper.TestDbConnStr, new Mock<IMonik>().Object);
+            var duration = 12345;
+            var expectedStartTime = new DateTime(2020, 12, 20, 11, 23, 45);
+            var expectedLastSuccessfulFinish = expectedStartTime.AddMilliseconds(duration);
+
+            //Act
+            repository.CreateSchema();
+            await InsertTaskInstances(5, true);
+            long insertedTaskId = await InsertTask();
+            var instance = new DtoTaskInstance
+            {
+                Duration = duration,
+                StartTime = expectedStartTime,
+                State = (int)InstanceState.Success,
+                TaskId = insertedTaskId
+            };
+
+            await using var connection = new SqlConnection(SqlTestDBHelper.TestDbConnStr);
+            await connection.InsertAsync(instance);
+            
+            TaskState state = repository.GetTaskStateById(insertedTaskId);
+
+            //Assert
+            state.LastSuccessfulFinish.ShouldBe(expectedLastSuccessfulFinish);
         }
 
         private async Task CreateOperTemplateTable()

@@ -99,7 +99,7 @@ namespace ReportService.Tests.Extensions
             var toAddressesString = string.Join(';', expectedToAddresses);
 
             var message = new MailMessage();
-            var package = GetAddressesOperationPackage(toAddressesString, bccAddressesString);
+            OperationPackage package = GetAddressesOperationPackage(toAddressesString, bccAddressesString);
 
             //Act
             message.AddRecipientsFromPackage(package);
@@ -117,7 +117,7 @@ namespace ReportService.Tests.Extensions
             var toAddressesString = string.Join(';', expectedToAddresses);
 
             var message = new MailMessage();
-            var package = GetAddressesOperationPackage(toAddressesString, string.Empty);
+            OperationPackage package = GetAddressesOperationPackage(toAddressesString, string.Empty);
 
             //Act
             message.AddRecipientsFromPackage(package);
@@ -135,7 +135,7 @@ namespace ReportService.Tests.Extensions
             var bccAddressesString = string.Join(';', expectedBccAddresses);
 
             var message = new MailMessage();
-            var package = GetAddressesOperationPackage(String.Empty, bccAddressesString);
+            OperationPackage package = GetAddressesOperationPackage(String.Empty, bccAddressesString);
 
             //Act
             message.AddRecipientsFromPackage(package);
@@ -150,7 +150,7 @@ namespace ReportService.Tests.Extensions
         {
             //Arrange
             var message = new MailMessage();
-            var package = GetAddressesOperationPackage(string.Empty, string.Empty);
+            OperationPackage package = GetAddressesOperationPackage(string.Empty, string.Empty);
 
             //Act
             message.AddRecipientsFromPackage(package);
@@ -165,7 +165,7 @@ namespace ReportService.Tests.Extensions
         {
             //Arrange
             var message = new MailMessage();
-            var package = GetAddressesOperationPackage(string.Empty, string.Empty);
+            OperationPackage package = GetAddressesOperationPackage(string.Empty, string.Empty);
 
             //Act
             message.AddRecipientsFromPackage(package);
@@ -203,16 +203,7 @@ namespace ReportService.Tests.Extensions
             };
 
             var packageBuilder = new ProtoPackageBuilder();
-            var package = packageBuilder.GetPackage(set);
-            return package;
-        }
-
-        private OperationPackage GetEmptyOperationPackage()
-        {
-            var set = new[] { new{} };
-
-            var packageBuilder = new ProtoPackageBuilder();
-            var package = packageBuilder.GetPackage(set);
+            OperationPackage package = packageBuilder.GetPackage(set);
             return package;
         }
     }
