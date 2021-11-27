@@ -358,19 +358,6 @@ namespace ReportService.Core
 
                     break;
             }
-
-            //case bool _ when type == typeof(DtoOperation): //todo:do we really need this method?
-            //break;
-
-            //case bool _ when type == typeof(DtoTelegramChannel): //todo:method
-            //break;
-
-            //case bool _ when type == typeof(DtoRecepientGroup): //todo:method
-            //try
-            //{
-            //    SimpleCommand.ExecuteNonQuery(connStr,
-            //        $@"delete RecepientGroup where Id={id}");
-            //}
         }
 
         public List<long> UpdateOperInstancesAndGetIds()
@@ -493,7 +480,7 @@ namespace ReportService.Core
         {
             using var connection = new SqlConnection(mConnectionString);
 
-            var builder = new Dapper.SqlBuilder();
+            var builder = new SqlBuilder();
             var selector = builder.AddTemplate
                 ($@"
                 select

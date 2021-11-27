@@ -35,7 +35,7 @@ namespace ReportService
 
     public partial class Bootstrapper
     {
-      private IConfigurationRoot GetConfiguration()
+        private IConfigurationRoot GetConfiguration()
         {
             var configBuilder = new ConfigurationBuilder().AddJsonFile("ConsulSettings.json");
             IConfigurationRoot config = configBuilder.Build();
@@ -46,15 +46,13 @@ namespace ReportService
 
             configBuilder.Sources.Clear();
 
-            MemoryStream jsonStream = null;
-
             try
             {
                 Dictionary<string, string> serviceSettings = getConsulSettingsTask.Result;
 
                 if (!string.IsNullOrEmpty(serviceSettings["AppService"]))
                 {
-                    jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
+                    var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(serviceSettings["AppService"]));
                     configBuilder.AddJsonStream(jsonStream);
                 }
             }
@@ -64,13 +62,10 @@ namespace ReportService
             }
 
             config = configBuilder.Build();
-            
-            jsonStream?.Dispose();
-
             return config;
         }
 
-      public void ConfigureContainer(ContainerBuilder builder)
+        public void ConfigureContainer(ContainerBuilder builder)
         {
             var config = GetConfiguration();
             builder.RegisterSingleInstance<IConfigurationRoot, IConfigurationRoot>(config);

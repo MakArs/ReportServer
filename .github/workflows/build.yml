@@ -9,23 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    #- uses: actions/setup-dotnet@v1
-    #  with:
-    #    dotnet-version: '3.1.100' # SDK Version to use.
-    #- uses: actions/cache@v1
-    #  with:
-    #    path: ~/.nuget/packages
-    #    key: ${{ runner.os }}-nuget-${{ github.sha }}
-    #    restore-keys: |
-    #      ${{ runner.os }}-nuget-
-
     - run: dotnet build
     - run: docker-compose -f ./ReportService.Tests/docker-compose.yml up -d
-    - run: dotnet test
-  build-n-test-windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@master
-    - run: dotnet build
-    - run: docker-compose -f ./ReportService.Tests/docker-compose-windows.yml up -d
     - run: dotnet test
