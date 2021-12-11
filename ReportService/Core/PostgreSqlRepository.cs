@@ -178,7 +178,7 @@ namespace ReportService.Core
             {
                 "OperInstance" => cOperInstanceInsertString,
                 "OperTemplate" => cOperTemplateInsertString,
-                "RecepientGroup" => cRecepientGroupInsertString,
+                "RecepientGroup" => cRecipientGroupInsertString,
                 "Schedule" => cScheduleInsertString,
                 "TaskInstance" => cTaskInstanceInsertString,
                 "TelegramChannel" => cTelegramChannelInsertString,
@@ -208,7 +208,7 @@ namespace ReportService.Core
             VALUES(@ImplementationType, @Name, @ConfigTemplate)
             RETURNING ""Id""; ";
 
-        private const string cRecepientGroupInsertString = @"INSERT INTO ""RecepientGroup""
+        private const string cRecipientGroupInsertString = @"INSERT INTO ""RecepientGroup""
             (""Name"",""Addresses"",""AddressesBcc"")
             VALUES(@Name, @Addresses, @AddressesBcc)
             RETURNING ""Id""; ";
@@ -517,9 +517,9 @@ namespace ReportService.Core
             return null;
         }
 
-        public void CreateSchema(string baseConnStr)
+        public void CreateSchema()
         {
-            using var connection = new NpgsqlConnection(baseConnStr);
+            using var connection = new NpgsqlConnection(mConnectionString);
             
             connection.Execute(@"
                 CREATE TABLE IF NOT EXISTS ""OperTemplate""
@@ -563,6 +563,7 @@ namespace ReportService.Core
                 ""Name"" VARCHAR(127) NOT NULL,
                 ""ScheduleId"" INT NULL,
                 ""Parameters"" VARCHAR(1023) NULL,
+                ""ParameterInfos"" VARCHAR(1023) NULL,
                 ""DependsOn"" VARCHAR(1023) NULL,
                 ""UpdateDateTime"" TIMESTAMP(3) NOT NULL,
                 CONSTRAINT ""PK_Task_Id"" PRIMARY KEY(""Id""),

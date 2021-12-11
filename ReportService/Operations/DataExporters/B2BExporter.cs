@@ -10,13 +10,12 @@ namespace ReportService.Operations.DataExporters
 
     public class B2BExporter : BaseB2BExporter
     {
-        protected override string InsertQuery =>
-            $@"INSERT INTO {ExportInstanceTableName}
+        protected override string InsertQuery => $@"INSERT INTO {ExportInstanceTableName}
                 (""ReportID"", ""Created"", ""DataPackage"")
                 VALUES(@ReportID, @Created, @DataPackage)";
 
-        public B2BExporter(IMapper mapper, IArchiver archiver,
-            B2BExporterConfig config, IDBStructureChecker dbStructureChecker) : base(mapper, archiver, config, dbStructureChecker)
+        public B2BExporter(IMapper mapper, IArchiver archiver, B2BExporterConfig config, IDBStructureChecker dbStructureChecker) 
+            : base(mapper, archiver, config, dbStructureChecker)
         {
         }
 

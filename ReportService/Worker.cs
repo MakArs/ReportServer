@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +40,7 @@ namespace ReportService
                 {
                     await Task.Factory.StartNew(Method, cancelToken);
                 }
-                catch (TaskCanceledException _)
+                catch (TaskCanceledException)
                 {
                     monik.ApplicationWarning("Stopping...");
                 }

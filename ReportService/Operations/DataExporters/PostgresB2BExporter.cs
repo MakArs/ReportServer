@@ -17,7 +17,7 @@ namespace ReportService.Operations.DataExporters
 
 	
 		public PostgresB2BExporter(IMapper mapper, IArchiver archiver,
-			B2BExporterConfig config, PostrgressDBStructureChecker dBStructureChecker) : base(mapper, archiver, config, dBStructureChecker)
+			B2BExporterConfig config, PostrgresDBStructureChecker dBStructureChecker) : base(mapper, archiver, config, dBStructureChecker)
 		{
 		}
 

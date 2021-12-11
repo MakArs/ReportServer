@@ -116,7 +116,7 @@ namespace ReportService.Operations.DataExporters.ViewExecutors
                 foreach (var value in row)
                 {
                     j++;
-                    ws.Cells[i + 1, j].SetObjValue(value, "");
+                    ws.Cells[i + 1, j].SetFromObject(value);
                 }
             }
 

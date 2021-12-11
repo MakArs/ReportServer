@@ -10,21 +10,20 @@ using ReportService.Extensions;
 using ReportService.Interfaces.Core;
 using ReportService.Interfaces.Operations;
 using ReportService.Interfaces.ReportTask;
-using ReportService.Operations.DataImporters;
 
 namespace ReportService.ReportTask
 {
     public class TaskWorker : ITaskWorker
     {
-        private readonly IRepository repository;
-        private readonly IMonik monik;
-        private int dependenciesWaitingCount = 3;
-        private readonly int dependenciesWaitingSeconds = 300;
+        private readonly IRepository mRepository;
+        private readonly IMonik mMonik;
+        private int mDependenciesWaitingCount = 3;
+        private readonly int mDependenciesWaitingSeconds = 300;
 
         public TaskWorker(IRepository repository, IMonik monik)
         {
-            this.repository = repository;
-            this.monik = monik;
+            mRepository = repository;
+            mMonik = monik;
         }
 
         private string GetOperationStateFromInstance(string operName, DtoOperInstance instance)
@@ -70,9 +69,9 @@ namespace ReportService.ReportTask
             };
 
             dtoOperInstance.Id =
-                repository.CreateEntity(dtoOperInstance);
+                mRepository.CreateEntity(dtoOperInstance);
 
-            repository.UpdateEntity(taskContext.TaskInstance);
+            mRepository.UpdateEntity(taskContext.TaskInstance);
         }
 
         private bool CheckIfDependenciesCompleted(IReportTaskRunContext taskContext,
@@ -90,7 +89,7 @@ namespace ReportService.ReportTask
                     var dependsOnStates = taskContext.DependsOn
                         .Select(dependency =>
                         {
-                            var state = repository.GetTaskStateById(dependency.TaskId);
+                            var state = mRepository.GetTaskStateById(dependency.TaskId);
                             return new
                             {
                                 dependency.TaskId,
@@ -102,7 +101,7 @@ namespace ReportService.ReportTask
 
                     if (dependsOnStates.Any(state => state.InProcessCount > 0))
                     {
-                        var waitInterval = Math.Min(dependenciesWaitingSeconds,
+                        var waitInterval = Math.Min(mDependenciesWaitingSeconds,
                                                taskContext.DependsOn.Select(dep => dep.MaxSecondsPassed).Min() - 60) *
                                            1000;
 
@@ -115,9 +114,9 @@ namespace ReportService.ReportTask
                         dependsOnStates.Where(state => state.SecondsPassed > state.MaxSecondsPassed)
                             .Select(state => state.TaskId));
 
-                    dependenciesWaitingCount--;
+                    mDependenciesWaitingCount--;
                 } while (!string.IsNullOrEmpty(unCompletedDependencies)
-                         && dependenciesWaitingCount > 0);
+                         && mDependenciesWaitingCount > 0);
 
                 if (!string.IsNullOrEmpty(unCompletedDependencies))
                 {
@@ -166,7 +165,7 @@ namespace ReportService.ReportTask
                 taskRequestInfo.Status = (int)RequestStatus.InProgress;
                 taskRequestInfo.TaskInstanceId = dtoTaskInstance.Id;
                 taskRequestInfo.UpdateTime = DateTime.UtcNow;
-                repository.UpdateEntity(taskRequestInfo);
+                mRepository.UpdateEntity(taskRequestInfo);
             }
 
             if (!CheckIfDependenciesCompleted(taskContext, exceptions))
@@ -208,7 +207,7 @@ namespace ReportService.ReportTask
             {
                 success = false;
                 var msg = $"Task {taskContext.TaskId}, named {taskContext.TaskName} is not completed. An error has occurred: {e.Message}";
-                monik.ApplicationError(msg);
+                mMonik.ApplicationError(msg);
                 Console.WriteLine(msg);
                 //  TODO: add a taskId to mail theme.
                 taskContext.DefaultExporter.SendError(exceptions, taskContext.TaskName, taskContext.TaskId);
@@ -226,7 +225,7 @@ namespace ReportService.ReportTask
                 : dtoTaskInstance.State == (int)InstanceState.Canceled ? (int)InstanceState.Canceled
                 : (int)InstanceState.Failed;
 
-            repository.UpdateEntity(dtoTaskInstance);
+            mRepository.UpdateEntity(dtoTaskInstance);
 
             if (taskRequestInfo != null)
             {
@@ -237,7 +236,7 @@ namespace ReportService.ReportTask
 
                 taskRequestInfo.UpdateTime = DateTime.UtcNow;
 
-                repository.UpdateEntity(taskRequestInfo);
+                mRepository.UpdateEntity(taskRequestInfo);
             }
         }
 
@@ -255,7 +254,7 @@ namespace ReportService.ReportTask
                 };
 
                 dtoOperInstance.Id =
-                    repository.CreateEntity(dtoOperInstance);
+                    mRepository.CreateEntity(dtoOperInstance);
 
                 taskContext.PackageStates[oper.Properties.Number - 1] =
                     GetOperationStateFromInstance(oper.Properties.Name, dtoOperInstance);
@@ -276,7 +275,7 @@ namespace ReportService.ReportTask
                     operDuration.Stop();
                     dtoOperInstance.Duration =
                         Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                    repository.UpdateEntity(dtoOperInstance);
+                    mRepository.UpdateEntity(dtoOperInstance);
                 }
 
                 catch (Exception e)
@@ -294,7 +293,7 @@ namespace ReportService.ReportTask
 
                         else
                         {
-                            var allExceptions = e.FromHierarchy(ex => ex.InnerException).ToList();
+                            var allExceptions = e.GetExceptionTree().ToList();
 
                             exceptions.AddRange(allExceptions
                                 .Select(exx => new Tuple<Exception, string>(exx, oper.Properties.Name)));
@@ -309,7 +308,7 @@ namespace ReportService.ReportTask
                     operDuration.Stop();
                     dtoOperInstance.Duration =
                         Convert.ToInt32(operDuration.ElapsedMilliseconds);
-                    repository.UpdateEntity(dtoOperInstance);
+                    mRepository.UpdateEntity(dtoOperInstance);
                 }
                 finally
                 {
@@ -341,7 +340,7 @@ namespace ReportService.ReportTask
 
         private void SendServiceInfo(string msg)
         {
-            monik.ApplicationInfo(msg);
+            mMonik.ApplicationInfo(msg);
             Console.WriteLine(msg);
         }
 

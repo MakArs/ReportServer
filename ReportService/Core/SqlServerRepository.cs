@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using Monik.Common;
@@ -22,13 +23,15 @@ namespace ReportService.Core
 
         public SqlServerRepository(string connStr, IMonik monik)
         {
+            Guard.Against.Null(monik, nameof(monik));
+            Guard.Against.NullOrEmpty(connStr, nameof(connStr));
+
             mConnectionString = connStr;
             mMonik = monik;
         }
 
         public async Task<object> GetBaseQueryResult(string query, CancellationToken token)
         {
-
             await using var connection = new SqlConnection(mConnectionString);
 
             dynamic result = await connection.QueryFirstAsync<dynamic>(new CommandDefinition(query, commandTimeout: 30, cancellationToken: token));
@@ -54,7 +57,7 @@ namespace ReportService.Core
             }
         }
 
-        public TaskState GetTaskStateById(long taskId)
+        public TaskState GetTaskStateById(long taskId) //todo: check why dateadd in SQL returns a bit different result for some values of argument(ms)
         {
             using var connection = new SqlConnection(mConnectionString);
 
@@ -355,19 +358,6 @@ namespace ReportService.Core
 
                     break;
             }
-
-            //case bool _ when type == typeof(DtoOperation): //todo:do we really need this method?
-            //break;
-
-            //case bool _ when type == typeof(DtoTelegramChannel): //todo:method
-            //break;
-
-            //case bool _ when type == typeof(DtoRecepientGroup): //todo:method
-            //try
-            //{
-            //    SimpleCommand.ExecuteNonQuery(connStr,
-            //        $@"delete RecepientGroup where Id={id}");
-            //}
         }
 
         public List<long> UpdateOperInstancesAndGetIds()
@@ -418,7 +408,7 @@ namespace ReportService.Core
                     transaction.Commit();
                 }
 
-                catch (Exception e)
+                catch (Exception)
                 {
                     transaction.Rollback();
                     throw;
@@ -490,7 +480,7 @@ namespace ReportService.Core
         {
             using var connection = new SqlConnection(mConnectionString);
 
-            var builder = new Dapper.SqlBuilder();
+            var builder = new SqlBuilder();
             var selector = builder.AddTemplate
                 ($@"
                 select
@@ -657,11 +647,10 @@ namespace ReportService.Core
             }
         }
 
-        public void CreateSchema(string baseConnStr)
+        public void CreateSchema()
         {
-            using var connection = new SqlConnection(baseConnStr);
+            using var connection = new SqlConnection(mConnectionString);
 
-            // TODO: check db exists ~find way to cut redundant code 
             connection.Execute(@"
                 IF OBJECT_ID('OperTemplate') IS NULL
                 BEGIN
@@ -722,6 +711,7 @@ namespace ReportService.Core
                 Name NVARCHAR(127) NOT NULL,
                 ScheduleId INT NULL,
                 Parameters NVARCHAR(1023) NULL,
+                ParameterInfos NVARCHAR(1023) NULL,
                 DependsOn NVARCHAR(1023) NULL,
                 UpdateDateTime datetime NOT NULL
                 CONSTRAINT [PK__Task__Id] PRIMARY KEY CLUSTERED 

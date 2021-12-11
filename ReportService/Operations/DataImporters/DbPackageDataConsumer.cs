@@ -6,7 +6,7 @@ using ReportService.Entities;
 using ReportService.Interfaces.Protobuf;
 using ReportService.Interfaces.ReportTask;
 using ReportService.Operations.DataImporters.Configurations;
-using ReportService.Operations.Helpers;
+using ReportService.Operations.DataImporters.Helpers;
 
 namespace ReportService.Operations.DataImporters
 {
@@ -24,7 +24,7 @@ namespace ReportService.Operations.DataImporters
         {
         }
 
-        protected async override Task ExecuteCommand(IReportTaskRunContext taskContext)
+        protected override async Task ExecuteCommand(IReportTaskRunContext taskContext)
         {
             var token = taskContext.CancelSource.Token;
             for (int i = 0; i < TriesCount; i++)

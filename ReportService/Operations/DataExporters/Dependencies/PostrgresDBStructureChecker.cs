@@ -1,16 +1,12 @@
 ﻿using Dapper;
-using ReportService.Interfaces.Core;
 using ReportService.Interfaces.ReportTask;
 using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace ReportService.Operations.DataExporters.Dependencies
 {
-    public class PostrgressDBStructureChecker : DBStructureChecker, IDBStructureChecker
+    public class PostrgresDBStructureChecker : DbStructureChecker
     {
-
-        #region private props
-        
         private string DbStructureCheckQuery => $@"SELECT 
 		  CASE WHEN 
 		  ((SELECT EXISTS(SELECT * 
@@ -31,15 +27,12 @@ namespace ReportService.Operations.DataExporters.Dependencies
 			THEN 1
 			ELSE 0
 		  END";
+
         private string CheckTaskIdRowQuery => $@"SELECT EXISTS(
 						SELECT 1 
 						FROM ""{ExportTableName}""
 						WHERE ""Id"" =@TaskId
 						)";
-        #endregion
-
-
-        #region overrides
 
         public override async Task<bool> CheckIfDbStructureExists(DbConnection connection, IReportTaskRunContext taskContext)
         {
@@ -55,6 +48,5 @@ namespace ReportService.Operations.DataExporters.Dependencies
 
             return result;
         }
-        #endregion
     }
 }

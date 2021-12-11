@@ -15,11 +15,11 @@ namespace ReportService.Protobuf
     public class ProtoPackageBuilder : IPackageBuilder
     {
 
-        private readonly Dictionary<Type, ScalarType> dotNetTypesToScalarTypes;
+        private readonly Dictionary<Type, ScalarType> mDotNetTypesToScalarTypes;
 
         public ProtoPackageBuilder()
         {
-            dotNetTypesToScalarTypes =
+            mDotNetTypesToScalarTypes =
                 new Dictionary<Type, ScalarType>
                 {
                     {typeof(int), ScalarType.Int32},
@@ -71,7 +71,7 @@ namespace ReportService.Protobuf
                 {
                     Name = GetDbColumnValue<string>(cols, row, SchemaTableColumn.ColumnName) ?? "",
                     Nullable = GetDbColumnValue<bool?>(cols, row, SchemaTableColumn.AllowDBNull) ?? false,
-                    Type = dotNetTypesToScalarTypes[GetDbColumnValue<Type>(cols, row, SchemaTableColumn.DataType)]
+                    Type = mDotNetTypesToScalarTypes[GetDbColumnValue<Type>(cols, row, SchemaTableColumn.DataType)]
                 });
             }
 
@@ -320,7 +320,7 @@ namespace ReportService.Protobuf
                 {
                     Nullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
                     Name = field.Name,
-                    Type = dotNetTypesToScalarTypes[type]
+                    Type = mDotNetTypesToScalarTypes[type]
                 });
             }
 
@@ -340,7 +340,7 @@ namespace ReportService.Protobuf
                 {
                     Nullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
                     Name = prop.Name,
-                    Type = dotNetTypesToScalarTypes[type]
+                    Type = mDotNetTypesToScalarTypes[type]
                 });
             }
 
@@ -351,9 +351,7 @@ namespace ReportService.Protobuf
 
         #region CsvReaderToPackage
 
-        public OperationPackage
-            GetPackage(CsvReader reader,
-                string groupNumbers) //todo: logic for maintaining multiple datasets?
+        public OperationPackage GetPackage(CsvReader reader, string groupNumbers) //todo: logic for maintaining multiple datasets?
         {
             var date = DateTime.Now.ToUniversalTime();
 
@@ -500,12 +498,6 @@ namespace ReportService.Protobuf
                             ? span.Ticks
                             : 0;
                         break;
-
-                    //case ScalarType.TimeStamp:
-                    //    varValue.TimeStamp = value is TimeSpan span
-                    //        ? new Timestamp {Seconds = span.Seconds}
-                    //        : new Timestamp();
-                    //    break;
                 }
             }
 

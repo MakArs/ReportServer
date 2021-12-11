@@ -2,63 +2,52 @@
 using System.Data.SqlClient;
 using System.Text;
 
-namespace ReportService.Operations.Helpers
+namespace ReportService.Operations.DataImporters.Helpers
 
 {
     public class SqlCommandInitializer
     {
-        //private static readonly Dictionary<Type, SqlDbType> scalarTypeToDbType = new Dictionary<Type, SqlDbType>()
-        //    {
-        //        { typeof(Int64),    SqlDbType.BigInt},
-        //        { typeof(Boolean),  SqlDbType.Bit},
-        //        { typeof(DateTime), SqlDbType.DateTime},
-        //        { typeof(Decimal),  SqlDbType.Decimal},
-        //        { typeof(Double),   SqlDbType.Float},
-        //        { typeof(Int32),    SqlDbType.Int},
-        //        { typeof(String),   SqlDbType.NVarChar},
-        //        { typeof(Single),   SqlDbType.Real},
-        //        { typeof(Int16),    SqlDbType.SmallInt},
-        //        { typeof(Byte),     SqlDbType.TinyInt},
-        //        { typeof(Guid),     SqlDbType.UniqueIdentifier}
-        //    };
-
-        private readonly StringBuilder sqlStringBuilder = new StringBuilder();
-        private readonly SqlCommand sqlCommand = new SqlCommand();
-        private bool isResolved = false;
+        private readonly StringBuilder mSqlStringBuilder = new StringBuilder();
+        private readonly SqlCommand mSqlCommand = new SqlCommand();
+        private bool mIsResolved;
 
         internal void AppendQueryString(string queryString)
         {
-            if (isResolved)
+            if (mIsResolved)
                 throw new InvalidOperationException("Command was resolved i.e. can`t change it`s query.");
             
-            sqlStringBuilder.Append(queryString);
+            mSqlStringBuilder.Append(queryString);
         }
+
         public SqlCommand ResolveCommand()
         {
-            if (isResolved)
-                return sqlCommand;
+            if (mIsResolved)
+                return mSqlCommand;
 
-            sqlCommand.CommandText = sqlStringBuilder.ToString();
-            isResolved = true;
-            return sqlCommand;
+            mSqlCommand.CommandText = mSqlStringBuilder.ToString();
+            mIsResolved = true;
+
+            return mSqlCommand;
         }
+
         internal void AddParameterWithValue(string paramName, object paramValue)
         {
-            if (isResolved)
+            if (mIsResolved)
                 throw new InvalidOperationException("Command was resolved i.e. can`t change it`s params list.");
 
-            sqlCommand.Parameters.AddWithValue(paramName, paramValue);
+            mSqlCommand.Parameters.AddWithValue(paramName, paramValue);
         }
 
         internal void HandleClosingBracket()
         {
-            if (isResolved)
+            if (mIsResolved)
                 throw new InvalidOperationException("Command was resolved i.e. can`t change it`s query.");
 
-            var index = sqlStringBuilder.ToString().LastIndexOf(',');
+            var index = mSqlStringBuilder.ToString().LastIndexOf(',');
             if (index >= 0)
-                sqlStringBuilder.Remove(index, 1);
-            sqlStringBuilder.Append($"){Environment.NewLine}");
+                mSqlStringBuilder.Remove(index, 1);
+
+            mSqlStringBuilder.Append($"){Environment.NewLine}");
         }
     }
 }

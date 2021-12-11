@@ -20,7 +20,7 @@ namespace ReportService.Interfaces.ReportTask
 
         IReportTaskRunContext GetCurrentContext(bool takeDefault);
         void Execute(IReportTaskRunContext context);
-        void UpdateLastTime();
+        void UpdateLastExecutionTime();
         Task<string> GetCurrentViewAsync(IReportTaskRunContext context);
         void SendDefault(IReportTaskRunContext context, string mailAddress);
     }

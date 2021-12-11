@@ -3,14 +3,11 @@ using System.Collections.Generic;
 
 namespace ReportService.Extensions
 {
-    public static class ErrorExtensions //can be used not only for errors
+    public static class ExceptionExtensions //can be used not only for errors
     {
-        public static IEnumerable<TSource> FromHierarchy<TSource>(
-            this TSource source,
-            Func<TSource, TSource> nextItem)
-            where TSource : class
+        public static IEnumerable<Exception> GetExceptionTree(this Exception source)
         {
-            return FromHierarchy(source, nextItem, s => s != null);
+            return FromHierarchy(source, ex => ex.InnerException, s => s != null);
         }
 
         private static IEnumerable<TSource> FromHierarchy<TSource>(
