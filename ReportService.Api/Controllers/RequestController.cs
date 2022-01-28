@@ -15,6 +15,8 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json.Linq;
+using ReportService.Entities.Dto;
+using RequestStatusFilter = ReportService.Api.Models.RequestStatusFilter;
 
 namespace ReportService.Api.Controllers
 {
@@ -56,7 +58,7 @@ namespace ReportService.Api.Controllers
             }
 
             var mapParameters = logic.MapParameters(newParameters.Parameters, currentTask.ParameterInfos.ToArray());
-            var mapErrors = mapParameters.Where(mp => mp.Error.Any());
+            var mapErrors = mapParameters.Where(mp => mp.Error.Any()).ToList();
 
             if (mapErrors.Any())
             {
@@ -69,34 +71,50 @@ namespace ReportService.Api.Controllers
                 return GetBadRequestError(JsonConvert.SerializeObject(errors));
             }
 
-            DateTime timeFrom = DateTime.MinValue;
-            DateTime timeTo = DateTime.MinValue;
-            
             foreach (var parameter in mapParameters)
             {
-                if (parameter.ParameterInfo.Name.ToLower().Contains("repparfrom") && parameter.Value.GetType().Equals(typeof(DateTime)))
-                    timeFrom = Convert.ToDateTime(parameter.UserValue.Value);
-                else if (parameter.ParameterInfo.Name.ToLower().Contains("repparto") && parameter.Value.GetType().Equals(typeof(DateTime)))
-                    timeTo = Convert.ToDateTime(parameter.UserValue.Value);
+                if (parameter.ParameterInfo.Validation == null || !parameter.ParameterInfo.Validation.ValidationRules.Any())
+                {
+                    continue;
+                }
+
+                foreach (var validationRule in parameter.ParameterInfo.Validation.ValidationRules)
+                {
+                    if (!(validationRule is DateRangeValidationRule rule))
+                    {
+                        continue;
+                    }
+
+                    var linkedValue = mapParameters
+                        .FirstOrDefault(
+                            x => x.ParameterInfo.Name.ToLower().Contains(rule.LinkedParameterName.ToLower())
+                        )?.Value;
+
+                    if (!(parameter.Value is DateTime) || !(linkedValue is DateTime))
+                    {
+                        continue;
+                    }
+
+                    var dateDiff = Convert.ToDateTime(linkedValue)
+                        .Subtract(Convert.ToDateTime(parameter.Value)).Days;
+                    if (parameter.ParameterInfo.Name.ToLower().Contains("repparfrom") && dateDiff >= rule.MaxDays)
+                        return GetBadRequestError(JsonConvert.SerializeObject(
+                            new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"The time period is to big ({dateDiff} days)." } } })
+                        );
+                    if (parameter.ParameterInfo.Name.ToLower().Contains("repparto") && dateDiff < 0)
+                        return GetBadRequestError(JsonConvert.SerializeObject(
+                            new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"RepParFrom is bigger than RepParTo." } } })
+                        );
+                }
             }
 
-
-            if (timeTo.Subtract(timeFrom).Days > 30)
-                return GetBadRequestError(JsonConvert.SerializeObject(
-                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"The time period is to big ({timeTo.Subtract(timeFrom).Days} days)." } } })
-                    );
-            else if (timeTo.Subtract(timeFrom).Days < 0)
-                return GetBadRequestError(JsonConvert.SerializeObject(
-                    new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"RepParFrom ({timeFrom}) is bigger than RepParTo ({timeTo})." } } })
-                    );
-            
             var taskRequestInfo = new Models.TaskRequestInfo(
                 newParameters.TaskId,
                 newParameters.Parameters
                 );
 
-            var test = mapper.Map<Entities.TaskRequestInfo>(taskRequestInfo);
-            var requestId = logic.CreateRequestTaskInfo(test);
+            var mappedTaskRequestInfo = mapper.Map<Entities.TaskRequestInfo>(taskRequestInfo);
+            var requestId = logic.CreateRequestTaskInfo(mappedTaskRequestInfo);
             taskRequestInfo.RequestId = requestId;
 
             return GetSuccessfulResult(JsonConvert.SerializeObject(taskRequestInfo));
