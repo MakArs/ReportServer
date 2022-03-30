@@ -22,7 +22,7 @@ namespace ReportService.Entities.Dto
             if (objectType == typeof(ValidationRule))
             {
                 var obj = jObject.ToObject<DateRangeValidationRule>(serializer);
-                if (obj.SettingsId == EnumValidationSettingsId.DateRangeSettingId)
+                if (obj.ValidationRuleName.Equals("DateRangeValidationRule"))
                 {
                     return obj;
                 }

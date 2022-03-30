@@ -2,7 +2,7 @@
 {
     public class DateRangeValidationRule : ValidationRule
     {
-        public EnumValidationSettingsId SettingsId { get; set; }
+        public string ValidationRuleName { get; set; }
         public string LinkedParameterName { get; set; }
         public int MaxDays { get; set; }
     }
