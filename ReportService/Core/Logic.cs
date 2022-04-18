@@ -897,7 +897,7 @@ namespace ReportService.Core
                     .Where(t => linkedParameterNames != null && linkedParameterNames.Contains(t.Name))
                     .ToList();
                 
-                var mapParameter = new ParameterChecker().MainCheck(param, userParameter, linkedParameters);
+                var mapParameter = new ParameterChecker().Check(param, userParameter, linkedParameters);
                 
                 mapResult.Add(mapParameter);
             }
