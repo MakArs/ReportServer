@@ -58,7 +58,7 @@ namespace ReportService.Api.Controllers
             }
 
             var mapParameters = logic.MapParameters(newParameters.Parameters, currentTask.ParameterInfos.ToArray());
-            var mapErrors = mapParameters.Where(mp => mp.Error.Any()).ToList();
+            var mapErrors = mapParameters.Where(mp => mp.Error != null && mp.Error.Any()).ToList();
 
             if (mapErrors.Any())
             {
@@ -69,43 +69,6 @@ namespace ReportService.Api.Controllers
                 };
 
                 return GetBadRequestError(JsonConvert.SerializeObject(errors));
-            }
-
-            foreach (var parameter in mapParameters)
-            {
-                if (parameter.ParameterInfo.Validation == null || !parameter.ParameterInfo.Validation.ValidationRules.Any())
-                {
-                    continue;
-                }
-
-                foreach (var validationRule in parameter.ParameterInfo.Validation.ValidationRules)
-                {
-                    if (!(validationRule is DateRangeValidationRule rule))
-                    {
-                        continue;
-                    }
-
-                    var linkedValue = mapParameters
-                        .FirstOrDefault(
-                            x => x.ParameterInfo.Name.ToLower().Contains(rule.LinkedParameterName.ToLower())
-                        )?.Value;
-
-                    if (!(parameter.Value is DateTime) || !(linkedValue is DateTime))
-                    {
-                        continue;
-                    }
-
-                    var dateDiff = Convert.ToDateTime(linkedValue)
-                        .Subtract(Convert.ToDateTime(parameter.Value)).Days;
-                    if (parameter.ParameterInfo.Name.ToLower().Contains("repparfrom") && dateDiff >= rule.MaxDays)
-                        return GetBadRequestError(JsonConvert.SerializeObject(
-                            new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"The time period is to big ({dateDiff} days)." } } })
-                        );
-                    if (parameter.ParameterInfo.Name.ToLower().Contains("repparto") && dateDiff < 0)
-                        return GetBadRequestError(JsonConvert.SerializeObject(
-                            new Errors { ErrorsInfo = new Dictionary<string, string[]> { ["Time Period Error"] = new[] { $"RepParFrom is bigger than RepParTo." } } })
-                        );
-                }
             }
 
             var taskRequestInfo = new Models.TaskRequestInfo(
