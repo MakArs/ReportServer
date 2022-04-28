@@ -17,9 +17,14 @@ namespace ReportService.Entities
                 errors.Add(isRequired);
                 return new ParameterMapping(parameterInfo, taskParameter, errors, null);
             }
-                
-            errors.AddRange(TypeCheck(parameterInfo, taskParameter));
-
+            
+            var typeErrors = TypeCheck(parameterInfo, taskParameter);
+            if (typeErrors.Any())
+            {
+                errors.AddRange(typeErrors);
+                return new ParameterMapping(parameterInfo, taskParameter, errors, taskParameter.Value);
+            }
+            
             if (parameterInfo.Validation?.ValidationRules == null)
             {
                 return new ParameterMapping(parameterInfo, taskParameter, errors, taskParameter.Value);
@@ -55,7 +60,7 @@ namespace ReportService.Entities
         {
             var paramType = parameterInfo.Type;
             var errors = new List<string>();
-            switch (paramType)
+            switch (paramType.ToLower())
             {
                 case "bigint":
                     if (!long.TryParse(taskParameter.Value, out _))
@@ -99,6 +104,7 @@ namespace ReportService.Entities
             if (linkedValue == null)
             {
                 errors.Add($@"The linked parameter value is not set.");
+                return errors;
             }
             
             if (!DateTime.TryParse(linkedValue, out _))
@@ -110,10 +116,10 @@ namespace ReportService.Entities
             var dateDiff = Convert.ToDateTime(linkedValue)
                 .Subtract(Convert.ToDateTime(taskParameter.Value)).Days;
             
-            if (taskParameter.Name.ToLower().Contains("repparfrom") && dateDiff >= dateRangeValidationRule.MaxDays)
+            if (dateDiff >= dateRangeValidationRule.MaxDays)
                 errors.Add($"Time period error. The time period is to big ({dateDiff} days). It can be more than {dateRangeValidationRule.MaxDays}");
             
-            if (taskParameter.Name.ToLower().Contains("repparto") && dateDiff < 0)
+            if (dateDiff < 0)
                 errors.Add($"Time period error. Time from point can not be late than time to point.");
 
             return errors;
