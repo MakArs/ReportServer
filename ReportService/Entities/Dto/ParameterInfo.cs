@@ -7,5 +7,6 @@
         public bool IsRequired { get; set; }
         public string Description { get; set; }
         public string DefaultValue { get; set; }
+        public Validation Validation { get; set; }
     }
 }

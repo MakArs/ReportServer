@@ -885,60 +885,20 @@ namespace ReportService.Core
 
             foreach (var param in taskParameters)
             {
-                var userParameter = userParameters.FirstOrDefault(up => up.Name.Equals(param.Name, StringComparison.InvariantCultureIgnoreCase));
+                var userParameter = userParameters.FirstOrDefault(up =>
+                    up.Name.Equals(param.Name, StringComparison.InvariantCultureIgnoreCase));
 
-                var mapParameter = new ParameterMapping(
-                    param,
-                    userParameter,
-                    new List<string>(),
-                    new object()
-                    );
+                var linkedParameterNames = param.Validation?.ValidationRules
+                    .Select(x => x.GetType().GetProperty("LinkedParameterName")?.GetValue(x))
+                    .ToList();
 
-                if (userParameter == null)
-                {
-                    if (param.IsRequired)
-                    {
-                        mapParameter.Error.Add($"The required parameter with name:{param.Name} is missing.");
-                    }
-                    mapResult.Add(mapParameter);
-                    continue;
-                }
-
-                var paramType = param.Type;
-                switch (paramType)
-                {
-                    case "bigint":
-                        if (!long.TryParse(userParameter.Value, out _))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = Convert.ToInt64(userParameter.Value);
-                        break;
-
-                    case "int":
-                        if (!int.TryParse(userParameter.Value, out _))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = Convert.ToInt32(userParameter.Value);
-                        break;
-
-                    case "datetime":
-                        if (!DateTime.TryParse(userParameter.Value, out _))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = Convert.ToDateTime(userParameter.Value);
-                        break;
-
-                    case "string":
-                        if (userParameter.GetType() != typeof(string))
-                            mapParameter.Error.Add($"Wrong value input. TypeError in parameter: {userParameter.Name}.");
-                        else
-                            mapParameter.Value = userParameter.Value;
-                        break;
-
-                    default:
-                        mapParameter.Error.Add($"Wrong type of parameter: {param.Name}.");
-                        break;
-                }
+                var linkedParameters = userParameters
+                    .Select(x => x)
+                    .Where(t => linkedParameterNames != null && linkedParameterNames.Contains(t.Name))
+                    .ToList();
+                
+                var mapParameter = new ParameterChecker().Check(param, userParameter, linkedParameters);
+                
                 mapResult.Add(mapParameter);
             }
             return mapResult.ToArray();
@@ -958,7 +918,7 @@ namespace ReportService.Core
                     new NamedParameter("dependsOn", dtoTask.DependsOn),
                     new NamedParameter("schedule", schedules
                         .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                    new NamedParameter("opers", operations
+                    new NamedParameter("operations", operations
                         .Where(oper => oper.TaskId == dtoTask.Id)
                         .Where(oper => !oper.IsDeleted).ToList()),
                     new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
@@ -978,7 +938,7 @@ namespace ReportService.Core
                 new NamedParameter("dependsOn", dtoTask.DependsOn),
                 new NamedParameter("schedule", schedules
                     .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                new NamedParameter("opers", operations
+                new NamedParameter("operations", operations
                     .Where(oper => oper.TaskId == dtoTask.Id)
                     .Where(oper => !oper.IsDeleted).ToList()),
                 new NamedParameter("parameterInfos", dtoTask.ParameterInfos));
@@ -1000,7 +960,7 @@ namespace ReportService.Core
                     new NamedParameter("dependsOn", dtoTask.DependsOn),
                     new NamedParameter("schedule", schedules
                         .FirstOrDefault(s => s.Id == dtoTask.ScheduleId)),
-                    new NamedParameter("opers", operations
+                    new NamedParameter("operations", operations
                         .Where(oper => oper.TaskId == dtoTask.Id)
                         .Where(oper => !oper.IsDeleted).ToList()),
                     new NamedParameter("parameterInfos", dtoTask.ParameterInfos));

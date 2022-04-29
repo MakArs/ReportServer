@@ -46,7 +46,7 @@ namespace ReportService.ReportTask
                 DependsOn = JsonConvert.DeserializeObject<List<TaskDependency>>(dependsOn);
 
             if (!string.IsNullOrEmpty(parameterInfos))
-                ParameterInfos = JsonConvert.DeserializeObject<List<ParameterInfo>>(parameterInfos);
+                ParameterInfos = JsonConvert.DeserializeObject<List<ParameterInfo>>(parameterInfos, new ValidationRuleConverter());
 
             mContainer = container;
 
