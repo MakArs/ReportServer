@@ -9,7 +9,6 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyVersion>3.0.1.2</AssemblyVersion>
     <FileVersion>3.0.1.0</FileVersion>
-    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <!--for razorengine work-->
   </PropertyGroup>
 
