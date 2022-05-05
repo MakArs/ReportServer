@@ -42,4 +42,8 @@
     <PackageReference Include="Telegram.Bot" Version="15.1.0" />
     <PackageReference Include="WinSCP" Version="5.15.9" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="..\.dockerignore" />
+  </ItemGroup>
 </Project>
