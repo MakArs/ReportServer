@@ -26,7 +26,7 @@ namespace ReportService.Extensions
                     col.Add(new MailAddress(address));
         }
 
-        public static void AddRecipientsFromPackage(this MailMessage msg, OperationPackage package)
+        public static void AddRecipientsFromOperationPackage(this MailMessage msg, OperationPackage package)
         {
             Guard.Against.Null(package, nameof(package));
 

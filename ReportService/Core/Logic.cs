@@ -138,7 +138,7 @@ namespace ReportService.Core
             {
                 try
                 {
-                    if (isTaskNeedToRun(task))
+                    if (IsTaskNeedToRun(task))
                     {
                         ExecuteTask(task);
                     }
@@ -844,9 +844,9 @@ namespace ReportService.Core
             return newTaskRequestInfoId;
         }
 
-        private bool isTaskNeedToRun(IReportTask task)
+        private bool IsTaskNeedToRun(IReportTask task)
         {
-            string[] cronStrings =
+            var cronStrings =
                        schedules.First(s => s.Id == task.Schedule.Id).Schedule.Split(';');
 
             foreach (var cronString in cronStrings)
