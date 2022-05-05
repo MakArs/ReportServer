@@ -102,7 +102,7 @@ namespace ReportService.Tests.Extensions
             OperationPackage package = GetAddressesOperationPackage(toAddressesString, bccAddressesString);
 
             //Act
-            message.AddRecipientsFromPackage(package);
+            message.AddRecipientsFromOperationPackage(package);
 
             //Assert
             message.To.Select(mailAddress => mailAddress.Address).ToList().ShouldBeEquivalentTo(expectedToAddresses);
@@ -120,7 +120,7 @@ namespace ReportService.Tests.Extensions
             OperationPackage package = GetAddressesOperationPackage(toAddressesString, string.Empty);
 
             //Act
-            message.AddRecipientsFromPackage(package);
+            message.AddRecipientsFromOperationPackage(package);
 
             //Assert
             message.To.Select(mailAddress=> mailAddress.Address).ToList().ShouldBeEquivalentTo(expectedToAddresses);
@@ -138,7 +138,7 @@ namespace ReportService.Tests.Extensions
             OperationPackage package = GetAddressesOperationPackage(String.Empty, bccAddressesString);
 
             //Act
-            message.AddRecipientsFromPackage(package);
+            message.AddRecipientsFromOperationPackage(package);
 
             //Assert
             message.To.Select(mailAddress => mailAddress.Address).ShouldBeEmpty();
@@ -153,7 +153,7 @@ namespace ReportService.Tests.Extensions
             OperationPackage package = GetAddressesOperationPackage(string.Empty, string.Empty);
 
             //Act
-            message.AddRecipientsFromPackage(package);
+            message.AddRecipientsFromOperationPackage(package);
 
             //Assert
             message.Bcc.Select(mailAddress => mailAddress.Address).ToList().ShouldBeEmpty();
@@ -168,7 +168,7 @@ namespace ReportService.Tests.Extensions
             OperationPackage package = GetAddressesOperationPackage(string.Empty, string.Empty);
 
             //Act
-            message.AddRecipientsFromPackage(package);
+            message.AddRecipientsFromOperationPackage(package);
 
             //Assert
             message.Bcc.Select(mailAddress => mailAddress.Address).ToList().ShouldBeEmpty();
@@ -183,7 +183,7 @@ namespace ReportService.Tests.Extensions
             var message = new MailMessage();
 
             //Act, Assert
-            Should.Throw<ArgumentNullException>((() => message.AddRecipientsFromPackage(null))).Message.ShouldContain(expectedExceptionPart);
+            Should.Throw<ArgumentNullException>((() => message.AddRecipientsFromOperationPackage(null))).Message.ShouldContain(expectedExceptionPart);
         }
 
         private OperationPackage GetAddressesOperationPackage(string toAddresses, string bccAddresses)

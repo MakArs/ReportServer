@@ -78,7 +78,7 @@ namespace ReportService.Operations.DataExporters
             msg.AddRecipientsFromRecipientAddresses(addresses);
 
             if (!string.IsNullOrEmpty(RecepientsDatasetName))
-                msg.AddRecipientsFromPackage(taskContext.Packages[RecepientsDatasetName]);
+                msg.AddRecipientsFromOperationPackage(taskContext.Packages[RecepientsDatasetName]);
 
             return msg;
         }
